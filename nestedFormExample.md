@@ -1,3 +1,5 @@
+# nested form components
+
 ### one way to do it
 
 ```jsx
@@ -119,6 +121,3 @@ export default class Contact extends React.Component {
 }
 ```
 
-### which is best?
-
-whatever suits your purposes
