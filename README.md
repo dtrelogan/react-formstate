@@ -103,7 +103,7 @@ regardless i very much believe what you see above enables real work to get done 
 
 - [nested form components](/nestedFormExample.md)
 - [asynchronous validation](/asyncExample.md)
-- [arrays, creating or removing inputs in response to state changes](/arrayExample.md)
+- [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
 
 ### peer dependencies
 
