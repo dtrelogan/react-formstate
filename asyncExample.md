@@ -1,4 +1,4 @@
-### asynchronous validation
+# asynchronous validation
 
 ```jsx
 import React from 'react';
