@@ -1,6 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.1.0",
+  "version": "0.1.2",
+  "peerDependencies": {
+    "babel-polyfill": ">=6.0.0",
+    "react": ">=0.13.0"
+  },
   "description": "a dead simple form framework for react",
   "main": "react-formstate.js",
   "scripts": {
