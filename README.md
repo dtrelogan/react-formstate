@@ -16,7 +16,7 @@ export default class LoginForm extends React.Component {
     super(props);
     this.formState = new FormState(this);
     
-    // if you were editing a model, you could "inject" this.props.model
+    // if you were editing a model, you could "inject" props.model
     this.state = this.formState.createUnitOfWork().injectModel();
 
     // since we're not injecting a model, the above is equivalent to
