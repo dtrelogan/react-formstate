@@ -97,14 +97,14 @@ sadly, despite the fact that many react packages steer you toward joi https://ww
 
 i would love it if there were a clean client-side validation api that gave you the proper hooks for messaging and internationalization, but as far as i'm aware there isn't. i'm totally open to adding something to this api to minimize busy work but it has to be done well.
 
-regardless i very much believe what you see above enables real work to get done. efficiently.
+regardless i very much believe what you see above enables real work to get done, efficiently and effectively.
 
 ### features and examples (the good stuff)
 
 - [nested form components](/nestedFormExample.md)
 - [asynchronous validation](/asyncExample.md)
 - [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
-- [other input types: checkbox, checkbox group, radio group, select](/otherInputTypes.md)
+- [other input types: checkbox, checkbox group, radio group, select, and multi-select](/otherInputTypes.md)
 
 ### peer dependencies
 
