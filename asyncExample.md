@@ -68,17 +68,19 @@ export default class UserForm extends React.Component {
       return;
     } // else
 
-    let field = fieldState.getField(),
-      asyncToken = fieldState.setValidating(`Verifying ${field.label.toLowerCase()}...`);
-
+    // user might type additional characters into the username input box
+    let asyncToken = fieldState.setValidating('Verifying username...');
     context.updateFormState();
 
+    // simulate calling your api
     window.setTimeout(function() {
-      let context = this.formState.createUnitOfWork();
-      let fieldState = context.getFieldState(field.name, asyncToken);
-      if (fieldState) { // if it hasn't changed in the meantime
+      let context = this.formState.createUnitOfWork(),
+        fieldState = context.getFieldState('username', asyncToken);
+        
+      // if the token still matches, the username we are verifying is still relevant
+      if (fieldState) {
         if (username === 'taken') {
-          fieldState.setInvalid(`${field.label} already exists`);
+          fieldState.setInvalid('Username already exists');
         } else {
           fieldState.setValid('Verified');
         }
