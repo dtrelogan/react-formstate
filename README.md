@@ -23,10 +23,12 @@ export default class LoginForm extends React.Component {
     this.state = {};
   }
 
+  // this is auto-wired (username --> validateUsername)
   validateUsername(username) {
     if (username.trim() === '') { return 'Username is required'; }
   }
 
+  // this is named explicitly below for demonstration purposes
   validatePassword(password) {
     if (password.trim() === '') { return 'Password is required'; }
   }
@@ -36,7 +38,7 @@ export default class LoginForm extends React.Component {
       <form>
         <FormObject formState={this.formState}>
           <Input formField='username' label='Username' />
-          <Input formField='password' label='Password' />
+          <Input formField='password' label='Password' validate={this.validatePassword} />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
