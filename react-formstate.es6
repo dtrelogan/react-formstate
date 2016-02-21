@@ -214,6 +214,7 @@ export class FormObject extends React.Component {
     if (!field.initialized) {
       field.initialized = true;
       field.label = (this.labelPrefix || '') + props.label;
+      field.required = Boolean(props.required);
       if (props.validate) {
         field.validate = props.validate;
       } else {
@@ -323,6 +324,10 @@ class FieldState {
     }
   }
 
+  callValidationFunction(f) {
+    return f(this.fieldState.value, this.stateContext, this.field);
+  }
+
   //
   // public
   //
@@ -357,14 +362,14 @@ class FieldState {
 
   validate() {
     this.assertCanUpdate();
-    if (this.field.validate) {
-      let message = this.field.validate(this.fieldState.value, this.stateContext, this.field);
-      if (message) {
-        return this.setInvalid(message);
-      } else {
-        return this.setValid();
-      }
+    let message;
+    if (this.field.required) {
+      message = this.callValidationFunction(FormState.required);
     }
+    if (!message && this.field.validate) {
+      message = this.callValidationFunction(this.field.validate);
+    }
+    if (message) { return this.setInvalid(message); } // else
     return this.setValid();
   }
 
@@ -386,6 +391,10 @@ class FieldState {
 //
 
 export class FormState {
+
+  static setRequired(f) {
+    this.required = f;
+  }
 
   constructor(form) {
     this.form = form;
@@ -636,6 +645,8 @@ class UnitOfWork {
     this.updateFormState();
     return null;
   }
+}
 
-
+FormState.required = function(value) {
+  if (value.trim() === '') { return 'Required field'; }
 }
