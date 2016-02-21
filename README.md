@@ -23,12 +23,11 @@ export default class LoginForm extends React.Component {
     this.state = {};
   }
 
-  // this is auto-wired (username --> validateUsername)
+  // there is framework assistance for required fields, this is for demonstration
   validateUsername(username) {
     if (username.trim() === '') { return 'Username is required'; }
   }
 
-  // this is named explicitly below for demonstration purposes
   validatePassword(password) {
     if (password.trim() === '') { return 'Password is required'; }
   }
@@ -37,7 +36,9 @@ export default class LoginForm extends React.Component {
     return (
       <form>
         <FormObject formState={this.formState}>
+          {/* autowired to validateUsername */}
           <Input formField='username' label='Username' />
+          {/* you can name the validation callback if necessary */}
           <Input formField='password' label='Password' validate={this.validatePassword} />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
@@ -79,29 +80,6 @@ export default class Input extends React.Component {
     );
   }
 }
-```
-
-### required fields
-
-i might suggest the following
-
-```jsx
-  <Input formField='username' label='Username' validate={APP.required} />
-  <Input formField='password' label='Password' validate={APP.required} />
-```
-
-```jsx
-  required(value) {
-    if (value.trim() === '') { return 'Required field'; }
-  }
-```
-
-or
-
-```jsx
-  required(value, context, field) {
-    if (value.trim() === '') { return `${field.label} is required`; }
-  }
 ```
 
 ### comments
