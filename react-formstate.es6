@@ -324,8 +324,12 @@ class FieldState {
     }
   }
 
-  callValidationFunction(f) {
-    return f(this.fieldState.value, this.stateContext, this.field);
+  callValidationFunction(f, params) {
+    if (f && typeof(f) === 'function') {
+      params = params || [];
+      return f(this.fieldState.value, this.stateContext, this.field, ...params);
+    } // else
+    return 'error: provided validation function is not a function?';
   }
 
   //
@@ -367,7 +371,27 @@ class FieldState {
       message = this.callValidationFunction(FormState.required);
     }
     if (!message && this.field.validate) {
-      message = this.callValidationFunction(this.field.validate);
+      if (Array.isArray(this.field.validate)) {
+        for(let i = 0, len = this.field.validate.length; i < len; i++) {
+          let validationName = this.field.validate[i],
+            params = [];
+
+          if (Array.isArray(validationName)) {
+            params = validationName.slice(1);
+            validationName = validationName[0];
+          }
+
+          let f = FormState.lookupValidation(validationName);
+          if (f) {
+            message = this.callValidationFunction(f, params);
+          } else {
+            message = 'error: no validation function registered as ' + validationName;
+          }
+          if (message) { break; }
+        }
+      } else {
+        message = this.callValidationFunction(this.field.validate);
+      }
     }
     if (message) { return this.setInvalid(message); } // else
     return this.setValid();
@@ -394,6 +418,18 @@ export class FormState {
 
   static setRequired(f) {
     this.required = f;
+  }
+
+  static registerValidation(name, f) {
+    this.validators[name] = f;
+  }
+
+  static unregisterValidation(name) {
+    delete this.validators[name];
+  }
+
+  static lookupValidation(name) {
+    return this.validators[name];
   }
 
   constructor(form) {
@@ -650,3 +686,5 @@ class UnitOfWork {
 FormState.required = function(value) {
   if (value.trim() === '') { return 'Required field'; }
 }
+
+FormState.validators = {};
