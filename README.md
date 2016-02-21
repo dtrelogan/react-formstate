@@ -23,22 +23,12 @@ export default class LoginForm extends React.Component {
     this.state = {};
   }
 
-  // there is framework assistance for required fields, this is for demonstration
-  
-  validateUsername(username) {
-    if (username.trim() === '') { return 'Username is required'; }
-  }
-
-  validatePassword(password) {
-    if (password.trim() === '') { return 'Password is required'; }
-  }
-
   render() {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='username' label='Username' />{/* autowired */}
-          <Input formField='password' label='Password' validate={this.validatePassword} />
+          <Input formField='username' label='Username' required />
+          <Input formField='password' label='Password' required />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
@@ -87,22 +77,10 @@ export default class Input extends React.Component {
 - form state lives with your form component until the form is submitted with valid data
 - designed to work with controlled components https://facebook.github.io/react/docs/forms.html
 - framework simply provides props, you lay out your inputs
-- and...
 
-### NOT a validation library per se
+### features and examples
 
-but it does *wire up* validation, which in react is arguably more valuable.
-
-you can do whatever you'd like in your validation callbacks but i'd suggest using validator https://www.npmjs.com/package/validator
-
-sadly, despite the fact that many react packages steer you toward joi https://www.npmjs.com/package/joi _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and will add about a megabyte to your bundle.
-
-i would love it if there were a clean client-side validation api that gave you the proper hooks for messaging and internationalization, but as far as i'm aware there isn't. i'm totally open to adding something to this api to minimize busy work but it has to be done well.
-
-regardless i very much believe what you see above enables real work to get done, efficiently and effectively.
-
-### features and examples (the good stuff)
-
+- [validation] (/validationWiring.md)
 - [nested form components](/nestedFormExample.md)
 - [asynchronous validation](/asyncExample.md)
 - [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
