@@ -1,0 +1,393 @@
+# templates for other input types
+
+```jsx
+import { FormState, FormObject, FormArray } from 'react-formstate';
+import Input from './Input.jsx';
+import Contact from './Contact.jsx';
+import Address from './Address.jsx';
+import Checkbox from './Checkbox.jsx';
+import CheckboxGroup from './CheckboxGroup.jsx';
+import RadioGroup from './RadioGroup.jsx';
+import Select from './Select.jsx';
+
+export default class UserForm extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.formState = new FormState(this);
+
+    let model = {}; // create
+    // or edit:
+    // model = {
+    //   name: 'buster brown',
+    //   username: 'buster',
+    //   contactPreferenceId: 2,
+    //   contacts: [
+    //     {
+    //       email: 'buster@dogmail.com',
+    //       phone: '999-999-9999',
+    //       address: { line1: '123 home st' }
+    //     },
+    //     {
+    //       email: 'buster@dogs.org',
+    //       phone: '888-888-8888',
+    //       address: { line1: '456 work st' }
+    //     }
+    //   ],
+    //   roleIds: [2,3],
+    //   siteIds: [4],
+    //   defaultSiteId: 4,
+    //   disabled: true
+    // };
+
+    this.originalUsername = model.username;
+
+    let context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    this.state = context.add('active', !model.disabled);
+    this.state.numContacts = model.contacts ? model.contacts.length : 0;
+
+    this.contactChoices = [
+      { id: 1, name: 'Contact Me' },
+      { id: 2, name: 'Do Not Contact Me' }
+    ];
+
+    this.roles = [
+      { id: 1, name: 'Master Admin' },
+      { id: 2, name: 'Customer Service' },
+      { id: 3, name: 'Data Admin' }
+    ];
+
+    this.sites = [
+      { id: 1, name: 'Site 1' },
+      { id: 2, name: 'Site 2' },
+      { id: 3, name: 'Site 3' },
+      { id: 4, name: 'Site 4' }
+    ];
+  }
+
+
+  validateName(name) {
+    if (name.trim() === '') { return 'Required field'; }
+  }
+
+  validateUsername(username) {
+    if (username.trim() === '') { return 'Required field'; }
+    // uniqueness validated asynchronously in username handler below
+  }
+
+  validatePassword(password, context) {
+    context.getFieldState('passwordConfirmation').setValue('');
+    if (password.trim() === '') { return 'Required field'; }
+    else if (password.length < 8) { return 'Must be at least 8 characters'; }
+  }
+
+  validatePasswordConfirmation(confirmation, context) {
+    if (confirmation !== context.getFieldState('password').getValue()) {
+      return 'Passwords do not match';
+    }
+  }
+
+  validateRoleIds(roleIds) {
+    if (!roleIds.length) { return 'Please select at least one role'; }
+  }
+
+
+  render() {
+    let submitMessage = null;
+
+    if (this.formState.isValidating()) {
+      submitMessage = 'Waiting for validation to finish...';
+    } else if (this.formState.isInvalid()) {
+      submitMessage = 'Please fix validation errors';
+    }
+
+    let contacts = [];
+
+    for (let i = 0; i < this.state.numContacts; i++) {
+      if (!this.formState.isDeleted(`contacts.${i}`)) {
+        contacts.push(
+          <div key={i} >
+            <h4>{i}</h4>
+            <Contact formObject={i} >
+              <Address formObject={'address'} labelPrefix='Address '/>
+            </Contact>
+            <a href='#' onClick={this.removeContact(i)}>remove</a>
+          </div>
+        );
+      }
+    }
+
+    return (
+      <form>
+        <FormObject formState={this.formState}>
+          <Input formField='name' label='Name' />
+          <Input formField='username' label='Username' updateFormState={this.handleUsernameChange.bind(this)} />
+          <Input formField='password' type='password'  label='Password' />
+          <Input formField='passwordConfirmation' type='password' label='Confirm Password' /><br/>
+          <RadioGroup
+            buttonValues={this.contactChoices}
+            formField='contactPreferenceId'
+            label='Contact Preference'
+            defaultValue={1}
+            intConvert={true}
+          />
+          <h3>Contacts</h3>
+          <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
+          <FormArray name='contacts'>
+            {contacts}
+          </FormArray>
+          <h3>Account Settings</h3>
+          <CheckboxGroup
+            formField='roleIds'
+            checkboxValues={this.roles}
+            label='Roles'
+            defaultValue={[]}
+            intConvert={true}
+          />
+          <Select
+            formField='siteIds'
+            multiple={true}
+            optionValues={this.sites}
+            label='Site Access'
+            defaultValue={[1]}
+            intConvert={true}
+          />
+          <br/>
+          <Select
+            formField='defaultSiteId'
+            optionValues={this.sites}
+            label='Default Site'
+            defaultValue={1}
+            intConvert={true}
+          />
+          <br/>
+          <Checkbox
+            formField='active'
+            label='Active'
+            defaultValue={true}
+          />
+          <br/>
+        </FormObject>
+        <br/>
+        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+        <span>{submitMessage}</span>
+      </form>
+    );
+  }
+
+
+  handleSubmit(e) {
+    e.preventDefault();
+    let model = this.formState.createUnitOfWork().createModel();
+    if (model) {
+      model.disabled = !model.active;
+      delete model.active;
+      alert(JSON.stringify(model));
+    }
+  }
+
+
+  addContact(e) {
+    e.preventDefault();
+    this.setState({ numContacts: this.state.numContacts + 1 });
+  }
+
+
+  removeContact(i) {
+    return function(e) {
+      e.preventDefault();
+      let context = this.formState.createUnitOfWork();
+      context.remove(`contacts.${i}`);
+      context.updateFormState();
+    }.bind(this);
+  }
+
+
+  handleUsernameChange(e) {
+    let username = e.target.value;
+
+    let context = this.formState.createUnitOfWork();
+    let fieldState = context.getFieldState('username').setValue(username);
+
+    if (username === this.originalUsername) {
+      fieldState.setValid();
+      context.updateFormState();
+      return;
+    } // else
+
+    let message = this.validateUsername(username);
+    if (message) {
+      fieldState.setInvalid(message);
+      context.updateFormState();
+      return;
+    } // else
+
+    let field = fieldState.getField(),
+      asyncToken = fieldState.setValidating(`Verifying ${field.label.toLowerCase()}...`);
+
+    context.updateFormState();
+
+    window.setTimeout(function() {
+      let context = this.formState.createUnitOfWork();
+      let fieldState = context.getFieldState(field.name, asyncToken);
+      if (fieldState) { // if it hasn't changed in the meantime
+        if (username === 'taken') {
+          fieldState.setInvalid(`${field.label} already exists`);
+        } else {
+          fieldState.setValid('Verified');
+        }
+        context.updateFormState();
+      }
+    }.bind(this), 2000);
+  }
+
+}
+```
+
+### Checkbox
+
+```jsx
+import React from 'react';
+
+export default class Checkbox extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextProps.fieldState.equals(this.props.fieldState);
+  }
+
+  render() {
+    console.log('render ' + this.props.label);
+    return (
+      <div>
+        <input type='checkbox' checked={this.props.fieldState.getValue()} onChange={this.props.updateFormState} /><label>{this.props.label}</label>
+        <span className='help'>{this.props.fieldState.getMessage()}</span>
+      </div>
+    )
+  }
+}
+```
+
+### CheckboxGroup
+
+```jsx
+import React from 'react';
+
+export default class CheckboxGroup extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextProps.fieldState.equals(this.props.fieldState);
+  }
+
+  render() {
+    console.log('render ' + this.props.label);
+    let checkboxes = this.props.checkboxValues.map(function(v) {
+      let checked = this.props.fieldState.getValue().some(x => x === v.id.toString());
+      return (
+        <span key={v.id}>
+          <input type='checkbox' value={v.id} checked={checked} onChange={this.props.updateFormState} /><label>{v.name}</label><br/>
+        </span>
+      );
+    }.bind(this));
+
+    return (
+      <div>
+        <label>{this.props.label}</label><br/>
+        {checkboxes}
+        <br/>
+        <div className='help'>{this.props.fieldState.getMessage()}</div>
+        <br/>
+      </div>
+    );
+  }
+}
+```
+
+### RadioGroup
+
+```jsx
+import React from 'react';
+
+export default class RadioGroup extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextProps.fieldState.equals(this.props.fieldState);
+  }
+
+  render() {
+    console.log('render ' + this.props.label);
+    let buttons = this.props.buttonValues.map(function(v) {
+      let checked = this.props.fieldState.getValue() === v.id.toString();
+      return (
+        <span key={v.id}>
+          <input type='radio' value={v.id} checked={checked} onChange={this.props.updateFormState} /><label>{v.name}</label><br/>
+        </span>
+      );
+    }.bind(this));
+    return (
+      <div>
+        <label>{this.props.label}</label><br/>
+        {buttons}
+        <br/>
+        <div className='help'>{this.props.fieldState.getMessage()}</div>
+      </div>
+    );
+  }
+}
+```
+
+### Select (and multi-select)
+
+```jsx
+import React from 'react';
+
+export default class Select extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextProps.fieldState.equals(this.props.fieldState);
+  }
+
+  render() {
+    console.log('render ' + this.props.label);
+    let options = this.props.optionValues.map(function(v) {
+      return (
+        <option key={v.id} value={v.id.toString()} >{v.name}</option>
+      );
+    });
+    return (
+      <div>
+        <div><label>{this.props.label}</label></div>
+        <select multiple={Boolean(this.props.multiple)} value={this.props.fieldState.getValue()} onChange={this.props.updateFormState} >
+          {options}
+        </select>
+        <span className='help'>{this.props.fieldState.getMessage()}</span>
+      </div>
+    );
+  }
+}
+```
+
+### (Password)
+
+```jsx
+import React from 'react';
+
+export default class Input extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextProps.fieldState.equals(this.props.fieldState);
+  }
+
+  render() {
+    console.log('render ' + this.props.label); // for demonstration only
+    return (
+      <div>
+        <label>{this.props.label}</label>
+        <input type={this.props.type || 'text'} value={this.props.fieldState.getValue()} onChange={this.props.updateFormState} />
+        <span>{this.props.fieldState.getMessage()}</span>
+      </div>
+    );
+  }
+}
+```
