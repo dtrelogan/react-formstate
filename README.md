@@ -81,7 +81,7 @@ export default class Input extends React.Component {
 }
 ```
 
-### comments
+### remarks
 
 - no mixin or decoration, just an api
 - form state lives with your form component until the form is submitted with valid data
@@ -107,6 +107,7 @@ regardless i very much believe what you see above enables real work to get done,
 - [asynchronous validation](/asyncExample.md)
 - [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/otherInputTypes.md)
+- [required fields](/requiredField.md)
 
 ### peer dependencies
 
