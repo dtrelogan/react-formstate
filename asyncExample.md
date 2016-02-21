@@ -14,11 +14,6 @@ export default class UserForm extends React.Component {
     this.originalUsername = props.model && props.model.username;
   }
 
-  validateUsername(username) {
-    if (username.trim() === '') { return 'Required field'; }
-    // uniqueness validated asynchronously in username handler below
-  }
-
   render() {
     let submitMessage = null;
 
@@ -29,11 +24,18 @@ export default class UserForm extends React.Component {
     }
     
     // notice we are overriding the framework-generated updateFormState prop for username
+    // mark username required to cover form submission before the user enters anything
+    // (i.e., no change handler is called in that case)
 
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='username' label='Username' updateFormState={this.handleUsernameChange.bind(this)} />
+          <Input
+            formField='username'
+            label='Username'
+            required
+            updateFormState={this.handleUsernameChange.bind(this)}
+          />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{submitMessage}</span>
@@ -63,7 +65,7 @@ export default class UserForm extends React.Component {
       return;
     } // else
 
-    let message = this.validateUsername(username);
+    let message = FormState.required(username);
     if (message) {
       fieldState.setInvalid(message);
       context.updateFormState();
