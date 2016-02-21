@@ -27,6 +27,8 @@ export default class UserForm extends React.Component {
     } else if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
     }
+    
+    // notice we are overriding the framework-generated updateFormState prop for username
 
     return (
       <form>
