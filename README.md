@@ -97,7 +97,7 @@ you can do whatever you'd like in your validation callbacks but i'd suggest usin
 
 sadly, despite the fact that many react packages steer you toward joi https://www.npmjs.com/package/joi _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and will add about a megabyte to your bundle.
 
-i would love it if there were a clean client-side validation api that gave you the proper hooks for messaging and internationalization, but as far as i'm aware there isn't. i'm totally open to adding something to this api to minimize busy work but it has to be done well. (and for now i need to move on to other things)
+i would love it if there were a clean client-side validation api that gave you the proper hooks for messaging and internationalization, but as far as i'm aware there isn't. i'm totally open to adding something to this api to minimize busy work but it has to be done well.
 
 regardless i very much believe what you see above enables real work to get done, efficiently and effectively.
 
