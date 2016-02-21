@@ -79,21 +79,44 @@ export default class Input extends React.Component {
 }
 ```
 
+### required fields
+
+i might suggest the following
+
+```jsx
+  <Input formField='username' label='Username' validate={APP.required} />
+  <Input formField='password' label='Password' validate={APP.required} />
+```
+
+```jsx
+  required(value) {
+    if (value.trim() === '') { return 'Required field'; }
+  }
+```
+
+or
+
+```jsx
+  required(value, context, field) {
+    if (value.trim() === '') { return `${field.label} is required`; }
+  }
+```
+
 ### comments
 
 - no mixin or decoration, just an api
 - form state lives with your form component until the form is submitted with valid data
 - designed to work with controlled components https://facebook.github.io/react/docs/forms.html
-- using the supplied props, you can make your inputs look however you want
+- framework simply provides props, you lay out your inputs
 - and...
 
 ### NOT a validation library per se
 
-but it does wire up validation, which in react is arguably more valuable.
+but it does *wire up* validation, which in react is arguably more valuable.
 
 you can do whatever you'd like in your validation callbacks but i'd suggest using validator https://www.npmjs.com/package/validator
 
-sadly, despite the fact that many react packages steer you toward joi https://www.npmjs.com/package/joi i WOULD NOT recommend using it. while it has an awesome api, it's not meant for client-side validation and will add about a megabyte to your bundle.
+sadly, despite the fact that many react packages steer you toward joi https://www.npmjs.com/package/joi _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and will add about a megabyte to your bundle.
 
 i would love it if there were a clean client-side validation api that gave you the proper hooks for messaging and internationalization, but as far as i'm aware there isn't. i'm totally open to adding something to this api to minimize busy work but it has to be done well.
 
