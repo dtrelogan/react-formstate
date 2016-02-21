@@ -68,19 +68,9 @@ export default class UserForm extends React.Component {
   }
 
 
-  validateName(name) {
-    if (name.trim() === '') { return 'Required field'; }
-  }
-
-  validateUsername(username) {
-    if (username.trim() === '') { return 'Required field'; }
-    // uniqueness validated asynchronously in username handler below
-  }
-
   validatePassword(password, context) {
     context.getFieldState('passwordConfirmation').setValue('');
-    if (password.trim() === '') { return 'Required field'; }
-    else if (password.length < 8) { return 'Must be at least 8 characters'; }
+    if (password.length < 8) { return 'Must be at least 8 characters'; }
   }
 
   validatePasswordConfirmation(confirmation, context) {
@@ -122,17 +112,20 @@ export default class UserForm extends React.Component {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <Input formField='username' label='Username' updateFormState={this.handleUsernameChange.bind(this)} />
-          <Input formField='password' type='password'  label='Password' />
-          <Input formField='passwordConfirmation' type='password' label='Confirm Password' /><br/>
+          <Input formField='name' label='Name' required />
+          <Input formField='username' label='Username' required
+            updateFormState={this.handleUsernameChange.bind(this)}
+            />
+          <Input formField='password' type='password' label='Password' required />
+          <Input formField='passwordConfirmation' type='password' label='Confirm Password'/>
+          <br/>
           <RadioGroup
             buttonValues={this.contactChoices}
             formField='contactPreferenceId'
             label='Contact Preference'
             defaultValue={1}
             intConvert
-          />
+            />
           <h3>Contacts</h3>
           <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
           <FormArray name='contacts'>
@@ -145,7 +138,7 @@ export default class UserForm extends React.Component {
             label='Roles'
             defaultValue={[]}
             intConvert
-          />
+            />
           <Select
             formField='siteIds'
             multiple={true}
@@ -153,7 +146,7 @@ export default class UserForm extends React.Component {
             label='Site Access'
             defaultValue={[1]}
             intConvert
-          />
+            />
           <br/>
           <Select
             formField='defaultSiteId'
@@ -161,13 +154,13 @@ export default class UserForm extends React.Component {
             label='Default Site'
             defaultValue={1}
             intConvert
-          />
+            />
           <br/>
           <Checkbox
             formField='active'
             label='Active'
             defaultValue={true}
-          />
+            />
           <br/>
         </FormObject>
         <br/>
@@ -217,7 +210,7 @@ export default class UserForm extends React.Component {
       return;
     } // else
 
-    let message = this.validateUsername(username);
+    let message = FormState.required(username);
     if (message) {
       fieldState.setInvalid(message);
       context.updateFormState();
