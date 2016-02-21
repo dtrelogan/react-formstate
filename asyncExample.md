@@ -70,7 +70,7 @@ export default class UserForm extends React.Component {
       return;
     } // else
 
-    // user might type additional characters into the username input box
+    // careful: user might type more letters into the username input box
     let asyncToken = fieldState.setValidating('Verifying username...');
     context.updateFormState();
 
