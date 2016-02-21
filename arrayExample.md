@@ -40,7 +40,7 @@ export default class UserForm extends React.Component {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
+          <Input formField='name' label='Name' required />
           <h3>Contacts</h3>
           <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
           <FormArray name='contacts'>
