@@ -131,7 +131,7 @@ export default class UserForm extends React.Component {
             formField='contactPreferenceId'
             label='Contact Preference'
             defaultValue={1}
-            intConvert={true}
+            intConvert
           />
           <h3>Contacts</h3>
           <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
@@ -144,7 +144,7 @@ export default class UserForm extends React.Component {
             checkboxValues={this.roles}
             label='Roles'
             defaultValue={[]}
-            intConvert={true}
+            intConvert
           />
           <Select
             formField='siteIds'
@@ -152,7 +152,7 @@ export default class UserForm extends React.Component {
             optionValues={this.sites}
             label='Site Access'
             defaultValue={[1]}
-            intConvert={true}
+            intConvert
           />
           <br/>
           <Select
@@ -160,7 +160,7 @@ export default class UserForm extends React.Component {
             optionValues={this.sites}
             label='Default Site'
             defaultValue={1}
-            intConvert={true}
+            intConvert
           />
           <br/>
           <Checkbox

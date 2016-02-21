@@ -31,9 +31,9 @@
         <FormObject formState={this.formState}>
           <Input formField='name' label='Name' />
           <h3>Home Contact Information</h3>
-          <Contact formObject='homeContact' />
+          <Contact formObject='homeContact' labelPrefix='Home ' />
           <h3>Work Contact Information</h3>
-          <Contact formObject='workContact' />
+          <Contact formObject='workContact' labelPrefix='Work ' />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
       </form>
@@ -87,11 +87,11 @@ export default class Address extends React.Component {
         <FormObject formState={this.formState}>
           <Input formField='name' label='Name' />
           <h3>Home Contact Information</h3>
-          <Contact formObject='homeContact'>
+          <Contact formObject='homeContact' labelPrefix='Home '>
             <Address formObject='address' labelPrefix='Address ' />
           </Contact>
           <h3>Work Contact Information</h3>
-          <Contact formObject='workContact'>
+          <Contact formObject='workContact' labelPrefix='Work '>
             <Address formObject='address' labelPrefix='Address ' />
           </Contact>
         </FormObject>
