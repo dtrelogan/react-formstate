@@ -84,7 +84,9 @@ export default class UserForm extends React.Component {
   }
 
   validatePasswordConfirmation(confirmation, context) {
-    if (confirmation !== context.getFieldState('password').getValue()) { return 'Passwords do not match'; }
+    if (confirmation !== context.getFieldState('password').getValue()) {
+      return 'Passwords do not match';
+    }
   }
 
   validateRoleIds(roleIds) {
@@ -124,17 +126,49 @@ export default class UserForm extends React.Component {
           <Input formField='username' label='Username' updateFormState={this.handleUsernameChange.bind(this)} />
           <Input formField='password' type='password'  label='Password' />
           <Input formField='passwordConfirmation' type='password' label='Confirm Password' /><br/>
-          <RadioGroup buttonValues={this.contactChoices} formField='contactPreferenceId' label='Contact Preference' defaultValue={1} intConvert={true} />
+          <RadioGroup
+            buttonValues={this.contactChoices}
+            formField='contactPreferenceId'
+            label='Contact Preference'
+            defaultValue={1}
+            intConvert={true}
+          />
           <h3>Contacts</h3>
           <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
           <FormArray name='contacts'>
             {contacts}
           </FormArray>
           <h3>Account Settings</h3>
-          <CheckboxGroup formField='roleIds' checkboxValues={this.roles} label='Roles' defaultValue={[]} intConvert={true} />
-          <Select formField='siteIds' multiple={true} optionValues={this.sites} label='Site Access' defaultValue={[1]} intConvert={true} /><br/>
-          <Select formField='defaultSiteId' optionValues={this.sites} label='Default Site' defaultValue={1} intConvert={true} /><br/>
-          <Checkbox formField='active' label='Active' defaultValue={true} /><br/>
+          <CheckboxGroup
+            formField='roleIds'
+            checkboxValues={this.roles}
+            label='Roles'
+            defaultValue={[]}
+            intConvert={true}
+          />
+          <Select
+            formField='siteIds'
+            multiple={true}
+            optionValues={this.sites}
+            label='Site Access'
+            defaultValue={[1]}
+            intConvert={true}
+          />
+          <br/>
+          <Select
+            formField='defaultSiteId'
+            optionValues={this.sites}
+            label='Default Site'
+            defaultValue={1}
+            intConvert={true}
+          />
+          <br/>
+          <Checkbox
+            formField='active'
+            label='Active'
+            defaultValue={true}
+          />
+          <br/>
         </FormObject>
         <br/>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
