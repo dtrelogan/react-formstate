@@ -41,7 +41,7 @@ the above can be reduced to the following:
 ```jsx
 validateUsername(username) {
   if (username.includes(' ')) { return 'Spaces are not allowed'; }
-  if (username.length <= 4) { return 'Must be at least 4 characters'; }
+  if (username.length < 4) { return 'Must be at least 4 characters'; }
 }
 ```
 ```jsx
@@ -61,7 +61,7 @@ so you can do something like this:
 ```jsx
 validateUsername(username, context, field) {
   if (username.includes(' ')) { return `${field.label} must not contain spaces`; }
-  if (username.length <= 4) { return `${field.label} must be at least 4 characters`; }
+  if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
 }
 ```
 
