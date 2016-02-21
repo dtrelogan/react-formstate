@@ -130,7 +130,7 @@ you could remove the validateUsername function from your form component and do t
 
 ### asynchronous validation
 
-the context api allows for asynchronous validation. an example is provided [here] (/asyncExample.md)
+the context parameter allows for asynchronous validation. an example is provided [here] (/asyncExample.md)
 
 ### disclaimer
 
