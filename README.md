@@ -36,7 +36,7 @@ export default class LoginForm extends React.Component {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='username' label='Username' />{/* autowired to validateUsername */}
+          <Input formField='username' label='Username' />{/* autowired */}
           <Input formField='password' label='Password' validate={this.validatePassword} />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
