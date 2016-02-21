@@ -145,7 +145,7 @@ export class FormObject extends React.Component {
   addProps(child) {
     if (!child.props) { return child; } // else
 
-    let props = null, formState = this.formState, labelPrefix = this.labelPrefix;
+    let props = null, formState = this.formState;
 
     if (isDefined(child.props.formField)) {
       props = this.createFieldProps(child.props);
@@ -157,7 +157,6 @@ export class FormObject extends React.Component {
         isDefined(child.props.formArray)
       );
       this.formState = props.formState;
-      this.labelPrefix = props.labelPrefix;
     }
     else if (child.type === FormObject || child.type === FormArray) {
       if (!isDefined(child.props.name)) { throw 'error: a FormObject or FormArray element nested within the same render function should have a "name" property'; }
@@ -173,7 +172,6 @@ export class FormObject extends React.Component {
     );
 
     this.formState = formState;
-    this.labelPrefix = labelPrefix;
 
     return result;
   }

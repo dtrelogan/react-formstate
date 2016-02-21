@@ -195,15 +195,13 @@ var FormObject = exports.FormObject = function (_React$Component) {
       } // else
 
       var props = null,
-          formState = this.formState,
-          labelPrefix = this.labelPrefix;
+          formState = this.formState;
 
       if (isDefined(child.props.formField)) {
         props = this.createFieldProps(child.props);
       } else if (isDefined(child.props.formObject) || isDefined(child.props.formArray)) {
         props = this.createObjectProps(isDefined(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, isDefined(child.props.formArray));
         this.formState = props.formState;
-        this.labelPrefix = props.labelPrefix;
       } else if (child.type === FormObject || child.type === FormArray) {
         if (!isDefined(child.props.name)) {
           throw 'error: a FormObject or FormArray element nested within the same render function should have a "name" property';
@@ -216,7 +214,6 @@ var FormObject = exports.FormObject = function (_React$Component) {
       var result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps.bind(this)));
 
       this.formState = formState;
-      this.labelPrefix = labelPrefix;
 
       return result;
     }
