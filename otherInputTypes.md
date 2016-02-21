@@ -210,9 +210,8 @@ export default class UserForm extends React.Component {
       return;
     } // else
 
-    let message = FormState.required(username);
-    if (message) {
-      fieldState.setInvalid(message);
+    fieldState.validate();
+    if (fieldState.isInvalid()) {
       context.updateFormState();
       return;
     } // else
