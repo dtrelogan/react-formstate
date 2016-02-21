@@ -15,6 +15,8 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -258,6 +260,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
       if (!field.initialized) {
         field.initialized = true;
         field.label = (this.labelPrefix || '') + props.label;
+        field.required = Boolean(props.required);
         if (props.validate) {
           field.validate = props.validate;
         } else {
@@ -402,6 +405,15 @@ var FieldState = function () {
         return new FieldState(_fieldState, this.key, this.field, true, this.stateContext);
       }
     }
+  }, {
+    key: 'callValidationFunction',
+    value: function callValidationFunction(f, params) {
+      if (f && typeof f === 'function') {
+        params = params || [];
+        return f.apply(undefined, [this.fieldState.value, this.stateContext, this.field].concat(_toConsumableArray(params)));
+      } // else
+      return 'error: provided validation function is not a function?';
+    }
 
     //
     // public
@@ -483,14 +495,38 @@ var FieldState = function () {
     key: 'validate',
     value: function validate() {
       this.assertCanUpdate();
-      if (this.field.validate) {
-        var message = this.field.validate(this.fieldState.value, this.stateContext, this.field);
-        if (message) {
-          return this.setInvalid(message);
+      var message = undefined;
+      if (this.field.required) {
+        message = this.callValidationFunction(FormState.required);
+      }
+      if (!message && this.field.validate) {
+        if (Array.isArray(this.field.validate)) {
+          for (var i = 0, len = this.field.validate.length; i < len; i++) {
+            var validationName = this.field.validate[i],
+                params = [];
+
+            if (Array.isArray(validationName)) {
+              params = validationName.slice(1);
+              validationName = validationName[0];
+            }
+
+            var f = FormState.lookupValidation(validationName);
+            if (f) {
+              message = this.callValidationFunction(f, params);
+            } else {
+              message = 'error: no validation function registered as ' + validationName;
+            }
+            if (message) {
+              break;
+            }
+          }
         } else {
-          return this.setValid();
+          message = this.callValidationFunction(this.field.validate);
         }
       }
+      if (message) {
+        return this.setInvalid(message);
+      } // else
       return this.setValid();
     }
   }, {
@@ -525,6 +561,28 @@ var FieldState = function () {
 //
 
 var FormState = exports.FormState = function () {
+  _createClass(FormState, null, [{
+    key: 'setRequired',
+    value: function setRequired(f) {
+      this.required = f;
+    }
+  }, {
+    key: 'registerValidation',
+    value: function registerValidation(name, f) {
+      this.validators[name] = f;
+    }
+  }, {
+    key: 'unregisterValidation',
+    value: function unregisterValidation(name) {
+      delete this.validators[name];
+    }
+  }, {
+    key: 'lookupValidation',
+    value: function lookupValidation(name) {
+      return this.validators[name];
+    }
+  }]);
+
   function FormState(form) {
     _classCallCheck(this, FormState);
 
@@ -806,3 +864,11 @@ var UnitOfWork = function () {
 
   return UnitOfWork;
 }();
+
+FormState.required = function (value) {
+  if (value.trim() === '') {
+    return 'Required field';
+  }
+};
+
+FormState.validators = {};
