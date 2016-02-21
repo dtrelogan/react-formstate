@@ -24,6 +24,7 @@ export default class LoginForm extends React.Component {
   }
 
   // there is framework assistance for required fields, this is for demonstration
+  
   validateUsername(username) {
     if (username.trim() === '') { return 'Username is required'; }
   }
