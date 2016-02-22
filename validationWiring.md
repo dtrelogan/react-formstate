@@ -4,9 +4,9 @@
 
 this is *not* a validation library per se, but it *wires up* validation, which in react is arguably just as valuable.
 
-you can do whatever you'd like in your validation functions but i'd suggest using [validator](/https://www.npmjs.com/package/validator)
+you can do whatever you'd like in your validation functions but i'd suggest using [validator](/https://www.npmjs.com/package/validator).
 
-sadly, despite the fact that many react packages steer you toward [joi](/https://www.npmjs.com/package/joi) _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and adds about a megabyte to your bundle.
+sadly, despite the fact that many react packages steer you toward [joi](/https://www.npmjs.com/package/joi), _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and adds about a megabyte to your bundle.
 
 ### basic usage
 
