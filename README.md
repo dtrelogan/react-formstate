@@ -5,6 +5,28 @@ a clean, simple form framework for react
 
 ### example
 
+in your application startup, register validation functions with your preferred messages
+
+```jsx
+import { FormState } from 'react-formstate';
+
+FormState.setRequired(function(value, label) {
+  if (value.trim() === '') { return `${label} is required`; }
+});
+
+FormState.registerValidation('noSpaces', function(value, label) {
+  if (value.includes(' ')) { return `${label} must not contain spaces`; }
+});
+
+FormState.registerValidation('minLength', function(value, label, minLength) {
+  if (value.length < minLength) {
+    return `${label} must be at least ${minLength} characters`;
+  }
+});
+```
+
+then build a form component
+
 ```jsx
 import React from 'react';
 import { FormState, FormObject } from 'react-formstate';
@@ -27,7 +49,12 @@ export default class LoginForm extends React.Component {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input formField='username' label='Username' required />
+          <Input
+            formField='username'
+            label='Username'
+            required
+            validate={['noSpaces',['minLength',4]]}
+            />
           <Input formField='password' label='Password' required />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
@@ -80,7 +107,7 @@ export default class Input extends React.Component {
 
 ### features and examples
 
-- [validation] (/validationWiring.md)
+- [validation](/validationWiring.md)
 - [nested form components](/nestedFormExample.md)
 - [asynchronous validation](/asyncExample.md)
 - [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
