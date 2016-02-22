@@ -5,7 +5,7 @@ a clean, simple form framework for react
 
 ### example
 
-in your application startup, register validation functions with your preferred messages
+in your application startup, you can register validation functions with your preferred messages (but you don't have to)
 
 ```jsx
 import { FormState } from 'react-formstate';
@@ -44,6 +44,12 @@ export default class LoginForm extends React.Component {
     // since we're not injecting a model, the above is equivalent to
     this.state = {};
   }
+  
+  // an alternative to registering validation functions
+  // this is named appropriately so it will be autowired
+  validatePassword(password) {
+    if (password.trim() === '') { return 'Password is required'; }
+  }
 
   render() {
     return (
@@ -55,7 +61,7 @@ export default class LoginForm extends React.Component {
             required
             validate={['noSpaces',['minLength',4]]}
             />
-          <Input formField='password' label='Password' required />
+          <Input formField='password' label='Password' />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
