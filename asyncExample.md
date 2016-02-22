@@ -24,7 +24,9 @@ export default class UserForm extends React.Component {
     }
     
     // notice we are overriding the framework-generated updateFormState prop for username
-    // mark username required to cover form submission before the user enters anything
+    
+    // also notice username is still marked required.
+    // this will prevent a valid form submission before the user enters anything.
     // (i.e., no change handler is called in that case)
 
     return (
