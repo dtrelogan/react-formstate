@@ -2,7 +2,7 @@
 
 ### preliminaries
 
-this is *not* a validation library per se, but it *wires up* validation, which in react is just as valuable.
+this is *not* a validation library per se, but it *wires up* validation, which in react is arguably just as valuable.
 
 you can do whatever you'd like in your validation functions but i'd suggest using validator https://www.npmjs.com/package/validator
 
@@ -138,4 +138,4 @@ if you only have one registered validation function to call you can use this syn
 
 ### asynchronous validation
 
-the context parameter allows for asynchronous validation. an example is provided [here] (/asyncExample.md)
+all validation functions documented in this section are intended to be callbacks for the framework generated event handler. they should be *synchronous*. asynchronous validation should instead override the event handler. an example is provided [here](/asyncExample.md)
