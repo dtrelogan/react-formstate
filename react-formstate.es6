@@ -324,12 +324,15 @@ class FieldState {
     }
   }
 
-  callValidationFunction(f, params) {
-    if (f && typeof(f) === 'function') {
-      params = params || [];
-      return f(this.fieldState.value, this.stateContext, this.field, ...params);
+  callValidationFunction(f) {
+    if (typeof(f) === 'function') {
+      return f(this.getValue(), this.stateContext, this.field);
     } // else
-    return 'error: provided validation function is not a function?';
+    throw `error: validation provided for ${this.getKey()} is not a function?`;
+  }
+
+  callRegisteredValidationFunction(f, params) {
+    return f(this.getValue(), this.field.label, ...params);
   }
 
   //
@@ -368,12 +371,16 @@ class FieldState {
     this.assertCanUpdate();
     let message;
     if (this.field.required) {
-      message = this.callValidationFunction(FormState.required);
+      message = this.callRegisteredValidationFunction(FormState.required, []);
     }
     if (!message && this.field.validate) {
-      if (Array.isArray(this.field.validate)) {
-        for(let i = 0, len = this.field.validate.length; i < len; i++) {
-          let validationName = this.field.validate[i],
+      let f = this.field.validate;
+      if (typeof(f) === 'string') {
+        f = [f];
+      }
+      if (Array.isArray(f)) {
+        for(let i = 0, len = f.length; i < len; i++) {
+          let validationName = f[i],
             params = [];
 
           if (Array.isArray(validationName)) {
@@ -381,16 +388,16 @@ class FieldState {
             validationName = validationName[0];
           }
 
-          let f = FormState.lookupValidation(validationName);
-          if (f) {
-            message = this.callValidationFunction(f, params);
+          let g = FormState.lookupValidation(validationName);
+          if (g) {
+            message = this.callRegisteredValidationFunction(g, params);
           } else {
-            message = 'error: no validation function registered as ' + validationName;
+            throw 'error: no validation function registered as ' + validationName;
           }
           if (message) { break; }
         }
       } else {
-        message = this.callValidationFunction(this.field.validate);
+        message = this.callValidationFunction(f);
       }
     }
     if (message) { return this.setInvalid(message); } // else
@@ -421,6 +428,7 @@ export class FormState {
   }
 
   static registerValidation(name, f) {
+    if (typeof(f) !== 'function') { throw 'error: trying to register a validation function that is not a function?'; }
     this.validators[name] = f;
   }
 
