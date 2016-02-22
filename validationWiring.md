@@ -106,7 +106,9 @@ validatePasswordConfirmation(confirmation, context) {
 
 in your application, you can register reusable validation functions with messaging of your choice.
 
-registered validation functions are passed two parameters: value, label
+registered validation functions are minimally passed two parameters: value, label
+
+additional parameters can be provided as necessary.
 
 if you were to do the following:
 
