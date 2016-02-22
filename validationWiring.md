@@ -50,21 +50,6 @@ validateUsername(username) {
 
 required validation is called first, and if that passes, the autowired validateUsername function will be called.
 
-### labels
-
-validation functions are passed three parameters: value, context, field
-
-field will have a property named 'label'. in the examples above, per the jsx, label will be set to 'Username'.
-
-so you can do something like this:
-
-```jsx
-validateUsername(username, context, field) {
-  if (username.includes(' ')) { return `${field.label} must not contain spaces`; }
-  if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
-}
-```
-
 ### overriding required
 
 default behavior for required:
@@ -80,14 +65,29 @@ if you want it to work differently you can override it. i might suggest:
 ```jsx
 import { FormState } from 'react-formstate';
 
-FormState.setRequired(function(value, context, field) {
-  if (value.trim() === '') { return `${field.label} is required`; }
+FormState.setRequired(function(value, label) {
+  if (value.trim() === '') { return `${label} is required`; }
 });
 ```
 
-### context
+### field parameter
 
-validation functions are passed three parameters: value, context, field
+unregistered validation functions are passed three parameters: value, context, field
+
+field will have a property named 'label'. in the examples above, per the jsx, label will be set to 'Username'.
+
+so you can do something like this:
+
+```jsx
+validateUsername(username, context, field) {
+  if (username.includes(' ')) { return `${field.label} must not contain spaces`; }
+  if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
+}
+```
+
+### context parameter
+
+unregistered validation functions are passed three parameters: value, context, field
 
 context gives you a window on your overall form state and allows you to make changes:
 
@@ -106,38 +106,36 @@ validatePasswordConfirmation(confirmation, context) {
 
 in your application, you can register reusable validation functions with messaging of your choice.
 
+registered validation functions are passed two parameters: value, label
+
 if you were to do the following:
 
 ```jsx
 import { FormState } from 'react-formstate';
 
-FormState.registerValidation('noSpaces', function(value) {
-  if (value.includes(' ')) { return 'Must not contain spaces'; }
+FormState.registerValidation('noSpaces', function(value, label) {
+  if (value.includes(' ')) { return `${label} must not contain spaces`; }
 });
 
-FormState.registerValidation('minLength', function(value, context, field, minLength) {
+FormState.registerValidation('minLength', function(value, label, minLength) {
   if (value.length < minLength) {
-    return `Must be at least ${minLength} characters`;
+    return `${label} must be at least ${minLength} characters`;
   }
 });
 ```
 
-you could remove the validateUsername function from your form component and do this instead:
+then you could remove the validateUsername function from your form component and do this instead:
 
 ```jsx
 <Input formField='username' label='Username' required validate={['noSpaces',['minLength',4]]} />
+```
+
+if you only have one registered validation function to call you can use this syntax:
+
+```jsx
+<Input formField='username' label='Username' required validate='noSpaces' />
 ```
 
 ### asynchronous validation
 
 the context parameter allows for asynchronous validation. an example is provided [here] (/asyncExample.md)
-
-### disclaimer
-
-surprisingly, rather than the syntactic sugar
-
-```jsx
-<Input formField='username' label='Username' required validate={['noSpaces',['minLength',4]]} />
-```
-
-i'm partial to basic usage with autowiring. you will see that in other examples in this repository.
