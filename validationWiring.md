@@ -2,7 +2,7 @@
 
 ### preliminaries
 
-this is *not* a validation library per se, but it *wires up* validation, which in react is arguably just as valuable.
+this is *not* a validation library per se, but it *wires up* validation, which in react is just as valuable.
 
 you can do whatever you'd like in your validation functions but i'd suggest using [validator](/https://www.npmjs.com/package/validator).
 
