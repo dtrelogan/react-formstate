@@ -5,28 +5,6 @@ a clean, simple form framework for react
 
 ### example
 
-in your application startup, you can register validation functions with your preferred messages (but you don't have to)
-
-```jsx
-import { FormState } from 'react-formstate';
-
-FormState.setRequired(function(value, label) {
-  if (value.trim() === '') { return `${label} is required`; }
-});
-
-FormState.registerValidation('noSpaces', function(value, label) {
-  if (value.includes(' ')) { return `${label} must not contain spaces`; }
-});
-
-FormState.registerValidation('minLength', function(value, label, minLength) {
-  if (value.length < minLength) {
-    return `${label} must be at least ${minLength} characters`;
-  }
-});
-```
-
-then build a form component
-
 ```jsx
 import React from 'react';
 import { FormState, FormObject } from 'react-formstate';
@@ -44,24 +22,13 @@ export default class LoginForm extends React.Component {
     // since we're not injecting a model, the above is equivalent to
     this.state = {};
   }
-  
-  // an alternative to registering validation functions
-  // this is named appropriately so it will be autowired
-  validatePassword(password) {
-    if (password.trim() === '') { return 'Password is required'; }
-  }
 
   render() {
     return (
       <form>
         <FormObject formState={this.formState}>
-          <Input
-            formField='username'
-            label='Username'
-            required
-            validate={['noSpaces',['minLength',4]]}
-            />
-          <Input formField='password' label='Password' />
+          <Input formField='username' label='Username' required />
+          <Input formField='password' label='Password' required />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
@@ -79,6 +46,7 @@ export default class LoginForm extends React.Component {
   }
 }
 ```
+
 
 your input component might look like
 
@@ -108,7 +76,7 @@ export default class Input extends React.Component {
 
 - no mixin or decoration, just an api
 - form state lives with your form component until the form is submitted with valid data
-- designed to work with controlled components https://facebook.github.io/react/docs/forms.html
+- designed to work with react [controlled components](https://facebook.github.io/react/docs/forms.html)
 - framework simply provides props, you lay out your inputs
 
 ### features and examples
