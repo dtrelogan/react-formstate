@@ -76,7 +76,7 @@ export default class Input extends React.Component {
 
 - no mixin or decoration, just an api
 - form state lives with your form component until the form is submitted with valid data
-- designed to work with react [controlled components](https://facebook.github.io/react/docs/forms.html)
+- designed to work with react [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
 - framework simply provides props, you lay out your inputs
 
 ### features and examples
