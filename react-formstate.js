@@ -156,6 +156,64 @@ function coerceToString(v) {
   return v.toString();
 }
 
+function changeHandler(formState, field, e) {
+  var context = formState.createUnitOfWork(),
+      fieldState = context.getFieldState(field),
+      value = fieldState.getValue(); // temporarily set to previous value
+
+  if (Array.isArray(value)) {
+    if (e.target.type === 'checkbox') {
+      // checkbox group
+      if (e.target.checked) {
+        value = value.slice(0); // copy the existing array
+        if (!value.some(function (x) {
+          return x === e.target.value;
+        })) {
+          value.push(e.target.value);
+          value.sort();
+        }
+      } else {
+        value = value.filter(function (x) {
+          return x !== e.target.value;
+        });
+      }
+    } else {
+      // select-multiple
+      if (e.target.type !== 'select-multiple') {
+        console.log('warning: select-multiple expected?');
+      }
+      value = [];
+      var options = e.target.options;
+      for (var i = 0, len = options.length; i < len; i++) {
+        if (options[i].selected) {
+          value.push(options[i].value);
+        }
+      }
+    }
+  } else {
+    if (e.target.type === 'checkbox') {
+      value = e.target.checked;
+    } else {
+      // note that select-one and radio group work like every other input in this regard
+      if (e.target.type === 'select-multiple') {
+        throw 'error: select-multiple without defaultValue={[]} specified';
+      }
+      value = e.target.value;
+    }
+  }
+
+  fieldState.setValue(value).validate();
+  context.updateFormState();
+}
+
+function blurHandler(formState, field) {
+  var context = formState.createUnitOfWork(),
+      fieldState = context.getFieldState(field);
+
+  fieldState.showMessage();
+  context.updateFormState();
+}
+
 //
 // FormObject
 //
@@ -277,60 +335,11 @@ var FormObject = exports.FormObject = function (_React$Component) {
         }
       }
 
-      var handler = function handler(e) {
-        var context = formState.createUnitOfWork(),
-            fieldState = context.getFieldState(field),
-            value = fieldState.getValue(); // temporarily set to previous value
-
-        if (Array.isArray(value)) {
-          if (e.target.type === 'checkbox') {
-            // checkbox group
-            if (e.target.checked) {
-              value = value.slice(0); // copy the existing array
-              if (!value.some(function (x) {
-                return x === e.target.value;
-              })) {
-                value.push(e.target.value);
-                value.sort();
-              }
-            } else {
-              value = value.filter(function (x) {
-                return x !== e.target.value;
-              });
-            }
-          } else {
-            // select-multiple
-            if (e.target.type !== 'select-multiple') {
-              console.log('warning: select-multiple expected?');
-            }
-            value = [];
-            var options = e.target.options;
-            for (var i = 0, len = options.length; i < len; i++) {
-              if (options[i].selected) {
-                value.push(options[i].value);
-              }
-            }
-          }
-        } else {
-          if (e.target.type === 'checkbox') {
-            value = e.target.checked;
-          } else {
-            // note that select-one and radio group work like every other input in this regard
-            if (e.target.type === 'select-multiple') {
-              throw 'error: select-multiple without defaultValue={[]} specified';
-            }
-            value = e.target.value;
-          }
-        }
-
-        fieldState.setValue(value).validate();
-        context.updateFormState();
-      };
-
       return {
         label: field.label,
         fieldState: formState.getFieldState(field), // read-only
-        updateFormState: props.updateFormState || handler
+        updateFormState: props.updateFormState || changeHandler.bind(null, formState, field),
+        showValidationMessage: blurHandler.bind(null, formState, field)
       };
     }
   }]);
@@ -385,25 +394,33 @@ var FieldState = function () {
       }
     }
   }, {
-    key: 'setValidity',
-    value: function setValidity(validity, message) {
+    key: 'getValidity',
+    value: function getValidity() {
+      return this.fieldState.validity;
+    }
+  }, {
+    key: 'getAsyncToken',
+    value: function getAsyncToken() {
+      return this.fieldState.asyncToken;
+    }
+  }, {
+    key: 'setProps',
+    value: function setProps(value, validity, message, asyncToken, isMessageVisible) {
       this.assertCanUpdate();
 
-      var _fieldState = this.fieldState;
-
       if (!this.isModified) {
-        _fieldState = { value: _fieldState.value };
-        _setFieldState(this.stateContext.stateUpdates, this.key, _fieldState);
+        this.isModified = true;
+        this.fieldState = {};
+        _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
       }
 
-      _fieldState.validity = validity;
-      _fieldState.message = message;
+      this.fieldState.value = value;
+      this.fieldState.validity = validity;
+      this.fieldState.message = message;
+      this.fieldState.asyncToken = asyncToken;
+      this.fieldState.isMessageVisible = isMessageVisible;
 
-      if (this.isModified) {
-        return this;
-      } else {
-        return new FieldState(_fieldState, this.key, this.field, true, this.stateContext);
-      }
+      return this;
     }
   }, {
     key: 'callValidationFunction',
@@ -427,6 +444,9 @@ var FieldState = function () {
     key: 'equals',
     value: function equals(fieldState) {
       if (fieldState.getMessage() !== this.getMessage()) {
+        return false;
+      } // else
+      if (fieldState.isMessageVisible() !== this.isMessageVisible()) {
         return false;
       } // else
       var a = fieldState.getValue(),
@@ -461,12 +481,12 @@ var FieldState = function () {
   }, {
     key: 'isValid',
     value: function isValid() {
-      return this.isValidated() && this.fieldState.validity === 1;
+      return this.fieldState.validity === 1;
     }
   }, {
     key: 'isInvalid',
     value: function isInvalid() {
-      return this.isValidated() && this.fieldState.validity === 2;
+      return this.fieldState.validity === 2;
     }
   }, {
     key: 'isValidating',
@@ -479,6 +499,11 @@ var FieldState = function () {
       return Boolean(this.fieldState.isDeleted);
     }
   }, {
+    key: 'isMessageVisible',
+    value: function isMessageVisible() {
+      return Boolean(this.fieldState.isMessageVisible);
+    }
+  }, {
     key: 'getField',
     value: function getField() {
       return this.field;
@@ -486,14 +511,10 @@ var FieldState = function () {
   }, {
     key: 'setValue',
     value: function setValue(value) {
-      this.assertCanUpdate();
       if (this.isModified) {
-        throw 'error: setting value on a modified field state';
+        throw 'error: setting value on a modified field state? if you are changing the value do that first';
       }
-      this.isModified = true;
-      var _newFieldState = { value: value };
-      _setFieldState(this.stateContext.stateUpdates, this.key, _newFieldState);
-      return new FieldState(_newFieldState, this.key, this.field, true, this.stateContext);
+      return this.setProps(value);
     }
   }, {
     key: 'validate',
@@ -540,24 +561,24 @@ var FieldState = function () {
   }, {
     key: 'setValid',
     value: function setValid(message) {
-      return this.setValidity(1, message);
+      return this.setProps(this.getValue(), 1, message);
     }
   }, {
     key: 'setInvalid',
     value: function setInvalid(message) {
-      return this.setValidity(2, message);
+      return this.setProps(this.getValue(), 2, message);
     }
   }, {
     key: 'setValidating',
     value: function setValidating(message) {
-      this.assertCanUpdate();
-      if (!this.isModified) {
-        throw 'error: setting validating on an unmodified field state';
-      }
-      this.fieldState.message = message;
-      this.fieldState.validity = 3;
-      this.fieldState.asyncToken = generateQuickGuid();
-      return this.fieldState.asyncToken;
+      var asyncToken = generateQuickGuid();
+      this.setProps(this.getValue(), 3, message, asyncToken, true);
+      return asyncToken; // thinking this is more valuable than chaining
+    }
+  }, {
+    key: 'showMessage',
+    value: function showMessage() {
+      return this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
     }
   }]);
 
@@ -614,9 +635,9 @@ var FormState = exports.FormState = function () {
     }
   }, {
     key: 'isInvalid',
-    value: function isInvalid() {
-      return anyFieldState(this.form.state, function (fieldState) {
-        return fieldState.isInvalid();
+    value: function isInvalid(visibleMessagesOnly) {
+      return anyFieldState(this.form.state, function (x) {
+        return x.isInvalid() && (!visibleMessagesOnly || x.isMessageVisible());
       });
     }
   }, {
@@ -720,8 +741,9 @@ var UnitOfWork = function () {
           var fieldState = this.getFieldState(field);
 
           if (!fieldState.isValidated()) {
-            fieldState = fieldState.validate();
+            fieldState.validate();
           }
+          fieldState.showMessage();
           if (!fieldState.isValid()) {
             isModelValid = false;
           }

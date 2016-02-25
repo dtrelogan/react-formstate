@@ -107,6 +107,53 @@ function coerceToString(v) {
   return v.toString();
 }
 
+function changeHandler(formState, field, e) {
+  let context = formState.createUnitOfWork(),
+    fieldState = context.getFieldState(field),
+    value = fieldState.getValue(); // temporarily set to previous value
+
+  if (Array.isArray(value)) {
+    if (e.target.type === 'checkbox') { // checkbox group
+      if (e.target.checked) {
+        value = value.slice(0); // copy the existing array
+        if (!value.some(x => x === e.target.value)) {
+          value.push(e.target.value)
+          value.sort();
+        }
+      } else {
+        value = value.filter(x => x !== e.target.value);
+      }
+    } else { // select-multiple
+      if (e.target.type !== 'select-multiple') { console.log('warning: select-multiple expected?'); }
+      value = [];
+      let options = e.target.options;
+      for (let i = 0, len = options.length; i < len; i++) {
+        if (options[i].selected) {
+          value.push(options[i].value);
+        }
+      }
+    }
+  } else {
+    if (e.target.type === 'checkbox') {
+      value = e.target.checked;
+    } else { // note that select-one and radio group work like every other input in this regard
+      if (e.target.type === 'select-multiple') { throw 'error: select-multiple without defaultValue={[]} specified'; }
+      value = e.target.value;
+    }
+  }
+
+  fieldState.setValue(value).validate();
+  context.updateFormState();
+}
+
+function blurHandler(formState, field) {
+  let context = formState.createUnitOfWork(),
+    fieldState = context.getFieldState(field);
+
+  fieldState.showMessage();
+  context.updateFormState();
+}
+
 
 //
 // FormObject
@@ -227,49 +274,11 @@ export class FormObject extends React.Component {
       if (isDefined(props.defaultValue)) { field.defaultValue = props.defaultValue; }
     }
 
-    let handler = function(e) {
-      let context = formState.createUnitOfWork(),
-        fieldState = context.getFieldState(field),
-        value = fieldState.getValue(); // temporarily set to previous value
-
-      if (Array.isArray(value)) {
-        if (e.target.type === 'checkbox') { // checkbox group
-          if (e.target.checked) {
-            value = value.slice(0); // copy the existing array
-            if (!value.some(x => x === e.target.value)) {
-              value.push(e.target.value)
-              value.sort();
-            }
-          } else {
-            value = value.filter(x => x !== e.target.value);
-          }
-        } else { // select-multiple
-          if (e.target.type !== 'select-multiple') { console.log('warning: select-multiple expected?'); }
-          value = [];
-          let options = e.target.options;
-          for (let i = 0, len = options.length; i < len; i++) {
-            if (options[i].selected) {
-              value.push(options[i].value);
-            }
-          }
-        }
-      } else {
-        if (e.target.type === 'checkbox') {
-          value = e.target.checked;
-        } else { // note that select-one and radio group work like every other input in this regard
-          if (e.target.type === 'select-multiple') { throw 'error: select-multiple without defaultValue={[]} specified'; }
-          value = e.target.value;
-        }
-      }
-
-      fieldState.setValue(value).validate();
-      context.updateFormState();
-    };
-
     return {
       label: field.label,
       fieldState: formState.getFieldState(field), // read-only
-      updateFormState: props.updateFormState || handler
+      updateFormState: props.updateFormState || changeHandler.bind(null, formState, field),
+      showValidationMessage: blurHandler.bind(null, formState, field)
     };
   }
 
@@ -304,24 +313,30 @@ class FieldState {
     if (this.isDeleted()) { throw 'Cannot update a deleted field state.'; }
   }
 
-  setValidity(validity, message) {
+  getValidity() {
+    return this.fieldState.validity;
+  }
+
+  getAsyncToken() {
+    return this.fieldState.asyncToken;
+  }
+
+  setProps(value, validity, message, asyncToken, isMessageVisible) {
     this.assertCanUpdate();
 
-    let _fieldState = this.fieldState;
-
     if (!this.isModified) {
-      _fieldState = { value: _fieldState.value };
-      _setFieldState(this.stateContext.stateUpdates, this.key, _fieldState);
+      this.isModified = true;
+      this.fieldState = {};
+      _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
     }
 
-    _fieldState.validity = validity;
-    _fieldState.message = message;
+    this.fieldState.value = value;
+    this.fieldState.validity = validity;
+    this.fieldState.message = message;
+    this.fieldState.asyncToken = asyncToken;
+    this.fieldState.isMessageVisible = isMessageVisible;
 
-    if (this.isModified) {
-      return this;
-    } else {
-      return new FieldState(_fieldState, this.key, this.field, true, this.stateContext);
-    }
+    return this;
   }
 
   callValidationFunction(f) {
@@ -341,6 +356,7 @@ class FieldState {
 
   equals(fieldState) {
     if (fieldState.getMessage() !== this.getMessage()) { return false; } // else
+    if (fieldState.isMessageVisible() !== this.isMessageVisible()) { return false; } // else
     let a = fieldState.getValue(), b = this.getValue();
     if (!Array.isArray(a)) { return a === b; } // else
     return a.length === b.length && a.every((v,i) => v === b[i]);
@@ -351,20 +367,17 @@ class FieldState {
   getMessage() { return this.fieldState.message; }
 
   isValidated() { return isDefined(this.fieldState.validity); }
-  isValid() { return this.isValidated() && this.fieldState.validity === 1 }
-  isInvalid() { return this.isValidated() && this.fieldState.validity === 2; }
+  isValid() { return this.fieldState.validity === 1 }
+  isInvalid() { return this.fieldState.validity === 2; }
   isValidating() { return this.fieldState.validity === 3; }
   isDeleted() { return Boolean(this.fieldState.isDeleted); }
+  isMessageVisible() { return Boolean(this.fieldState.isMessageVisible); }
 
   getField() { return this.field; }
 
   setValue(value) {
-    this.assertCanUpdate();
-    if (this.isModified) { throw 'error: setting value on a modified field state'; }
-    this.isModified = true;
-    let _newFieldState = { value: value };
-    _setFieldState(this.stateContext.stateUpdates, this.key, _newFieldState);
-    return new FieldState(_newFieldState, this.key, this.field, true, this.stateContext);
+    if (this.isModified) { throw 'error: setting value on a modified field state? if you are changing the value do that first'; }
+    return this.setProps(value);
   }
 
   validate() {
@@ -404,15 +417,15 @@ class FieldState {
     return this.setValid();
   }
 
-  setValid(message) { return this.setValidity(1, message); }
-  setInvalid(message) { return this.setValidity(2, message); }
+  setValid(message) { return this.setProps(this.getValue(), 1, message); }
+  setInvalid(message) { return this.setProps(this.getValue(), 2, message); }
   setValidating(message) {
-    this.assertCanUpdate();
-    if (!this.isModified) { throw 'error: setting validating on an unmodified field state'; }
-    this.fieldState.message = message;
-    this.fieldState.validity = 3;
-    this.fieldState.asyncToken = generateQuickGuid();
-    return this.fieldState.asyncToken;
+    let asyncToken = generateQuickGuid();
+    this.setProps(this.getValue(), 3, message, asyncToken, true);
+    return asyncToken; // thinking this is more valuable than chaining
+  }
+  showMessage() {
+    return this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
   }
 
 }
@@ -457,8 +470,8 @@ export class FormState {
   }
 
 
-  isInvalid() {
-    return anyFieldState(this.form.state, fieldState => fieldState.isInvalid());
+  isInvalid(visibleMessagesOnly) {
+    return anyFieldState(this.form.state, x => x.isInvalid() && (!visibleMessagesOnly || x.isMessageVisible()));
   }
 
 
@@ -552,7 +565,8 @@ class UnitOfWork {
       else {
         let fieldState = this.getFieldState(field);
 
-        if (!fieldState.isValidated()) { fieldState = fieldState.validate(); }
+        if (!fieldState.isValidated()) { fieldState.validate(); }
+        fieldState.showMessage();
         if (!fieldState.isValid()) { isModelValid = false; }
         if (!isModelValid) { continue; } // else
 

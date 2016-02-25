@@ -1,6 +1,6 @@
 {
   "name": "react-formstate",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "peerDependencies": {
     "babel-polyfill": ">=6.0.0",
     "react": ">=0.13.0"
