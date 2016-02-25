@@ -2,6 +2,119 @@ still working on this...
 
 # api
 
+## FieldState
+
+a field state is essentially a collection of the following properties:
+
+- value
+- validity (1 = valid, 2 = invalid, 3 = validating, undefined = unvalidated)
+- message
+- asyncToken
+- isMessageVisible (for showing messages on blur)
+
+here is a list of all FieldState methods. i'll elaborate only where necessary
+
+```jsx
+equals(fieldState)
+
+getField()
+getKey()
+getMessage()
+getValue()
+
+isInvalid()
+isMessageVisible()
+isValid()
+isValidated()
+isValidating()
+
+setInvalid(message)
+setValid(message)
+setValidating(message)
+setValue(value)
+
+showMessage()
+
+validate()
+```
+
+### <a name='FieldState.equals'>boolean equals(FieldState fieldState)</a>
+
+use this to determine whether to render an input component. (it's a form of logical equivalence meant solely for this purpose.)
+
+```jsx
+shouldComponentUpdate(nextProps, nextState) {
+  return !nextProps.fieldState.equals(this.props.fieldState);
+}
+```
+
+### <a name='FieldState.getField'>Field getField()</a>
+
+a field is a representation of an input component within your form component. if you create an input like this:
+
+```jsx
+<CheckboxGroup
+  formField='roleIds'
+  checkboxValues={this.roles}
+  label='Roles'
+  defaultValue={[]}
+  intConvert
+  validate={[['minLength',1]]} />
+```
+
+an object will be created with the following properties:
+
+```jsx
+{
+  name: 'roleIds',
+  label: 'Roles',
+  required: false,
+  validate: [['minLength',1]],
+  noTrim: false,
+  preferNull: false,
+  intConvert: true,
+  defaultValue: []
+}
+```
+
+at present i'm only aware of the label field being useful in client code.
+
+### <a name='FieldState.getKey'>string getKey()</a>
+
+returns the canonical name for a field state. nesting is represented by a dot, i.e.
+
+```jsx
+workContact.address.line1
+contacts.0.address.city
+```
+
+if you aren't using ajax to submit your data, you could use the key to create an appropriate 'name' property for your input.
+
+```jsx
+<input name={makeNameForRails(this.props.fieldState.getKey())} ...
+```
+
+### <a name='FieldState.setValidating'>string setValidating(string message)</a>
+
+use this to create an 'asyncToken' for use in asynchronous validation. see [FormState.UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
+
+```jsx
+// careful: user might type more letters into the username input box
+let asyncToken = fieldState.setValidating('Verifying username...');
+context.updateFormState();
+
+function validateAsync() {
+//...
+```
+
+### <a name='FieldState.validate'>void validate()</a>
+
+this will call the appropriate validation function(s). the validity and message properties are set based on what the validation function(s) return(s). validation functions called in this manner *must be synchronous*.
+
+```jsx
+fieldState.setValue(value).validate();
+```
+
 ## FormState
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
