@@ -168,7 +168,7 @@ then your jsx should be structured along the following lines:
 </FormObject>
 ```
 
-FormObjects and FormArrays are essentially property generators. For a "formField", the following props are produced:
+FormObjects and FormArrays are essentially property generators. For a nested "formField", the following props are added:
 
 - label: the label might be modified by a labelPrefix (see below)
 - fieldState: a [FieldState](#FieldState) contains various props useful to an input component
