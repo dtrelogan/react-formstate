@@ -226,7 +226,7 @@ note that you might be able to use the same trick with a 'formArray' attribute a
 
 *labelPrefix*
 
-prefixes all the labels of the nested components
+prefixes all the labels of the nested components. in the following example, the label for the email input will be set to 'Work Email'
 
 ```jsx
 <FormObject formState={this.formState}>
@@ -236,14 +236,12 @@ prefixes all the labels of the nested components
 </FormObject>
 ```
 
-the label for the email input will be set to 'Work Email'
-
 *preferNull*
 
-for a FormArray with no elements, 'preferNull' determines whether model generation produces [] or null
+for a FormArray with no elements, upon model generation, the presence of the 'preferNull' attribute sets the 'contacts' property to null rather than an empty array.
 
 ```jsx
-<FormArray preferNull>
+<FormArray name='contacts' preferNull>
 </FormArray>
 ```
 
