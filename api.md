@@ -16,7 +16,7 @@ a field state is essentially a collection of the following properties:
 - validity (1 = valid, 2 = invalid, 3 = validating, undefined = unvalidated)
 - message
 - asyncToken
-- isMessageVisible (for showing messages on blur)
+- isMessageVisible (for showing messages [on blur](/onBlurExample.md))
 
 here is a list of all FieldState methods. most are self-explanatory.
 
