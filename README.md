@@ -88,6 +88,10 @@ export default class Input extends React.Component {
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/otherInputTypes.md)
 - [show validation message on blur](/onBlurExample.md)
 
+### api documentation
+
+[here](/api.md)
+
 ### peer dependencies
 
 - react (duh)
