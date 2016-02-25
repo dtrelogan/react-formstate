@@ -1,6 +1,6 @@
 # show validation message on blur
 
-your input component would look like:
+your input component looks like:
 
 ```jsx
 export default class Input extends React.Component {
