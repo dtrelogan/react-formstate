@@ -108,7 +108,7 @@ gotSomeNewDataFromTheStore(newContact) {
   let context = this.formState.createUnitOfWork(),
     numContacts = this.state.numContacts + 1;
   
-  context.add(`contacts.${numContacts}`, newContact);
+  context.add(`contacts.${numContacts - 1}`, newContact);
   context.updateFormState({ numContacts: numContacts });
 }
 ```
