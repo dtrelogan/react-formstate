@@ -113,7 +113,7 @@ gotSomeNewDataFromTheStore(newContact) {
 }
 ```
 
-### void createModel()
+### object createModel()
 
 use this to create a model upon form submission. returns null if form state is invalid or if waiting for asynchronous validation to complete.
 
