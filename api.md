@@ -18,7 +18,7 @@ a field state is essentially a collection of the following properties:
 - asyncToken
 - isMessageVisible (for showing messages on blur)
 
-here is a list of all FieldState methods. i'll elaborate only where necessary
+here is a list of all FieldState methods. most are self-explanatory.
 
 ```jsx
 equals(fieldState)
@@ -95,11 +95,15 @@ workContact.address.line1
 contacts.0.address.city
 ```
 
-if you aren't using ajax to submit your data, you could use the key to create an appropriate 'name' property for your input.
+if you aren't using ajax to submit your data, you could use the key to create an appropriate 'name' property for your input. the proper structure of the name field may depend on your server side framework.
 
 ```jsx
-<input name={makeNameForRails(this.props.fieldState.getKey())} ...
+<input name={makeName(this.props.fieldState.getKey())} ...
 ```
+
+### <a name='FieldState.isMessageVisible'>boolean isMessageVisible()</a>
+
+see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.setValidating'>string setValidating(string message)</a>
 
@@ -113,6 +117,10 @@ context.updateFormState();
 function validateAsync() {
 //...
 ```
+
+### <a name='FieldState.showMessage'>boolean showMessage()</a>
+
+see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.validate'>void validate()</a>
 
@@ -146,35 +154,109 @@ FormObject and FormArray components are meant to mimic your backing model. for i
 }
 ```
 
-then your jsx should be structured along the following lines:
+then ideally your jsx would be structured along the following lines:
 
 ```jsx
 <FormObject formState={this.formState}>
-  <Input formField='name' ... />
+  <Input formField='name' />
   <FormArray name='contacts'>
     <FormObject name='0'>
-      <Input formField='email' ... />
+      <Input formField='email' />
       <FormObject name='address'>
-        <Input formField='line1' ... />
+        <Input formField='line1' />
       </FormObject>
     </FormObject>
     <FormObject name='1'>
-      <Input formField='email' ... />
+      <Input formField='email' />
       <FormObject name='address'>
-        <Input formField='line1' ... />
+        <Input formField='line1' />
       </FormObject>
     </FormObject>
   </FormArray>
 </FormObject>
 ```
 
+if you absolutely cannot align your model with your jsx in this manner, you might need to transform before [injection](#UnitOfWork.injectModel) and after a valid [submit](#UnitOfWork.createModel).
+
+### required props
+
+FormObjects and FormArrays expect different props in different situations.
+
+the root FormObject should always be passed a 'formState' prop
+
+```jsx
+<FormObject formState={this.formState}>
+</FormObject>
+```
+
+a FormObject or FormArray nested within the same render function should be passed a 'name' prop
+
+```jsx
+<FormObject formState={this.formState}>
+  <FormArray name='contacts'>
+    <FormObject name='0'>
+    </FormObject>
+  </FormArray>
+</FormObject>
+```
+
+a 'formObject' attribute allows a "hop" from one component to another
+
+```jsx
+<FormObject formState={this.formState}>
+  <FormArray name='contacts'>
+    <Contact formObject='0' />
+  </FormArray>
+</FormObject>
+```
+
+to complete the "hop", within the nested form component, a FormObject should be placed at the root of its jsx. pass it the nested form component using a 'nestedForm' prop
+
+```jsx
+export default class Contact extends React.Component {
+  render() {
+    return (
+      <FormObject nestedForm={this}>
+      </FormObject>
+```
+
+note that you might be able to use the same trick with a 'formArray' attribute and FormArray element, but it is untested.
+
+### optional props
+
+*labelPrefix*
+
+prefixes all the labels of the nested components
+
+```jsx
+<FormObject formState={this.formState}>
+  <FormObject name='workContact' labelPrefix='Work '>
+    <Input formField='email' label='Email' />
+  </FormObject>
+</FormObject>
+```
+
+the label for the email input will be set to 'Work Email'
+
+*preferNull*
+
+for a FormArray with no elements, 'preferNull' determines whether model generation produces [] or null
+
+```jsx
+<FormArray preferNull>
+</FormArray>
+```
+
+### property generation
+
 FormObjects and FormArrays are essentially property generators. For a nested "formField", the following props are added:
 
-- label: the label might be modified by a labelPrefix (see below)
-- fieldState: a [FieldState](#FieldState) contains various props useful to an input component
+- label: a label can be modified by a labelPrefix (see below)
+- fieldState: a [FieldState](#FieldState) contains props useful to an input component
 - updateFormState: use this as the onChange handler in your input component
-- showValidationMessage: you can optionally use this as an onBlur handler
+- showValidationMessage: optionally use this as an onBlur handler
 
+note: for asynchronous validation you must override the framework generated updateFormState handler.
 
 ## <a name='FormState'>FormState</a>
 
