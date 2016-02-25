@@ -56,10 +56,11 @@ export default class UserForm extends React.Component {
 
 
   handleUsernameChange(e) {
-    let username = e.target.value;
+    let username = e.target.value,
+      context = this.formState.createUnitOfWork(),
+      fieldState = context.getFieldState('username');
 
-    let context = this.formState.createUnitOfWork();
-    let fieldState = context.getFieldState('username').setValue(username);
+    fieldState.setValue(username);
 
     if (username === this.originalUsername) {
       fieldState.setValid();
@@ -89,6 +90,7 @@ export default class UserForm extends React.Component {
         } else {
           fieldState.setValid('Verified');
         }
+        fieldState.showMessage(); // in case you are showing on blur
         context.updateFormState();
       }
     }.bind(this), 2000);
