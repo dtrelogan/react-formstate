@@ -52,9 +52,15 @@ export default class UserForm extends React.Component {
 create a unit of work "context" for making changes to immutable form state.
 
 ```jsx
-// assigning directly to state should only be done in your root form component constructor
-this.state = this.formState.createUnitOfWork().injectModel(props.model);
-// anywhere else you should use UnitOfWork.updateFormState, which calls React.Component.setState
+handleUsernameChange(e) {
+  let username = e.target.value,
+    context = this.formState.createUnitOfWork(),
+    fieldState = context.getFieldState('username');
+
+  fieldState.setValue(username);
+  // you would do validation here
+  context.updateFormState();
+}
 ```
 
 ### boolean isDeleted(string name)
