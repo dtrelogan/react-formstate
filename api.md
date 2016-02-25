@@ -3,6 +3,8 @@ still working on this...
 # api
 
 - [FieldState](#FieldState)
+- [FormArray](#FormObject)
+- [FormObject](#FormObject)
 - [FormState](#FormState)
 - [FormState.UnitOfWork](#UnitOfWork)
 
@@ -119,6 +121,60 @@ this will call the appropriate validation function(s). the validity and message 
 ```jsx
 fieldState.setValue(value).validate();
 ```
+
+## <a name='FormObject'>FormObject/FormArray</a>
+
+FormObject and FormArray components are meant to mimic your backing model. for instance, if you have a model like this:
+
+```jsx
+{
+  name: 'buster brown',
+  contacts: [
+    {
+      email: 'buster@dogmail.com',
+      address: {
+        line1: '123 some street'
+      }
+    },
+    {
+      email: 'buster@dogs.org',
+      address: {
+        line1: '456 another street'
+      }
+    }
+  ]
+}
+```
+
+then your jsx should be structured along the following lines:
+
+```jsx
+<FormObject formState={this.formState}>
+  <Input formField='name' ... />
+  <FormArray name='contacts'>
+    <FormObject name='0'>
+      <Input formField='email' ... />
+      <FormObject name='address'>
+        <Input formField='line1' ... />
+      </FormObject>
+    </FormObject>
+    <FormObject name='1'>
+      <Input formField='email' ... />
+      <FormObject name='address'>
+        <Input formField='line1' ... />
+      </FormObject>
+    </FormObject>
+  </FormArray>
+</FormObject>
+```
+
+FormObjects and FormArrays are essentially property generators. For a "formField", the following props are produced:
+
+- label: the label might be modified by a labelPrefix (see below)
+- fieldState: a [FieldState](#FieldState) contains various props useful to an input component
+- updateFormState: use this as the onChange handler in your input component
+- showValidationMessage: you can optionally use this as an onBlur handler
+
 
 ## <a name='FormState'>FormState</a>
 
