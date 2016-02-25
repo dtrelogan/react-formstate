@@ -30,7 +30,7 @@ export default class Input extends React.Component {
 }
 ```
 
-in your form, pass 'true' to FormState.isInvalid to factor in "visible" messages only
+in your form component, pass 'true' to FormState.isInvalid to factor in "visible" messages only
 
 ```jsx
 <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
