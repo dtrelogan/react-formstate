@@ -2,7 +2,11 @@ still working on this...
 
 # api
 
-## FieldState
+- [FieldState](#FieldState)
+- [FormState](#FormState)
+- [FormState.UnitOfWork](#UnitOfWork)
+
+## <a name='FieldState'>FieldState</a>
 
 a field state is essentially a collection of the following properties:
 
@@ -59,7 +63,8 @@ a field is a representation of an input component within your form component. if
   label='Roles'
   defaultValue={[]}
   intConvert
-  validate={[['minLength',1]]} />
+  validate={[['minLength',1]]}
+  />
 ```
 
 an object will be created with the following properties:
@@ -115,7 +120,7 @@ this will call the appropriate validation function(s). the validity and message 
 fieldState.setValue(value).validate();
 ```
 
-## FormState
+## <a name='FormState'>FormState</a>
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 
@@ -220,7 +225,7 @@ typically you'd look up field state through a unit of work, but maybe you could 
 let fieldState = this.formState.getFieldState('fieldName');
 ```
 
-## FormState.UnitOfWork
+## <a name='UnitOfWork'>FormState.UnitOfWork</a>
 
 ### <a name="UnitOfWork.add">void add(string name, ? value)</a>
 
