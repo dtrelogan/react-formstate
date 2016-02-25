@@ -18,7 +18,7 @@ a field state is essentially a collection of the following properties:
 - asyncToken
 - isMessageVisible (for showing messages [on blur](/onBlurExample.md))
 
-here is a list of all FieldState methods. most are self-explanatory.
+most FieldState methods are self-explanatory:
 
 ```jsx
 equals(fieldState)
