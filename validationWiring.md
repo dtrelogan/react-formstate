@@ -4,7 +4,9 @@
 
 this is *not* a validation library per se, but it *wires up* validation, which in react is arguably just as valuable.
 
-you can do whatever you'd like in your validation functions but i'd suggest using [validator](https://www.npmjs.com/package/validator).
+maybe in the future this could seamlessly [plug into](#future) your chosen validation library.
+
+for now you can do whatever you'd like in your validation functions but i'd suggest using [validator](https://www.npmjs.com/package/validator).
 
 sadly, despite the fact that many react packages steer you toward [joi](https://www.npmjs.com/package/joi), _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and adds about a megabyte to your bundle.
 
@@ -102,7 +104,7 @@ validatePasswordConfirmation(confirmation, context) {
 }
 ```
 
-### registering validation functions
+### <a name='register'>registering validation functions</a>
 
 in your application, you can register reusable validation functions with messaging of your choice.
 
@@ -142,10 +144,19 @@ if you only have one registered validation function to call you can use this syn
 
 all validation functions documented in this section are intended to be callbacks for the framework generated event handler. they should be *synchronous*. asynchronous validation should instead override the event handler. an example is provided [here](/asyncExample.md)
 
-### <a name='future'>should this become a validation library?</a>
+### <a name='future'>down the line</a>
 
-considering the existence of [validator](https://www.npmjs.com/package/validator), with respect to the framework api, providing hooks for validation *messaging* is trickier than providing canned validation logic.
+i have a strong preference that configuration for validation *messaging* and internationalization live in a validation library and not in react-formstate.
 
-i think the api is strong as it is. i'm unsure of how to do better hooks for internationalization. i'd prefer not to put anything extra into the framework until it's done well.
+the ability to [register](#register) validation functions means it might be somewhat straightforward to write a wrapper to plug in a validation library. something like:
 
-in the meantime you could argue the framework isn't optimal for fast prototyping. maybe someone could share some code for registering a bunch of default validation functions? then you'd have the *option* of quickly throwing those into your application.
+```jsx
+import { FormState } from 'react-formstate';
+import SomeValidationLibraryAdapter from '?';
+
+SomeValidationLibraryAdapter.plugInto(FormState);
+
+// configure messages that the validationLibrary produces...
+```
+
+if someone wants to throw something together along those lines that'd be awesome.
