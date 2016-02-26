@@ -71,9 +71,9 @@ useful for select inputs.
 
 use this to define a default value for your inputs.
 
-if a model is [injected](#UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful* when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
+if a model is [injected](#UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
-*important* for select-multiple and checkbox group inputs you should *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since model injection happens *before* rendering.
+*important*: for select-multiple and checkbox group inputs *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since model injection happens *before* rendering.
 
 do not confuse this property with the defaultValue property used for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). components managed by this framework are controlled components.
 
