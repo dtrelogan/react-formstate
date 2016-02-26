@@ -504,7 +504,7 @@ return v.toString();
 
 removes form state prior to form submission.
 
-typically used to dynamically remove an input component.
+typically used to dynamically remove an input component. see [FormState.isDeleted](#FormState.isDeleted)
 
 ```jsx
 removeContact(i) {
