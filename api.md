@@ -22,7 +22,7 @@ a Field is a representation of a rendered input component. if you define an inpu
   />
 ```
 
-a framework object will be created with the following properties:
+a framework object is created with the following properties:
 
 ```jsx
 {
