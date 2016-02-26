@@ -357,8 +357,7 @@ handleUsernameChange(e) {
     context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState('username');
 
-  fieldState.setValue(username);
-  // you would do validation here
+  fieldState.setValue(username).validate();
   context.updateFormState();
 }
 ```
@@ -518,8 +517,7 @@ handleUsernameChange(e) {
     context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState('username');
 
-  fieldState.setValue(username);
-  // you would do validation here
+  fieldState.setValue(username).validate();
   context.updateFormState({ setSomeOtherProperty: 'someValue' });
 }
 ```
