@@ -39,7 +39,7 @@ a framework object will be created with the following properties:
 
 ### name
 
-name ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. the fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
+ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
 
 ### label
 
@@ -55,27 +55,27 @@ see [validation](/validationWiring.md)
 
 ### noTrim
 
-during [model generation](#UnitOfWork.createModel) string values are trimmed by default. use noTrim to override this behavior.
+during [model generation](#UnitOfWork.createModel) string values are trimmed by default. noTrim overrides this behavior.
 
 ### preferNull
 
-produce a null value during [model generation](#UnitOfWork.createModel) rather than an empty string or an empty array.
+produces a null value during [model generation](#UnitOfWork.createModel) rather than an empty string or an empty array.
 
 ### intConvert
 
-during [model generation](#UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers.
+during [model generation](#UnitOfWork.createModel) casts a string to an integer, or an array of strings to an array of integers.
 
-useful for select inputs.
+useful for a select input for instance.
 
 ### defaultValue
 
-use this to define a default value for your inputs.
+defines a default value for your input.
 
 if a model is [injected](#UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
-*important*: for select-multiple and checkbox group inputs *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since model injection happens *before* rendering.
+*important*: for select-multiple and checkbox group inputs *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since (1) model injection happens *before* rendering and (2) inputs are not a part of the framework so it has no idea whether your component contains a text input or a select input.
 
-do not confuse this property with the defaultValue property used for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). components managed by this framework are controlled components.
+do not confuse this property with the defaultValue property used for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by this framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
 ## <a name='FieldState'>FieldState</a>
 
@@ -143,7 +143,7 @@ see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.setValidating'>string setValidating(string message)</a>
 
-use this to create an 'asyncToken' for use in asynchronous validation. see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
+updates validity, sets a message, and returns an 'asyncToken' for use in asynchronous validation. see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
 
 ```jsx
 // careful: user might type more letters into the username input box
@@ -162,9 +162,9 @@ see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.validate'>void validate()</a>
 
-this will call the appropriate validation function(s). see [validation](/validationWiring.md) documentation.
+calls the appropriate validation function(s). uses the result to update the validity and message properties appropriately. see the [validation](/validationWiring.md) documentation.
 
-the validity and message properties are set based on what the validation function(s) return(s). a validation function called in this manner *must be synchronous*.
+*important*: a validation function called in this manner *must be synchronous*.
 
 ```jsx
 fieldState.setValue(value).validate();
@@ -220,16 +220,16 @@ if you absolutely cannot align your model with your jsx in this manner, you migh
 
 ### required props
 
-FormObjects and FormArrays expect different props in different situations.
+FormObjects and FormArrays require different props in different situations.
 
-the root FormObject should always be passed a 'formState' prop
+always pass a 'formState' prop to the root FormObject
 
 ```jsx
 <FormObject formState={this.formState}>
 </FormObject>
 ```
 
-a FormObject or FormArray nested within the same render function should be passed a 'name' prop
+pass a 'name' prop to a FormObject or FormArray nested within the same render function
 
 ```jsx
 <FormObject formState={this.formState}>
@@ -250,7 +250,7 @@ a 'formObject' attribute allows a "hop" from one component to another
 </FormObject>
 ```
 
-to complete the "hop", within the nested form component, a FormObject should be placed at the root of its jsx. pass the FormObject the nested form component using a 'nestedForm' prop
+to complete the "hop", within the nested form component, place a FormObject at the root of its jsx. pass the FormObject the nested form component using a 'nestedForm' prop
 
 ```jsx
 export default class Contact extends React.Component {
@@ -259,8 +259,6 @@ export default class Contact extends React.Component {
       <FormObject nestedForm={this}>
       </FormObject>
 ```
-
-note that you might be able to use the same trick with a 'formArray' attribute and FormArray element, but it is untested.
 
 ### optional props
 
@@ -278,7 +276,7 @@ prefixes all the labels of the nested components. in the following example, the 
 
 *preferNull*
 
-for a FormArray with no elements, upon model generation, the presence of the 'preferNull' attribute sets the 'contacts' property to null rather than an empty array.
+for a FormArray with no elements, upon model generation, sets the 'contacts' property to null rather than an empty array.
 
 ```jsx
 <FormArray name='contacts' preferNull>
@@ -289,24 +287,24 @@ for a FormArray with no elements, upon model generation, the presence of the 'pr
 
 FormObjects and FormArrays are essentially property generators. for a nested "formField", the following props are added:
 
-- label: a label can be modified by a labelPrefix (see [above](#labelPrefix))
+- label: a label modified by an optional labelPrefix (see [above](#labelPrefix))
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
-- updateFormState: use this as the onChange handler in your input component
-- showValidationMessage: optionally use this as an onBlur handler
+- updateFormState: the onChange handler for your input component
+- showValidationMessage: an optional onBlur handler
 
 note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/asyncExample.md)
 
 FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays.
 
 - formState: [pathed](#UnitOfWork.getFieldState) appropriately
-- validationComponent: used for [auto-wiring](/validationWiring.md#autowiring) validation functions
+- validationComponent: for [auto-wiring](/validationWiring.md#autowiring) validation functions
 - labelPrefix: see [above](#labelPrefix)
 
 ## <a name='FormState'>FormState</a>
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 
-add a reusable validation function with custom messaging
+adds a reusable validation function with custom messaging
 
 ```jsx
 FormState.registerValidation('minLength', function(value, label, minLength) {
@@ -322,7 +320,7 @@ FormState.registerValidation('minLength', function(value, label, minLength) {
 
 ### <a name="FormState.setRequired">static void setRequired(function validationHandler)</a>
 
-override the default required field validation.
+overrides the default required field validation.
 
 ```jsx
 FormState.setRequired(function(value, label) {
@@ -332,7 +330,9 @@ FormState.setRequired(function(value, label) {
 
 ### <a name="FormState.constructor">constructor(React.Component formComponent)</a>
 
-create a root form state instance. please pass your root form component so that the form state instance can manipulate its state.
+creates a root form state instance.
+
+pass your root form component to the constructor to allow the form state instance to manipulate component state.
 
 ```jsx
 export default class UserForm extends React.Component {
@@ -349,7 +349,7 @@ export default class UserForm extends React.Component {
 
 ### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
 
-create a unit of work "context" for making changes to immutable form state.
+creates a unit of work "context" for making changes to immutable form state.
 
 ```jsx
 handleUsernameChange(e) {
@@ -364,7 +364,9 @@ handleUsernameChange(e) {
 
 ### <a name="FormState.isDeleted">boolean isDeleted(string name)</a>
 
-whether branches of your form state have been removed (using UnitOfWork.remove). use this to determine whether to show inputs
+determines whether a branch of your form state was removed (using [UnitOfWork.remove](#UnitOfWork.remove)).
+
+typically used to conditionally show inputs during render.
 
 ```jsx
 render() {
@@ -378,9 +380,9 @@ render() {
 
 ### <a name="FormState.isInvalid">boolean isInvalid(boolean visibleMessagesOnly)</a>
 
-use this to determine whether to show a form-level validation message, or disable the submit button, etc.
+determines whether to show a form-level validation message, or disable the submit button, etc.
 
-if you are showing validation messages on blur you should pass 'true' to this function
+if you are showing validation messages on blur pass 'true' to this function
 
 ```jsx
 <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
@@ -398,9 +400,11 @@ returns true if the form is waiting for asynchronous validation to finish.
 
 ### <a name="FormState.getFieldState">FieldState getFieldState(string name)</a>
 
-look up form state for a particular field. returns a read-only FieldState instance.
+retrieves form state for a particular field. returns a read-only FieldState instance.
 
-typically you'd look up field state through a [context](#UnitOfWork.getFieldState), but maybe you could use this in your render function.
+typically field state is retrieved through a [context](#UnitOfWork.getFieldState).
+
+this is potentially useful in a render function.
 
 ```jsx
 let fieldState = this.formState.getFieldState('fieldName');
@@ -410,7 +414,9 @@ let fieldState = this.formState.getFieldState('fieldName');
 
 ### <a name="UnitOfWork.add">void add(string name, ? value)</a>
 
-use this if you need to add values directly to your form state. typically this is done if inputs are created dynamically during a render. here is a very contrived example:
+adds a value directly to your form state.
+
+typically used to dynamically add an input component. here is a very contrived example:
 
 ```jsx
 gotSomeNewDataFromTheStore(newContact) {
@@ -424,7 +430,9 @@ gotSomeNewDataFromTheStore(newContact) {
 
 ### <a name="UnitOfWork.createModel">object createModel()</a>
 
-use this to create a model upon form submission. returns null if form state is invalid or if waiting for asynchronous validation to complete.
+creates a model upon form submission.
+
+returns null if form state is invalid or if waiting on asynchronous validation.
 
 ```jsx
 handleSubmit(e) {
@@ -439,9 +447,9 @@ handleSubmit(e) {
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
-retrieve form state for a particular field.
+retrieves form state for a particular field.
 
-if asyncToken is passed, this will return null unless the token matches the token embedded in the field state. (in asynchronous validation you should only validate if the fieldstate hasn't already changed by the time your callback is invoked.) see [FieldState.setValidating](#FieldState.setValidating)
+if asyncToken is passed, returns null unless the token matches the token embedded in the field state. (in an asynchronous validation callback, validate *only* if the fieldstate hasn't changed before the callback is invoked. see [FieldState.setValidating](#FieldState.setValidating))
 
 ```jsx
 function validateAsync() {
@@ -452,7 +460,7 @@ function validateAsync() {
     // ...
 ```
 
-if you are working in a nested form component, the name will be relative to the path embedded in the form state. this way, nested form components can be ignorant of how they are used
+in a nested form component, name is relative to the path embedded in the nested form state.
 
 ```jsx
 export default class Contact extends React.Component {
@@ -468,7 +476,7 @@ export default class Contact extends React.Component {
 
 ### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
 
-use this to initialize form state.
+initializes form state.
 
 ```jsx
 export default class UserForm extends React.Component {
@@ -494,7 +502,9 @@ return v.toString();
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
-if you need to remove form state prior to form submission. typically this is done so that inputs are removed dynamically during a render.
+removes form state prior to form submission.
+
+typically used to dynamically remove an input component.
 
 ```jsx
 removeContact(i) {
@@ -509,7 +519,9 @@ removeContact(i) {
 
 ### <a name="UnitOfWork.updateFormState">void updateFormState(object additionalUpdates)</a>
 
-call setState on your root form component. you can optionally pass additional state updates to merge with the updates accumulated in your unit of work.
+calls setState on your root form component.
+
+optionally accepts additional state updates to merge with the unit of work updates.
 
 ```jsx
 handleUsernameChange(e) {
