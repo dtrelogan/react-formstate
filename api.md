@@ -500,7 +500,7 @@ export default class Contact extends React.Component {
 
 ### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
 
-initializes form state. values are [coerced](#noCoercion) to string by default.
+initializes form state. values are [coerced](#noCoercion) to strings by default.
 
 ```jsx
 export default class UserForm extends React.Component {
