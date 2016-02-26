@@ -65,7 +65,9 @@ produce a null value during [model generation](#UnitOfWork.createModel) rather t
 
 ### intConvert
 
-during [model generation](#UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers. useful for select inputs.
+during [model generation](#UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers.
+
+useful for select inputs.
 
 ### defaultValue
 
@@ -264,7 +266,7 @@ note that you might be able to use the same trick with a 'formArray' attribute a
 
 ### optional props
 
-*labelPrefix*
+<a name='labelPrefix'>*labelPrefix*</a>
 
 prefixes all the labels of the nested components. in the following example, the label for the email input will be set to 'Work Email'
 
@@ -289,18 +291,18 @@ for a FormArray with no elements, upon model generation, the presence of the 'pr
 
 FormObjects and FormArrays are essentially property generators. for a nested "formField", the following props are added:
 
-- label: a label can be modified by a labelPrefix (see below)
+- label: a label can be modified by a labelPrefix (see [above](#labelPrefix))
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
 - updateFormState: use this as the onChange handler in your input component
 - showValidationMessage: optionally use this as an onBlur handler
 
 note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/asyncExample.md)
 
-FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays. other than the formState property, they should be transparent to the client
+FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays.
 
 - formState: [pathed](#UnitOfWork.getFieldState) appropriately
 - validationComponent: used for [auto-wiring](/validationWiring.md#autowiring) validation functions
-- labelPrefix: see above
+- labelPrefix: see [above](#labelPrefix)
 
 ## <a name='FormState'>FormState</a>
 
