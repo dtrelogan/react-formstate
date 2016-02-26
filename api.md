@@ -33,7 +33,8 @@ a framework object is created with the following properties:
   noTrim: false,
   preferNull: false,
   intConvert: true,
-  defaultValue: []
+  defaultValue: [],
+  noCoercion: false
 }
 ```
 
@@ -76,6 +77,17 @@ if a model is [injected](#UnitOfWork.injectModel) into form state, the model val
 *important*: if using the framework generated change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether *your* component contains a text input or a select input.
 
 do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
+
+### <a name='noCoercion'>noCoercion</a>
+
+most html inputs work with string values. [injected](#UnitOfWork.injectModel) values are coerced to strings by default. the noCoercion setting disables this logic:
+
+```jsx
+if (!isDefined(v)) { return ''; } // else
+if (v === true || v === false) { return v; } // else
+if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
+return v.toString();
+```
 
 ## <a name='FieldState'>FieldState</a>
 
@@ -488,7 +500,7 @@ export default class Contact extends React.Component {
 
 ### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
 
-initializes form state.
+initializes form state. values are [coerced](#noCoercion) to string by default.
 
 ```jsx
 export default class UserForm extends React.Component {
@@ -501,15 +513,6 @@ export default class UserForm extends React.Component {
   
   //...
 }
-```
-
-most inputs work with string values. injected model values are coerced using the following logic (which will likely be subject to improvement... thanks in advance for any feedback.)
-
-```jsx
-if (!isDefined(v)) { return ''; } // else
-if (v === true || v === false) { return v; } // else
-if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
-return v.toString();
 ```
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
