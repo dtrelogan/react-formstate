@@ -7,7 +7,7 @@ still working on this...
 - [FormArray](#FormObject)
 - [FormObject](#FormObject)
 - [FormState](#FormState)
-- [FormState.UnitOfWork](#UnitOfWork)
+- [UnitOfWork](#UnitOfWork)
 
 ## <a name='Field'>Field</a>
 
@@ -143,7 +143,7 @@ see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.setValidating'>string setValidating(string message)</a>
 
-use this to create an 'asyncToken' for use in asynchronous validation. see [FormState.UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
+use this to create an 'asyncToken' for use in asynchronous validation. see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
 
 ```jsx
 // careful: user might type more letters into the username input box
@@ -365,7 +365,7 @@ handleUsernameChange(e) {
 
 ### <a name="FormState.isDeleted">boolean isDeleted(string name)</a>
 
-whether branches of your form state have been removed (using FormState.UnitOfWork.remove). use this to determine whether to show inputs
+whether branches of your form state have been removed (using UnitOfWork.remove). use this to determine whether to show inputs
 
 ```jsx
 render() {
@@ -407,7 +407,7 @@ typically you'd look up field state through a [context](#UnitOfWork.getFieldStat
 let fieldState = this.formState.getFieldState('fieldName');
 ```
 
-## <a name='UnitOfWork'>FormState.UnitOfWork</a>
+## <a name='UnitOfWork'>UnitOfWork</a>
 
 ### <a name="UnitOfWork.add">void add(string name, ? value)</a>
 
