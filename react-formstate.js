@@ -333,6 +333,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
         if (isDefined(props.defaultValue)) {
           field.defaultValue = props.defaultValue;
         }
+        field.noCoercion = Boolean(props.noCoercion);
       }
 
       return {
@@ -666,18 +667,20 @@ var FormState = exports.FormState = function () {
     value: function getFieldState(fieldOrName, asyncToken, stateContext) {
       var field = findFieldByFieldOrName(this, fieldOrName),
           key = field ? field.key : this.buildKey(fieldOrName),
-          _fieldState = _getFieldState(this.form.state, key);
+          _fieldState = _getFieldState(this.form.state, key),
+          noCoercion = field && field.noCoercion;
 
       if (_fieldState && !_fieldState.isCoerced) {
         if (!isDefined(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
           _fieldState = { value: [] };
         } else {
-          _fieldState = { value: coerceToString(_fieldState.value) };
+          _fieldState = { value: noCoercion ? _fieldState.value : coerceToString(_fieldState.value) };
         }
       }
 
       if (!_fieldState || _fieldState.isDeleted) {
-        _fieldState = { value: coerceToString(field && field.defaultValue) };
+        var defaultValue = field && field.defaultValue;
+        _fieldState = { value: noCoercion ? defaultValue : coerceToString(defaultValue) };
       }
 
       if (asyncToken && _fieldState.asyncToken !== asyncToken) {
