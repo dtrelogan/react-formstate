@@ -216,7 +216,7 @@ then ideally your jsx is structured along the following lines:
 </FormObject>
 ```
 
-if you absolutely cannot align your model with your jsx in this manner, you might need to transform before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
+if you absolutely cannot align your model with your jsx in this manner, transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
 
 ### required props
 
