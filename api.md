@@ -414,7 +414,7 @@ let fieldState = this.formState.getFieldState('fieldName');
 
 ### <a name="UnitOfWork.add">object add(string name, ? value)</a>
 
-adds a value directly to your form state.
+adds a value directly to your form state, or updates an existing value.
 
 returns the state updates from the unit of work. this makes it easier to transform injected form state
 
