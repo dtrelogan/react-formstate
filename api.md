@@ -59,7 +59,7 @@ during [model generation](#UnitOfWork.createModel) string values are trimmed by 
 
 ### preferNull
 
-produces a null value during [model generation](#UnitOfWork.createModel) rather than an empty string or an empty array.
+during [model generation](#UnitOfWork.createModel) produces a null value rather than an empty string or an empty array.
 
 ### intConvert
 
