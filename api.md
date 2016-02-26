@@ -470,7 +470,7 @@ if you are working in a nested form component, the name will be relative to the 
 export default class Contact extends React.Component {
   function handleEmailChange(e) {
     // a pathed formState is passed to a nested component
-    let context = this.props.formState,
+    let context = this.props.formState.createUnitOfWork(),
       fieldState = context.getFieldState('email');
       
     // the retrieved fieldState might be for homeContact.email
