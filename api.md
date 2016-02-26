@@ -41,7 +41,7 @@ a framework object will be created with the following properties:
 
 ### name
 
-name ties an input component to an [injected](/UnitOfWork.injectModel) model by way of form state. the fields, as defined during a render, also form a specification of the model to be [generated](/UnitOfWork.createModel) upon form submission.
+name ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. the fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
 
 ### label
 
@@ -57,21 +57,21 @@ see [validation](/validationWiring.md)
 
 ### noTrim
 
-during [model generation](/UnitOfWork.createModel) string values are trimmed by default. use noTrim to override this behavior.
+during [model generation](#UnitOfWork.createModel) string values are trimmed by default. use noTrim to override this behavior.
 
 ### preferNull
 
-produce a null value during [model generation](/UnitOfWork.createModel) rather than an empty string or an empty array.
+produce a null value during [model generation](#UnitOfWork.createModel) rather than an empty string or an empty array.
 
 ### intConvert
 
-during [model generation](/UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers. useful for select inputs.
+during [model generation](#UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers. useful for select inputs.
 
 ### defaultValue
 
 use this to define a default value for your inputs.
 
-if a model is [injected](/UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful* when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
+if a model is [injected](#UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful* when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
 *important* for select-multiple and checkbox group inputs you should *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since model injection happens *before* rendering.
 
