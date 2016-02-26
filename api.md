@@ -73,7 +73,7 @@ defines a default value for your input.
 
 if a model is [injected](#UnitOfWork.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
-*important*: if using the framework generated change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because the framework has no idea whether *your* component contains a text input or a select input.
+*important*: if using the framework generated change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether *your* component contains a text input or a select input.
 
 do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
