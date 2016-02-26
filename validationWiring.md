@@ -144,8 +144,8 @@ all validation functions documented in this section are intended to be callbacks
 
 ### <a name='future'>should this become a validation library?</a>
 
-considering the existence of [validator](https://www.npmjs.com/package/validator), with respect to the framework api, providing hooks for validation *messaging* is trickier than providing canned validation logic. i'm unsure of the appropriate hooks for internationalization.
+considering the existence of [validator](https://www.npmjs.com/package/validator), with respect to the framework api, providing hooks for validation *messaging* is trickier than providing canned validation logic.
 
-i think the api is strong as it is. i'd prefer not to put anything extra into the framework until it's done well.
+i think the api is strong as it is. i'm unsure of how to do better hooks for internationalization. i'd prefer not to put anything extra into the framework until it's done well.
 
 in the meantime you could argue the framework isn't optimal for fast prototyping. maybe someone could share some code for registering a bunch of default validation functions? then you'd have the *option* of quickly throwing those into your application.
