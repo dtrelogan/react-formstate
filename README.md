@@ -28,7 +28,7 @@ export default class LoginForm extends React.Component {
       <form>
         <FormObject formState={this.formState}>
           <Input formField='username' label='Username' required />
-          <Input formField='password' label='Password' required />
+          <Input formField='password' label='Password' required type='password' />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
@@ -64,7 +64,11 @@ export default class Input extends React.Component {
     return (
       <div>
         <label>{this.props.label}</label>
-        <input type='text' value={this.props.fieldState.getValue()} onChange={this.props.updateFormState} />
+        <input
+          type={this.props.type || 'text'}
+          value={this.props.fieldState.getValue()}
+          onChange={this.props.updateFormState}
+          />
         <span>{this.props.fieldState.getMessage()}</span>
       </div>
     );
