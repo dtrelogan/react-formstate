@@ -361,27 +361,3 @@ export default class Select extends React.Component {
   }
 }
 ```
-
-### (Password)
-
-```jsx
-import React from 'react';
-
-export default class Input extends React.Component {
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
-  render() {
-    console.log('render ' + this.props.label); // for demonstration only
-    return (
-      <div>
-        <label>{this.props.label}</label>
-        <input type={this.props.type || 'text'} value={this.props.fieldState.getValue()} onChange={this.props.updateFormState} />
-        <span>{this.props.fieldState.getMessage()}</span>
-      </div>
-    );
-  }
-}
-```
