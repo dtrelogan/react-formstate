@@ -1,5 +1,3 @@
-still working on this...
-
 # api
 
 - [Field](#Field)
@@ -440,15 +438,6 @@ handleSubmit(e) {
 }
 ```
 
-most inputs work with string values. injected model values are coerced using the following logic (which will likely be subject to improvement... thanks in advance for any feedback.)
-
-```jsx
-if (!isDefined(v)) { return ''; } // else
-if (v === true || v === false) { return v; } // else
-if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
-return v.toString();
-```
-
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
 retrieve form state for a particular field.
@@ -493,6 +482,15 @@ export default class UserForm extends React.Component {
   
   //...
 }
+```
+
+most inputs work with string values. injected model values are coerced using the following logic (which will likely be subject to improvement... thanks in advance for any feedback.)
+
+```jsx
+if (!isDefined(v)) { return ''; } // else
+if (v === true || v === false) { return v; } // else
+if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
+return v.toString();
 ```
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
