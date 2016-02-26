@@ -55,15 +55,15 @@ see [validation](/validationWiring.md)
 
 ### noTrim
 
-during [model generation](#UnitOfWork.createModel) string values are trimmed by default. noTrim overrides this behavior.
+string values are trimmed by default. noTrim overrides this behavior. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
 ### preferNull
 
-during [model generation](#UnitOfWork.createModel) produces a null value rather than an empty string or an empty array.
+produces a null value rather than an empty string or an empty array. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
 ### intConvert
 
-during [model generation](#UnitOfWork.createModel) casts a string to an integer, or an array of strings to an array of integers.
+casts a string to an integer, or an array of strings to an array of integers. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
 useful for a select input for instance.
 
