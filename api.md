@@ -216,7 +216,7 @@ then ideally your jsx is structured along the following lines:
 </FormObject>
 ```
 
-if you absolutely cannot align your model with your jsx in this manner, transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
+if you absolutely cannot align your model with your jsx in this manner, transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel). see [UnitOfWork.add](#UnitOfWork.add)
 
 ### required props
 
@@ -412,19 +412,31 @@ let fieldState = this.formState.getFieldState('fieldName');
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
 
-### <a name="UnitOfWork.add">void add(string name, ? value)</a>
+### <a name="UnitOfWork.add">object add(string name, ? value)</a>
 
 adds a value directly to your form state.
 
-typically used to dynamically add an input component. here is a very contrived example:
+returns the state updates from the unit of work. this makes it easier to transform injected form state
+
+```jsx
+let context = this.formState.createUnitOfWork();
+context.injectModel(model);
+// the model field is named 'disabled'
+// but the jsx presents it as 'active'
+this.state = context.add('active', !model.disabled);
+```
+
+another potential use is to add input components dynamically. here is a very contrived example:
 
 ```jsx
 gotSomeNewDataFromTheStore(newContact) {
   let context = this.formState.createUnitOfWork(),
-    numContacts = this.state.numContacts + 1;
+    numContacts = this.state.numContacts;
   
-  context.add(`contacts.${numContacts - 1}`, newContact);
-  context.updateFormState({ numContacts: numContacts });
+  // add the new contact to the array.
+  // new inputs will be rendered dynamically.
+  context.add(`contacts.${numContacts}`, newContact);
+  context.updateFormState({ numContacts: numContacts + 1 });
 }
 ```
 
