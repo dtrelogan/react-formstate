@@ -410,7 +410,7 @@ var FieldState = function () {
 
       if (!this.isModified) {
         this.isModified = true;
-        this.fieldState = {};
+        this.fieldState = { isCoerced: true }; // to get here, would have already gone through getFieldState
         _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
       }
 
@@ -578,7 +578,11 @@ var FieldState = function () {
   }, {
     key: 'showMessage',
     value: function showMessage() {
-      return this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
+      // i don't think chaining adds any value to this method. can always change it later.
+      if (isDefined(this.getMessage())) {
+        // prevents unnecessary rendering
+        this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
+      }
     }
   }]);
 
@@ -663,6 +667,14 @@ var FormState = exports.FormState = function () {
       var field = findFieldByFieldOrName(this, fieldOrName),
           key = field ? field.key : this.buildKey(fieldOrName),
           _fieldState = _getFieldState(this.form.state, key);
+
+      if (_fieldState && !_fieldState.isCoerced) {
+        if (!isDefined(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
+          _fieldState = { value: [] };
+        } else {
+          _fieldState = { value: coerceToString(_fieldState.value) };
+        }
+      }
 
       if (!_fieldState || _fieldState.isDeleted) {
         _fieldState = { value: coerceToString(field && field.defaultValue) };
@@ -836,11 +848,11 @@ var UnitOfWork = function () {
       // if formState.isValid() becomes necessary this could be problematic.
 
       if (!isObject(value) || Array.isArray(value)) {
-        var _fieldState = { value: coerceToString(value) };
+        var _fieldState = { value: value };
         _setFieldState(this.stateUpdates, this.formState.buildKey(name), _fieldState);
       }
 
-      return this.stateUpdates;
+      return this.stateUpdates; // for transforming form state in form component constructor
     }
   }, {
     key: 'remove',
