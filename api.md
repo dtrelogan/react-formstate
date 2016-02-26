@@ -2,61 +2,16 @@ still working on this...
 
 # api
 
+- [Field](#Field)
 - [FieldState](#FieldState)
 - [FormArray](#FormObject)
 - [FormObject](#FormObject)
 - [FormState](#FormState)
 - [FormState.UnitOfWork](#UnitOfWork)
 
-## <a name='FieldState'>FieldState</a>
+## <a name='Field'>Field</a>
 
-a field state is essentially a collection of the following properties:
-
-- value
-- validity (1 = valid, 2 = invalid, 3 = validating, undefined = unvalidated)
-- message
-- asyncToken
-- isMessageVisible (for showing messages [on blur](/onBlurExample.md))
-
-most FieldState methods are self-explanatory:
-
-```jsx
-equals(fieldState)
-
-getField()
-getKey()
-getMessage()
-getValue()
-
-isInvalid()
-isMessageVisible()
-isValid()
-isValidated()
-isValidating()
-
-setInvalid(message)
-setValid(message)
-setValidating(message)
-setValue(value)
-
-showMessage()
-
-validate()
-```
-
-### <a name='FieldState.equals'>boolean equals(FieldState fieldState)</a>
-
-use this to determine whether to render an input component. (it's a form of logical equivalence meant solely for this purpose.)
-
-```jsx
-shouldComponentUpdate(nextProps, nextState) {
-  return !nextProps.fieldState.equals(this.props.fieldState);
-}
-```
-
-### <a name='FieldState.getField'>Field getField()</a>
-
-a field is a representation of an input component within your form component. if you create an input like this:
+a Field is a representation of a rendered input component. if you define an input like this:
 
 ```jsx
 <CheckboxGroup
@@ -69,7 +24,7 @@ a field is a representation of an input component within your form component. if
   />
 ```
 
-an object will be created with the following properties:
+a framework object will be created with the following properties:
 
 ```jsx
 {
@@ -84,7 +39,72 @@ an object will be created with the following properties:
 }
 ```
 
-at present i'm only aware of the label field being useful in client code.
+### name
+
+name ties an input component to an [injected](/UnitOfWork.injectModel) model by way of form state. the fields, as defined during a render, also form a specification of the model to be [generated](/UnitOfWork.createModel) upon form submission.
+
+### label
+
+for purposes of display.
+
+### required
+
+see [validation](/validationWiring.md)
+
+### validate
+
+see [validation](/validationWiring.md)
+
+### noTrim
+
+during [model generation](/UnitOfWork.createModel) string values are trimmed by default. use noTrim to override this behavior.
+
+### preferNull
+
+produce a null value during [model generation](/UnitOfWork.createModel) rather than an empty string or an empty array.
+
+### intConvert
+
+during [model generation](/UnitOfWork.createModel) cast a string to an integer, or an array of strings to an array of integers. useful for select inputs.
+
+### defaultValue
+
+use this to define a default value for your inputs.
+
+if a model is [injected](/UnitOfWork.injectModel) into form state the model value will take precedence over the default value. *be careful* when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
+
+*important* for select-multiple and checkbox group inputs you should *always* supply an array default value. furthermore, if you inject a model make sure the provided value for a select-multiple or checkbox group is an array value. that is, if the value is null or undefined in your props.model, transform the value to an empty array before injection. you must do this for the framework since model injection happens *before* rendering.
+
+do not confuse this property with the defaultValue property used for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). components managed by this framework are controlled components.
+
+## <a name='FieldState'>FieldState</a>
+
+a field state is essentially a collection of the following properties:
+
+- value
+- validity (1 = valid, 2 = invalid, 3 = validating, undefined or null = unvalidated)
+- message
+- asyncToken
+- isMessageVisible (for showing messages [on blur](/onBlurExample.md))
+
+### <a name='FieldState.equals'>boolean equals(FieldState fieldState)</a>
+
+use this to determine whether to render an input component. (it's a form of logical equivalence meant solely for this purpose.)
+
+```jsx
+shouldComponentUpdate(nextProps, nextState) {
+  return !nextProps.fieldState.equals(this.props.fieldState);
+}
+```
+
+### <a name='FieldState.getField'>Field getField()</a>
+
+returns the [Field](#Field) associated with the field state, if there is one.
+
+```jsx
+let field = fieldState.getField();
+fieldState.setValidating(`Verifying ${field.label}`);
+```
 
 ### <a name='FieldState.getKey'>string getKey()</a>
 
@@ -101,9 +121,25 @@ if you aren't using ajax to submit your data, you could use the key to create an
 <input name={makeName(this.props.fieldState.getKey())} ...
 ```
 
+### <a name='FieldState.getMessage'>string getMessage()</a>
+
+### <a name='FieldState.getValue'>string getValue()</a>
+
+### <a name='FieldState.isInvalid'>boolean isInvalid()</a>
+
 ### <a name='FieldState.isMessageVisible'>boolean isMessageVisible()</a>
 
 see the [on blur](/onBlurExample.md) example
+
+### <a name='FieldState.isValid'>boolean isValid()</a>
+
+### <a name='FieldState.isValidated'>boolean isValidated()</a>
+
+### <a name='FieldState.isValidating'>boolean isValidating()</a>
+
+### <a name='FieldState.setInvalid'>void setInvalid(string message)</a>
+
+### <a name='FieldState.setValid'>void setValid(string message)</a>
 
 ### <a name='FieldState.setValidating'>string setValidating(string message)</a>
 
@@ -118,13 +154,17 @@ function validateAsync() {
 //...
 ```
 
+### <a name='FieldState.setValue'>void setValue(string message)</a>
+
 ### <a name='FieldState.showMessage'>boolean showMessage()</a>
 
 see the [on blur](/onBlurExample.md) example
 
 ### <a name='FieldState.validate'>void validate()</a>
 
-this will call the appropriate validation function(s). the validity and message properties are set based on what the validation function(s) return(s). validation functions called in this manner *must be synchronous*.
+this will call the appropriate validation function(s). see [validation](/validationWiring.md) documentation.
+
+the validity and message properties are set based on what the validation function(s) return(s). a validation function called in this manner *must be synchronous*.
 
 ```jsx
 fieldState.setValue(value).validate();
@@ -132,7 +172,7 @@ fieldState.setValue(value).validate();
 
 ## <a name='FormObject'>FormObject/FormArray</a>
 
-FormObject and FormArray components are meant to mimic your backing model. for instance, if you have a model like this:
+FormObject and FormArray components are meant to align with your backing model. for instance, if you have a model like this:
 
 ```jsx
 {
@@ -176,7 +216,7 @@ then ideally your jsx would be structured along the following lines:
 </FormObject>
 ```
 
-if you absolutely cannot align your model with your jsx in this manner, you might need to transform before [injection](#UnitOfWork.injectModel) and after a valid [submit](#UnitOfWork.createModel).
+if you absolutely cannot align your model with your jsx in this manner, you might need to transform before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
 
 ### required props
 
@@ -210,7 +250,7 @@ a 'formObject' attribute allows a "hop" from one component to another
 </FormObject>
 ```
 
-to complete the "hop", within the nested form component, a FormObject should be placed at the root of its jsx. pass it the nested form component using a 'nestedForm' prop
+to complete the "hop", within the nested form component, a FormObject should be placed at the root of its jsx. pass the FormObject the nested form component using a 'nestedForm' prop
 
 ```jsx
 export default class Contact extends React.Component {
@@ -247,14 +287,20 @@ for a FormArray with no elements, upon model generation, the presence of the 'pr
 
 ### property generation
 
-FormObjects and FormArrays are essentially property generators. For a nested "formField", the following props are added:
+FormObjects and FormArrays are essentially property generators. for a nested "formField", the following props are added:
 
 - label: a label can be modified by a labelPrefix (see below)
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
 - updateFormState: use this as the onChange handler in your input component
 - showValidationMessage: optionally use this as an onBlur handler
 
-note: for asynchronous validation you must override the framework generated updateFormState handler.
+note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/asyncExample.md)
+
+FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays. other than the formState property, they should be transparent to the client
+
+- formState: [pathed](#UnitOfWork.getFieldState) appropriately
+- validationComponent: used for [auto-wiring](/validationWiring.md#autowiring) validation functions
+- labelPrefix: see above
 
 ## <a name='FormState'>FormState</a>
 
@@ -355,7 +401,7 @@ returns true if the form is waiting for asynchronous validation to finish.
 
 look up form state for a particular field. returns a read-only FieldState instance.
 
-typically you'd look up field state through a unit of work, but maybe you could use this in your render function.
+typically you'd look up field state through a [context](#UnitOfWork.getFieldState), but maybe you could use this in your render function.
 
 ```jsx
 let fieldState = this.formState.getFieldState('fieldName');
@@ -392,6 +438,14 @@ handleSubmit(e) {
 }
 ```
 
+most inputs work with string values. injected model values are coerced using the following logic (which will likely be subject to improvement... thanks in advance for any feedback.)
+
+```jsx
+if (!isDefined(v)) { return ''; } // else
+if (v === true || v === false) { return v; } // else
+if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
+return v.toString();
+```
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
@@ -406,6 +460,20 @@ function validateAsync() {
   
   if (fieldState) { // if it hasn't changed in the meantime
     // ...
+```
+
+if you are working in a nested form component, the name will be relative to the path embedded in the form state. this way, nested form components can be ignorant of how they are used
+
+```jsx
+export default class Contact extends React.Component {
+  function handleEmailChange(e) {
+    // a pathed formState is passed to a nested component
+    let context = this.props.formState,
+      fieldState = context.getFieldState('email');
+      
+    // the retrieved fieldState might be for homeContact.email
+    // or for workContact.email
+    // the nested component doesn't know or care
 ```
 
 ### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
