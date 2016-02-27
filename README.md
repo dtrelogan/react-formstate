@@ -94,7 +94,7 @@ export default class Input extends React.Component {
 
 ### documentation
 
-[api](/api.md)
+- [api](/api.md)
 
 ### peer dependencies
 
