@@ -708,13 +708,13 @@ class UnitOfWork {
   }
 
 
-  createModel() {
+  createModel(noUpdate) {
     let model = {},
       isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model);
 
     if (isModelValid) { return model; } // else
 
-    this.updateFormState();
+    if (!noUpdate) { this.updateFormState(); }
     return null;
   }
 }

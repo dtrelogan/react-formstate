@@ -897,7 +897,7 @@ var UnitOfWork = function () {
     }
   }, {
     key: 'createModel',
-    value: function createModel() {
+    value: function createModel(noUpdate) {
       var model = {},
           isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model);
 
@@ -905,7 +905,9 @@ var UnitOfWork = function () {
         return model;
       } // else
 
-      this.updateFormState();
+      if (!noUpdate) {
+        this.updateFormState();
+      }
       return null;
     }
   }]);
