@@ -288,7 +288,7 @@ prefixes all the labels of the nested components. in the following example, the 
 
 *preferNull*
 
-for a FormArray with no elements, upon model generation, sets the 'contacts' property to null rather than an empty array.
+for a FormArray with no elements, upon model [generation](#UnitOfWork.createModel), sets the 'contacts' property to null rather than an empty array.
 
 ```jsx
 <FormArray name='contacts' preferNull>
