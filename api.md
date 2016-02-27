@@ -54,15 +54,15 @@ see [validation](/validationWiring.md)
 
 see [validation](/validationWiring.md)
 
-### noTrim
+### <a name='Field.noTrim'>noTrim</a>
 
 string values are trimmed by default. noTrim overrides this behavior. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
-### preferNull
+### <a name='Field.preferNull'>preferNull</a>
 
 produces a null value rather than an empty string or an empty array. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
-### intConvert
+### <a name='Field.intConvert'>intConvert</a>
 
 casts a string to an integer, or an array of strings to an array of integers. see [UnitOfWork.createModel](#UnitOfWork.createModel)
 
@@ -455,6 +455,8 @@ gotSomeNewDataFromTheStore(newContact) {
 ### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
 creates a model upon form submission.
+
+see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
 returns null if form state is invalid or if waiting on asynchronous validation.
 
