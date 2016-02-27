@@ -456,8 +456,6 @@ gotSomeNewDataFromTheStore(newContact) {
 
 creates a model upon form submission.
 
-see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
-
 returns null if form state is invalid or if waiting on asynchronous validation.
 
 ```jsx
@@ -486,6 +484,8 @@ handleSubmit(e) {
   }
 }
 ```
+
+also see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
