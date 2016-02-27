@@ -452,7 +452,7 @@ gotSomeNewDataFromTheStore(newContact) {
 }
 ```
 
-### <a name="UnitOfWork.createModel">object createModel()</a>
+### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
 creates a model upon form submission.
 
@@ -465,7 +465,23 @@ handleSubmit(e) {
   if (model) {
     alert(JSON.stringify(model)); // submit to your api or store or whatever
   }
-  // else: createModel called setState to set the appropriate validation messages
+  // else: createModel called updateFormState to set the appropriate validation messages
+}
+```
+
+passing true prevents a call to updateFormState
+
+```jsx
+handleSubmit(e) {
+  e.preventDefault();
+  let context = this.formState.createUnitOfWork(),
+    model = context.createModel(true);
+  if (model) {
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  } else {
+    // do additional work
+    context.updateFormState(withAdditionalUpdates);
+  }
 }
 ```
 
