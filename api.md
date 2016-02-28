@@ -414,13 +414,37 @@ returns true if the form is waiting for asynchronous validation to finish.
 
 retrieves form state for a particular field. returns a read-only FieldState instance.
 
-typically field state is retrieved through a [context](#UnitOfWork.getFieldState).
-
-this is potentially useful in a render function.
+note: typically field state is retrieved through a [context](#UnitOfWork.getFieldState).
 
 ```jsx
 let fieldState = this.formState.getFieldState('fieldName');
 ```
+
+### <a name='FormState.onUpdate'>void onUpdate(function callback)</a>
+
+sets a callback from the framework generated onChange handler.
+
+if you add an onUpdate callback, be sure to call context.updateFormState in your callback, as the framework delegates that responsibility.
+
+if you override the framework generated event handler for any of your fields, remember to call your onUpdate callback from your change handler.
+
+an onUpdate callback may only be added to a root form state instance (i.e., not a nested one).
+
+the callback function is passed two parameters: context (a [UnitOfWork](#UnitOfWork)) and key (a string).
+
+context will always be "[pathed](#UnitOfWork.getFieldState)" relative to your root form component.
+
+key identifies the field that was updated, which is potentially a nested field (for example: 'workContact.address.line1')
+
+```jsx
+this.formState.onUpdate(function(context, key) {
+  let oldValue = this.formState.getFieldState(key).getValue(),
+    newValue = context.getFieldState(key).getValue();
+  // ...
+  context.updateFormState(additionalUpdates);
+}.bind(this));
+```
+
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
 
