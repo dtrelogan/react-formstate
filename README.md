@@ -43,6 +43,8 @@ export default class LoginForm extends React.Component {
       alert(JSON.stringify(model)); // submit to your api or store or whatever
     }
     // else: createModel called setState to set the appropriate validation messages
+    
+    // note: handling a failed login is advanced usage. see the onUpdate example below.
   }
 }
 ```
@@ -91,6 +93,7 @@ export default class Input extends React.Component {
 - [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/otherInputTypes.md)
 - [show validation message on blur](/onBlurExample.md)
+- [onUpdate callback](/onUpdateExample.md)
 
 ### documentation
 
