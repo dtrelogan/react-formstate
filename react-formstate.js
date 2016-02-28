@@ -203,7 +203,14 @@ function changeHandler(formState, field, e) {
   }
 
   fieldState.setValue(value).validate();
-  context.updateFormState();
+
+  if (formState.rootFormState.updateCallback) {
+    // accessing internals... clean this up?
+    context.formState = formState.rootFormState;
+    formState.rootFormState.updateCallback(context, field.key);
+  } else {
+    context.updateFormState();
+  }
 }
 
 function blurHandler(formState, field) {
@@ -250,7 +257,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
   }, {
     key: 'addProps',
     value: function addProps(child) {
-      if (!child.props) {
+      if (!child || !child.props) {
         return child;
       } // else
 
@@ -706,6 +713,17 @@ var FormState = exports.FormState = function () {
       if (this === this.rootFormState) {
         this.fields.length = 0;
       }
+    }
+  }, {
+    key: 'onUpdate',
+    value: function onUpdate(f) {
+      if (typeof f !== 'function') {
+        throw 'error: trying to add an update callback that is not a function?';
+      }
+      if (this !== this.rootFormState) {
+        throw 'error: cannot add an update callback to nested form state';
+      }
+      this.updateCallback = f;
     }
   }]);
 
