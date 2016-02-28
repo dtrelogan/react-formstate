@@ -27,6 +27,7 @@ a framework object is created with the following properties:
 ```jsx
 {
   name: 'roleIds',
+  key: 'roleIds',
   label: 'Roles',
   required: false,
   validate: [['minLength',1]],
@@ -41,6 +42,18 @@ a framework object is created with the following properties:
 ### name
 
 ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
+
+### key
+
+the fully [pathed](#UnitOfWork.getFieldState) field name, for example:
+
+```jsx
+{
+  name: line1,
+  key: workContact.address.line1,
+  // ...
+}
+```
 
 ### label
 
