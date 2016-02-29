@@ -56,7 +56,7 @@ export default class LoginForm extends React.Component {
     let model = this.formState.createUnitOfWork().createModel();
 
     if (model) {
-      this.setState({loggingIn: true});
+      this.setState({loggingIn: true, failedLogin: false});
 
       // simulate a login attempt
       window.setTimeout(function() {
