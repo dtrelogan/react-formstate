@@ -17,13 +17,12 @@ export default class LoginForm extends React.Component {
   }
 
   onUpdate(context) {
-    // after a failed login, clear 'Invalid username or password' message
-
-    // if you add an onUpdate callback,
-    // be sure to call context.updateFormState,
-    // as the framework delegates that responsibility to the callback
-
-    context.updateFormState({loggingIn: false, failedLogin: false});
+    // if in the process of logging in, ignore user input
+    if (this.state.loggingIn) { return; }
+    
+    // after a failed login, once the user enters something,
+    // clear 'Invalid username or password' message
+    context.updateFormState({failedLogin: false});
   }
 
   render() {
@@ -55,18 +54,14 @@ export default class LoginForm extends React.Component {
     let model = this.formState.createUnitOfWork().createModel();
 
     if (model) {
-      let token = Date.now();
-
-      this.setState({loggingIn: token});
+      this.setState({loggingIn: true});
 
       // simulate a login attempt
       window.setTimeout(function() {
-        if (this.state.loggingIn !== token) { return; }
-
         if (model.username === 'fail') {
           this.setState({loggingIn: false, failedLogin: true});
         } else {
-          alert('successful login');
+          alert('successful login'); // update user session...
         }
       }.bind(this), 2000);
     }
