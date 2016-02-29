@@ -50,6 +50,8 @@ export default class LoginForm extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
+    
+    if (this.state.loggingIn) { return; }
 
     let model = this.formState.createUnitOfWork().createModel();
 
