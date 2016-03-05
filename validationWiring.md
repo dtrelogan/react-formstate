@@ -58,7 +58,7 @@ default behavior for required:
 
 ```jsx
 function(value) {
-  if (value.trim() === '') { return 'Required field'; }
+  if (typeof(value) === 'string' && value.trim() === '') { return 'Required field'; }
 }
 ```
 
