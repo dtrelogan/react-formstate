@@ -68,7 +68,7 @@ if you want it to work differently you can override it. i might suggest:
 import { FormState } from 'react-formstate';
 
 FormState.setRequired(function(value, label) {
-  if (value.trim() === '') { return `${label} is required`; }
+  if (typeof(value) === 'string' && value.trim() === '') { return `${label} is required`; }
 });
 ```
 
