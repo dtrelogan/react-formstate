@@ -64,7 +64,7 @@ function findField(rootFields, key, readOnly) {
           v: null
         };
       }
-      objectField = { key: key, name: fieldnames[i], fields: [], initialized: false };
+      objectField = { key: fieldnames.slice(0, i + 1).join('.'), name: fieldnames[i], fields: [], initialized: false };
       fields.push(objectField);
     }
     fields = objectField.fields || objectField.array;
@@ -180,7 +180,7 @@ function changeHandler(formState, field, e) {
     } else {
       // select-multiple
       if (e.target.type !== 'select-multiple') {
-        console.log('warning: select-multiple expected?');
+        throw new Error('only select-multiple and checkbox group supported for array value types. you will need to override the framework event handler or request an enhancement');
       }
       value = [];
       var options = e.target.options;
@@ -196,7 +196,7 @@ function changeHandler(formState, field, e) {
     } else {
       // note that select-one and radio group work like every other input in this regard
       if (e.target.type === 'select-multiple') {
-        throw 'error: select-multiple without defaultValue={[]} specified';
+        throw new Error('a select-multiple input must have defaultValue={[]} specified');
       }
       value = e.target.value;
     }
@@ -271,7 +271,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
         this.formState = props.formState;
       } else if (child.type === FormObject || child.type === FormArray) {
         if (!isDefined(child.props.name)) {
-          throw 'error: a FormObject or FormArray element nested within the same render function should have a "name" property';
+          throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property');
         }
         props = this.createObjectProps(child.props.name, child.props, child.type === FormArray);
         // let the child FormObject/FormArray create the appropriate props for its children
@@ -331,7 +331,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
         } else {
           var f = this.validationComponent['validate' + capitalize(field.name)];
           if (f) {
-            field.validate = f.bind(this.validationComponent);
+            field.validate = f;
           }
         }
         field.noTrim = Boolean(props.noTrim);
@@ -395,10 +395,10 @@ var FieldState = function () {
     key: 'assertCanUpdate',
     value: function assertCanUpdate() {
       if (!this.stateContext) {
-        throw 'Cannot update a read-only field state';
+        throw new Error('Cannot update a read-only field state');
       }
       if (this.isDeleted()) {
-        throw 'Cannot update a deleted field state.';
+        throw new Error('Cannot update a deleted field state.');
       }
     }
   }, {
@@ -436,7 +436,7 @@ var FieldState = function () {
       if (typeof f === 'function') {
         return f(this.getValue(), this.stateContext, this.field);
       } // else
-      throw 'error: validation provided for ' + this.getKey() + ' is not a function?';
+      throw new Error('validation provided for ' + this.getKey() + ' is not a function?');
     }
   }, {
     key: 'callRegisteredValidationFunction',
@@ -520,7 +520,7 @@ var FieldState = function () {
     key: 'setValue',
     value: function setValue(value) {
       if (this.isModified) {
-        throw 'error: setting value on a modified field state? if you are changing the value do that first';
+        throw new Error('setting value on a modified field state? if you are changing the value do that first');
       }
       return this.setProps(value);
     }
@@ -551,7 +551,7 @@ var FieldState = function () {
             if (g) {
               message = this.callRegisteredValidationFunction(g, params);
             } else {
-              throw 'error: no validation function registered as ' + validationName;
+              throw new Error('no validation function registered as ' + validationName);
             }
             if (message) {
               break;
@@ -587,7 +587,7 @@ var FieldState = function () {
     key: 'showMessage',
     value: function showMessage() {
       // i don't think chaining adds any value to this method. can always change it later.
-      if (isDefined(this.getMessage())) {
+      if (isDefined(this.getMessage()) && !this.isMessageVisible()) {
         // prevents unnecessary rendering
         this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
       }
@@ -605,13 +605,16 @@ var FormState = exports.FormState = function () {
   _createClass(FormState, null, [{
     key: 'setRequired',
     value: function setRequired(f) {
+      if (typeof f !== 'function') {
+        throw new Error('registering a required function that is not a function?');
+      }
       this.required = f;
     }
   }, {
     key: 'registerValidation',
     value: function registerValidation(name, f) {
       if (typeof f !== 'function') {
-        throw 'error: trying to register a validation function that is not a function?';
+        throw new Error('registering a validation function that is not a function?');
       }
       this.validators[name] = f;
     }
@@ -677,7 +680,7 @@ var FormState = exports.FormState = function () {
           _fieldState = _getFieldState(this.form.state, key),
           noCoercion = field && field.noCoercion;
 
-      if (_fieldState && !_fieldState.isCoerced) {
+      if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
         if (!isDefined(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
           _fieldState = { value: [] };
         } else {
@@ -700,7 +703,7 @@ var FormState = exports.FormState = function () {
     key: 'isDeleted',
     value: function isDeleted(name) {
       var _fieldState = _getFieldState(this.form.state, this.buildKey(name));
-      return _fieldState && _fieldState.isDeleted;
+      return Boolean(_fieldState && _fieldState.isDeleted);
     }
   }, {
     key: 'createUnitOfWork',
@@ -718,10 +721,10 @@ var FormState = exports.FormState = function () {
     key: 'onUpdate',
     value: function onUpdate(f) {
       if (typeof f !== 'function') {
-        throw 'error: trying to add an update callback that is not a function?';
+        throw new Error('adding an update callback that is not a function?');
       }
       if (this !== this.rootFormState) {
-        throw 'error: cannot add an update callback to nested form state';
+        throw new Error('cannot add an update callback to nested form state');
       }
       this.updateCallback = f;
     }
@@ -895,6 +898,12 @@ var UnitOfWork = function () {
   }, {
     key: 'injectModel',
     value: function injectModel(model) {
+      model = model || {};
+
+      if ((typeof model === 'undefined' ? 'undefined' : _typeof(model)) !== 'object') {
+        throw new Error('injectModel only accepts object types (including arrays)');
+      }
+
       // a place to hold deleted status and validation messages
       _setFieldState(this.stateUpdates, this.formState.path || '', {});
 
@@ -903,7 +912,7 @@ var UnitOfWork = function () {
           this.add(i.toString(), model[i]);
         }
       } else {
-        var names = Object.keys(model || {});
+        var names = Object.keys(model);
 
         for (var i = 0, len = names.length; i < len; i++) {
           var name = names[i];
@@ -916,6 +925,10 @@ var UnitOfWork = function () {
   }, {
     key: 'createModel',
     value: function createModel(noUpdate) {
+      if (this.formState !== this.formState.rootFormState) {
+        throw new Error('createModel should only be called on root form state.');
+      }
+
       var model = {},
           isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model);
 
@@ -934,7 +947,7 @@ var UnitOfWork = function () {
 }();
 
 FormState.required = function (value) {
-  if (value.trim() === '') {
+  if (typeof value === 'string' && value.trim() === '') {
     return 'Required field';
   }
 };
