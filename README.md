@@ -15,7 +15,7 @@ export default class LoginForm extends React.Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    
+
     // if you were editing a model, you could "inject" props.model
     this.state = this.formState.createUnitOfWork().injectModel();
 
@@ -43,7 +43,7 @@ export default class LoginForm extends React.Component {
       alert(JSON.stringify(model)); // submit to your api or store or whatever
     }
     // else: createModel called setState to set the appropriate validation messages
-    
+
     // note: handling a failed login is advanced usage. see the onUpdate example below.
   }
 }
@@ -87,19 +87,19 @@ export default class Input extends React.Component {
 
 ### features and examples
 
-- [validation](/validationWiring.md)
-- [nested form components](/nestedFormExample.md)
-- [asynchronous validation](/asyncExample.md)
-- [arrays, adding and removing inputs in response to state changes](/arrayExample.md)
-- [other input types: checkbox, checkbox group, radio group, select, and multi-select](/otherInputTypes.md)
-- [show validation message on blur](/onBlurExample.md)
-- [onUpdate callback](/onUpdateExample.md)
+- [validation](/docs/validationWiring.md)
+- [nested form components](/docs/nestedFormExample.md)
+- [asynchronous validation](/docs/asyncExample.md)
+- [arrays, adding and removing inputs in response to state changes](/docs/arrayExample.md)
+- [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
+- [show validation message on blur](/docs/onBlurExample.md)
+- [onUpdate callback](/docs/onUpdateExample.md)
 
 ### documentation
 
-- [api](/api.md)
+- [api](/docs/api.md)
 
 ### peer dependencies
 
 - react (duh)
-- es6 polyfills. if you are working in es6 (or above) with babel you shouldn't need to do anything extra to use this library.
+- es5, for example, Object.keys and Array.isArray

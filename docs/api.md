@@ -61,11 +61,11 @@ for purposes of display.
 
 ### required
 
-see [validation](/validationWiring.md)
+see [validation](/docs/validationWiring.md)
 
 ### validate
 
-see [validation](/validationWiring.md)
+see [validation](/docs/validationWiring.md)
 
 ### <a name='Field.noTrim'>noTrim</a>
 
@@ -110,7 +110,7 @@ a field state is essentially a collection of the following properties:
 - validity (1 = valid, 2 = invalid, 3 = validating, undefined or null = unvalidated)
 - message
 - asyncToken
-- isMessageVisible (for showing messages [on blur](/onBlurExample.md))
+- isMessageVisible (for showing messages [on blur](/docs/onBlurExample.md))
 
 ### <a name='FieldState.equals'>boolean equals(FieldState fieldState)</a>
 
@@ -154,7 +154,7 @@ if you aren't using ajax to submit your data, you could use the key to create an
 
 ### <a name='FieldState.isMessageVisible'>boolean isMessageVisible()</a>
 
-see the [on blur](/onBlurExample.md) example
+see the [on blur](/docs/onBlurExample.md) example
 
 ### <a name='FieldState.isValid'>boolean isValid()</a>
 
@@ -183,11 +183,11 @@ function validateAsync() {
 
 ### <a name='FieldState.showMessage'>boolean showMessage()</a>
 
-see the [on blur](/onBlurExample.md) example
+see the [on blur](/docs/onBlurExample.md) example
 
 ### <a name='FieldState.validate'>void validate()</a>
 
-calls the appropriate validation function(s). uses the result to update the validity and message properties appropriately. see the [validation](/validationWiring.md) documentation.
+calls the appropriate validation function(s). uses the result to update the validity and message properties appropriately. see the [validation](/docs/validationWiring.md) documentation.
 
 *important*: a validation function called in this manner *must be synchronous*.
 
@@ -317,12 +317,12 @@ FormObjects and FormArrays are essentially property generators. for a nested "fo
 - updateFormState: the onChange handler for your input component
 - showValidationMessage: an optional onBlur handler
 
-note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/asyncExample.md)
+note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/docs/asyncExample.md)
 
 FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays.
 
 - formState: [pathed](#UnitOfWork.getFieldState) appropriately
-- validationComponent: for [auto-wiring](/validationWiring.md#autowiring) validation functions
+- validationComponent: for [auto-wiring](/docs/validationWiring.md#autowiring) validation functions
 - labelPrefix: see [above](#labelPrefix)
 
 ## <a name='FormState'>FormState</a>
@@ -367,7 +367,7 @@ export default class UserForm extends React.Component {
     this.formState = new FormState(this); // invoke the constructor
     this.state = {};
   }
-  
+
   //...
 }
 ```
@@ -481,7 +481,7 @@ another potential use is to add input components dynamically. here is a very con
 gotSomeNewDataFromTheStore(newContact) {
   let context = this.formState.createUnitOfWork(),
     numContacts = this.state.numContacts;
-  
+
   // add the new contact to the array.
   // new inputs will be rendered dynamically.
   context.add(`contacts.${numContacts}`, newContact);
@@ -534,7 +534,7 @@ if asyncToken is passed, returns null unless the token matches the token embedde
 function validateAsync() {
   let context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState(field.name, asyncToken);
-  
+
   if (fieldState) { // if it hasn't changed in the meantime
     // ...
 ```
@@ -547,7 +547,7 @@ export default class Contact extends React.Component {
     // a pathed formState is passed to a nested component
     let context = this.props.formState.createUnitOfWork(),
       fieldState = context.getFieldState('email');
-      
+
     // the retrieved fieldState might be for homeContact.email
     // or for workContact.email
     // the nested component doesn't know or care
@@ -565,7 +565,7 @@ export default class UserForm extends React.Component {
     this.formState = new FormState(this);
     this.state = this.formState.createUnitOfWork().injectModel(props.model);
   }
-  
+
   //...
 }
 ```
@@ -603,4 +603,3 @@ handleUsernameChange(e) {
   context.updateFormState({ setSomeOtherProperty: 'someValue' });
 }
 ```
-
