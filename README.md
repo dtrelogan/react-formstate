@@ -21,17 +21,23 @@ export default class LoginForm extends React.Component {
 
     // since we're not injecting a model, the above is equivalent to
     this.state = {};
+    
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   render() {
+    let submitMessage = '';
+    if (this.formState.isInvalid()) {
+      submitMessage = 'Please fix validation errors';
+    }
     return (
       <form>
         <FormObject formState={this.formState}>
           <Input formField='username' label='Username' required />
           <Input formField='password' label='Password' required type='password' />
         </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-        <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
+        <input type='submit' value='Submit' onClick={this.handleSubmit} />
+        <span>submitMessage</span>
       </form>
     );
   }
@@ -40,11 +46,9 @@ export default class LoginForm extends React.Component {
     e.preventDefault();
     let model = this.formState.createUnitOfWork().createModel();
     if (model) {
-      alert(JSON.stringify(model)); // submit to your api or store or whatever
+      alert(JSON.stringify(model)); // proceed with valid data
     }
     // else: createModel called setState to set the appropriate validation messages
-
-    // note: handling a failed login is advanced usage. see the onUpdate example below.
   }
 }
 ```
@@ -101,5 +105,5 @@ export default class Input extends React.Component {
 
 ### peer dependencies
 
-- react (duh)
-- es5, for example, Object.keys and Array.isArray
+- react (!)
+- assumes es5 (for example: Object.keys and Array.isArray)
