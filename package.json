@@ -10,7 +10,9 @@
     "build": "babel react-formstate.es6 -o react-formstate.js",
     "test": "istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "pretest": "npm run build",
-    "prepublish": "npm run test"
+    "localtest": "mocha",
+    "prelocaltest": "npm run build",
+    "prepublish": "npm run localtest"
   },
   "repository": {
     "type": "git",
