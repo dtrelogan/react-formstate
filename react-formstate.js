@@ -341,6 +341,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
           field.defaultValue = props.defaultValue;
         }
         field.noCoercion = Boolean(props.noCoercion);
+        field.fsValidate = props.fsValidate;
       }
 
       return {
@@ -528,11 +529,22 @@ var FieldState = function () {
     key: 'validate',
     value: function validate() {
       this.assertCanUpdate();
+
+      if (this.field.validate && this.field.fsValidate) {
+        console.log('warning: both validate and fsValidate defined on ' + this.field.key + '. fsValidate will be used.');
+      }
+
       var message = undefined;
       if (this.field.required) {
         message = this.callRegisteredValidationFunction(FormState.required, []);
       }
-      if (!message && this.field.validate) {
+
+      if (!message && this.field.fsValidate) {
+        if (typeof this.field.fsValidate !== 'function') {
+          throw new Error('fsValidate defined on ' + this.field.key + ' is not a function?');
+        }
+        message = this.field.fsValidate(new FormStateValidation(this.getValue(), this.field.label)).message;
+      } else if (!message && this.field.validate) {
         var f = this.field.validate;
         if (typeof f === 'string') {
           f = [f];
@@ -561,6 +573,7 @@ var FieldState = function () {
           message = this.callValidationFunction(f);
         }
       }
+
       if (message) {
         return this.setInvalid(message);
       } // else
@@ -617,16 +630,28 @@ var FormState = exports.FormState = function () {
         throw new Error('registering a validation function that is not a function?');
       }
       this.validators[name] = f;
+      FormStateValidation.prototype[name] = function () {
+        if (!this.message) {
+          this.message = f.apply(undefined, [this.value, this.label].concat(Array.prototype.slice.call(arguments)));
+        }
+        return this;
+      };
     }
   }, {
     key: 'unregisterValidation',
     value: function unregisterValidation(name) {
       delete this.validators[name];
+      delete FormStateValidation.prototype[name];
     }
   }, {
     key: 'lookupValidation',
     value: function lookupValidation(name) {
       return this.validators[name];
+    }
+  }, {
+    key: 'createValidator',
+    value: function createValidator(value, label) {
+      return new FormStateValidation(value, label);
     }
   }]);
 
@@ -732,6 +757,14 @@ var FormState = exports.FormState = function () {
 
   return FormState;
 }();
+
+FormState.required = function (value) {
+  if (typeof value === 'string' && value.trim() === '') {
+    return 'Required field';
+  }
+};
+
+FormState.validators = {};
 
 //
 // UnitOfWork
@@ -946,10 +979,13 @@ var UnitOfWork = function () {
   return UnitOfWork;
 }();
 
-FormState.required = function (value) {
-  if (typeof value === 'string' && value.trim() === '') {
-    return 'Required field';
-  }
-};
+//
+// FormStateValidation
+//
 
-FormState.validators = {};
+var FormStateValidation = function FormStateValidation(value, label) {
+  _classCallCheck(this, FormStateValidation);
+
+  this.value = value;
+  this.label = label;
+};

@@ -263,8 +263,10 @@ describe('FormState', function() {
   describe('#unregisterValidation', function() {
     it('removes a registered function', function() {
       assert.equal(minLength, FormState.validators['minLength']);
+      assert.equal('function', typeof(FormState.createValidator('value', 'label').minLength));
       FormState.unregisterValidation('minLength');
       assert.equal(undefined, FormState.validators['minLength']);
+      assert.equal('undefined', typeof(FormState.createValidator('value', 'label').minLength));
     });
     it('does not crash if no registered function', function() {
       FormState.unregisterValidation('minLength');
@@ -276,24 +278,53 @@ describe('FormState', function() {
       var f = function() { FormState.registerValidation('s'); };
       assert.throws(f, /not a function/);
     });
+    it('adds a validation function', function() {
+      assert.equal('undefined', typeof(FormState.validators['minLength']));
+      var fsvMinLength = FormState.createValidator('value', 'label').constructor.prototype.minLength;
+      assert.equal(undefined, fsvMinLength);
+      FormState.registerValidation('minLength', minLength);
+      assert.equal(minLength, FormState.validators['minLength']);
+      fsvMinLength = FormState.createValidator('value', 'label').constructor.prototype.minLength;
+      assert.equal('function', typeof(fsvMinLength));
+    });
     it('is passed value and label and user-provided parameters', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
-      var wasCalled = false;
+      var wasCalled = false, isFsv = false;
       FormState.registerValidation('minLength', function(value, label, minLength) {
         wasCalled = true;
-        assert.equal('123 pinecrest rd.', value);
-        assert.equal('Work Address Line 1', label);
-        assert.equal(3, minLength);
+        if (isFsv) {
+          assert.equal('testing fsv', value);
+          assert.equal('Work Email', label);
+          assert.equal(5, minLength);
+        } else {
+          assert.equal('123 pinecrest rd.', value);
+          assert.equal('Work Address Line 1', label);
+          assert.equal(3, minLength);
+        }
       });
       testForm.setState = function() {};
       contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.' }});
+      assert.equal(true, wasCalled);
+      wasCalled = false;
+      isFsv = true;
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      assert.equal(undefined, field.validate);
+      assert.equal(undefined, field.fsValidate);
+      field.fsValidate = (fsv) => fsv.minLength(5);
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      fieldState.setValue('testing fsv').validate();
       assert.equal(true, wasCalled);
     });
     it('upserts an existing validation function', function() {
       assert.equal('function', typeof(FormState.validators['minLength']));
       assert.notEqual(minLength, FormState.validators['minLength']);
+      var fsvMinLength = FormState.createValidator('value', 'label').constructor.prototype.minLength;
+      assert.equal('function', typeof(fsvMinLength));
       FormState.registerValidation('minLength', minLength);
       assert.equal(minLength, FormState.validators['minLength']);
+      assert.notEqual(fsvMinLength, FormState.createValidator('value', 'label').constructor.prototype.minLength);
     });
   });
   describe('#lookupValidation', function() {
@@ -699,6 +730,22 @@ describe('FormState', function() {
       assert.equal(3, fs.fields.length);
       nfs.clearFields();
       assert.equal(3, fs.fields.length);
+    });
+    it('is called during a render', function(){
+      // this appromixates testing dynamic regeneration of fields during a render
+      // without a browser...
+      var clearFields = FormState.prototype.clearFields;
+      assert.equal('function', typeof(clearFields));
+      var wasCalled = false;
+      FormState.prototype.clearFields = function() {
+        wasCalled = true;
+        if (this === this.rootFormState) {
+          this.fields.length = 0;
+        }
+      };
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      FormState.prototype.clearFields = clearFields;
+      assert.equal(true, wasCalled);
     });
   });
   describe('#onUpdate', function() {
@@ -1478,7 +1525,6 @@ describe('UnitOfWork', function() {
       assert.equal('email2', model.contacts[1].email);
       assert.equal('line2', model.contacts[1].address.line1);
     });
-    it('a subsequent render with dynamic field removal - need a browser?');
   });
 });
 describe('FieldState', function() {
@@ -1921,6 +1967,68 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal('it worked!', fieldState.getMessage());
     });
+    it('uses fsValidate if both fsValidate and validate are specified', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.validate = [['lengthBetween',4,6]];
+      fieldState.setValue('willwarn').validate();
+      assert.equal(true, fieldState.isInvalid());
+      field.fsValidate = (fsv) => fsv.noSpaces();
+      fieldState.validate();
+      assert.equal(true, fieldState.isValid());
+    });
+    it('throws an error if fsValidate is not a function', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = 'not a function';
+      var f = function() {
+        fieldState.setValue('will throw').validate();
+      }
+      assert.throws(f, /not a function/);
+    });
+    it('can return valid from fsValidate', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(4);
+      fieldState.setValue('thisisvalid').validate();
+      assert.equal(true, fieldState.isValid());
+    });
+    it('breaks chain if fsValidate returns a message early', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(4);
+      fieldState.setValue('will fail early').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('no spaces', fieldState.getMessage());
+    });
+    it('can go through a chain of fsValidate functions', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(20);
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Name must be at least 20 characters', fieldState.getMessage());
+    });
+    it('passes multiple params to fsValidate properly', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(3).lengthBetween(7,13);
+      fieldState.setValue('thisiswaytoolong!!!').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Name must be at most 13 characters', fieldState.getMessage());
+    });
   });
   describe('#setValid', function() {
     it('sets message and validity, keeps value, and clears the other props', function() {
@@ -2277,3 +2385,6 @@ describe('FormObject', function() {
     });
   });
 });
+// describe('FormStateValidation', function() {
+//
+// });

@@ -280,6 +280,7 @@ export class FormObject extends React.Component {
       field.intConvert = Boolean(props.intConvert);
       if (isDefined(props.defaultValue)) { field.defaultValue = props.defaultValue; }
       field.noCoercion = Boolean(props.noCoercion);
+      field.fsValidate = props.fsValidate;
     }
 
     return {
@@ -390,11 +391,23 @@ class FieldState {
 
   validate() {
     this.assertCanUpdate();
+
+    if (this.field.validate && this.field.fsValidate) {
+      console.log(`warning: both validate and fsValidate defined on ${this.field.key}. fsValidate will be used.`)
+    }
+
     let message;
     if (this.field.required) {
       message = this.callRegisteredValidationFunction(FormState.required, []);
     }
-    if (!message && this.field.validate) {
+
+    if (!message && this.field.fsValidate) {
+      if (typeof(this.field.fsValidate) !== 'function') {
+        throw new Error(`fsValidate defined on ${this.field.key} is not a function?`);
+      }
+      message = this.field.fsValidate(new FormStateValidation(this.getValue(), this.field.label)).message;
+    }
+    else if (!message && this.field.validate) {
       let f = this.field.validate;
       if (typeof(f) === 'string') {
         f = [f];
@@ -421,6 +434,7 @@ class FieldState {
         message = this.callValidationFunction(f);
       }
     }
+
     if (message) { return this.setInvalid(message); } // else
     return this.setValid();
   }
@@ -455,14 +469,25 @@ export class FormState {
   static registerValidation(name, f) {
     if (typeof(f) !== 'function') { throw new Error('registering a validation function that is not a function?'); }
     this.validators[name] = f;
+    FormStateValidation.prototype[name] = function() {
+      if (!this.message) {
+        this.message = f(this.value, this.label, ...arguments);
+      }
+      return this;
+    }
   }
 
   static unregisterValidation(name) {
     delete this.validators[name];
+    delete FormStateValidation.prototype[name];
   }
 
   static lookupValidation(name) {
     return this.validators[name];
+  }
+
+  static createValidator(value, label) {
+    return new FormStateValidation(value, label);
   }
 
   constructor(form) {
@@ -554,6 +579,13 @@ export class FormState {
   }
 
 }
+
+FormState.required = function(value) {
+  if (typeof(value) === 'string' && value.trim() === '') { return 'Required field'; }
+}
+
+FormState.validators = {};
+
 
 //
 // UnitOfWork
@@ -744,8 +776,15 @@ class UnitOfWork {
   }
 }
 
-FormState.required = function(value) {
-  if (typeof(value) === 'string' && value.trim() === '') { return 'Required field'; }
-}
+//
+// FormStateValidation
+//
 
-FormState.validators = {};
+class FormStateValidation {
+
+  constructor(value, label) {
+    this.value = value;
+    this.label = label;
+  }
+
+}
