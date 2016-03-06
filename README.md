@@ -41,7 +41,7 @@ export default class LoginForm extends React.Component {
           <Input formField='password' label='Password' required type='password' />
         </FormObject>
         <input type='submit' value='Submit' onClick={this.handleSubmit} />
-        <span>submitMessage</span>
+        <span>{submitMessage}</span>
       </form>
     );
   }
