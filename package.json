@@ -8,7 +8,7 @@
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",
-    "test": "mocha",
+    "test": "istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "pretest": "npm run build",
     "prepublish": "npm run test"
   },
@@ -32,6 +32,7 @@
   "devDependencies": {
     "babel-cli": "^6.5.1",
     "babel-preset-es2015": "^6.5.0",
+    "coveralls": "^2.11.8",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "react": "^0.14.7",
