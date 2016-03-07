@@ -285,7 +285,21 @@ then ideally your jsx is structured along the following lines:
 </FormObject>
 ```
 
-if you absolutely cannot align your model with your jsx in this manner, transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel). see [UnitOfWork.add](#UnitOfWork.add)
+alternatively, for nested objects (not arrays), you can flatten your jsx:
+
+```jsx
+<FormObject formState={this.formState}>
+  <Input formField='name' />
+  <FormArray name='contacts'>
+    <Input formField='0.email' />
+    <Input formField='0.address.line1' />
+    <Input formField='1.email' />
+    <Input formField='1.address.line1' />
+  </FormArray>
+</FormObject>
+```
+
+if for some reason your use case simply won't fit in the box, you can always transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel). see [UnitOfWork.add](#UnitOfWork.add)
 
 ### <a name='FormObject.requiredProps'>required props</a>
 
@@ -509,7 +523,7 @@ this.formState.onUpdate(function(context, key) {
 
 adds a value directly to your form state, or updates an existing value.
 
-returns the state updates from the unit of work. this makes it easier to transform injected form state
+returns the state updates from the unit of work. this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
 
 ```jsx
 let context = this.formState.createUnitOfWork();
@@ -566,7 +580,20 @@ handleSubmit(e) {
 }
 ```
 
-also see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
+if necessary, you can transform your model afterward:
+
+```jsx
+handleSubmit(e) {
+  e.preventDefault();
+  let model = this.formState.createUnitOfWork().createModel();
+  if (model) {
+    model.disabled = !model.active; // transform the data
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  }
+}
+```
+
+the framework can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
@@ -613,6 +640,8 @@ export default class UserForm extends React.Component {
   //...
 }
 ```
+
+if necessary, after injection, you can transform the injected form state using the [add](#UnitOfWork.add) method.
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
