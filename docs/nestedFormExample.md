@@ -121,3 +121,43 @@ export default class Contact extends React.Component {
 }
 ```
 
+(address component not repeated)
+
+### or you can flatten your jsx
+
+```jsx
+  render() {
+    return (
+      <form>
+        <FormObject formState={this.formState}>
+          <Input formField='name' label='Name' />
+          <Input formField='contact.email' label='Email' />
+          <Input formField='contact.phone' label='Phone' />
+          <Input formField='contact.address.line1' label='Address Line 1' />
+        </FormObject>
+        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+      </form>
+    );
+  }
+```
+
+### alternatively
+
+```jsx
+  render() {
+    return (
+      <form>
+        <FormObject formState={this.formState}>
+          <Input formField='name' label='Name' />
+          <h3>Home Contact Information</h3>
+          <Contact formObject='homeContact' labelPrefix='Home ' />
+          <Address formObject='homeContact.address' labelPrefix='Home Address ' />
+          <h3>Work Contact Information</h3>
+          <Contact formObject='workContact' labelPrefix='Work '/>
+          <Address formObject='workContact.address' labelPrefix='Work Address ' />
+        </FormObject>
+        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+      </form>
+    );
+  }
+```
