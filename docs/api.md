@@ -1,11 +1,55 @@
 # api
 
 - [Field](#Field)
+  - [name](#Field.name)
+  - [key](#Field.key)
+  - [label](#Field.label)
+  - [required](#Field.required)
+  - [validate](#Field.validate)
+  - [noTrim](#Field.noTrim)
+  - [preferNull](#Field.preferNull)
+  - [intConvert](#Field.intConvert)
+  - [defaultValue](#Field.defaultValue)
+  - [noCoercion](#Field.noCoercion)
 - [FieldState](#FieldState)
+  - [equals](#FieldState.equals)
+  - [getField](#FieldState.getField)
+  - [getKey](#FieldState.getKey)
+  - [getMessage](#FieldState.getMessage)
+  - [getValue](#FieldState.getValue)
+  - [isInvalid](#FieldState.isInvalid)
+  - [isMessageVisible](#FieldState.isMessageVisible)
+  - [isValid](#FieldState.isValid)
+  - [isValidated](#FieldState.isValidated)
+  - [isValidating](#FieldState.isValidating)
+  - [setInvalid](#FieldState.setInvalid)
+  - [setValid](#FieldState.setValid)
+  - [setValidating](#FieldState.setValidating)
+  - [setValue](#FieldState.setValue)
+  - [showMessage](#FieldState.showMessage)
+  - [validate](#FieldState.validate)
 - [FormArray](#FormObject)
 - [FormObject](#FormObject)
+  - [required props](#FormObject.requiredProps)
+  - [optional props](#FormObject.optionalProps)
+  - [generated props](#FormObject.generatedProps)
 - [FormState](#FormState)
+  - [registerValidation](#FormState.registerValidation)
+  - [setRequired](#FormState.setRequired)
+  - [constructor](#FormState.constructor)
+  - [createUnitOfWork](#FormState.createUnitOfWork)
+  - [isDeleted](#FormState.isDeleted)
+  - [isInvalid](#FormState.isInvalid)
+  - [isValidating](#FormState.isValidating)
+  - [getFieldState](#FormState.getFieldState)
+  - [onUpdate](#FormState.onUpdate)
 - [UnitOfWork](#UnitOfWork)
+  - [add](#UnitOfWork.add)
+  - [createModel](#UnitOfWork.createModel)
+  - [getFieldState](#UnitOfWork.getFieldState)
+  - [injectModel](#UnitOfWork.injectModel)
+  - [remove](#UnitOfWork.remove)
+  - [updateFormState](#UnitOfWork.updateFormState)
 
 ## <a name='Field'>Field</a>
 
@@ -39,11 +83,11 @@ a framework object is created with the following properties:
 }
 ```
 
-### name
+### <a name='Field.name'>name</a>
 
 ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
 
-### key
+### <a name='Field.key'>key</a>
 
 the fully [pathed](#UnitOfWork.getFieldState) field name, for example:
 
@@ -55,15 +99,15 @@ the fully [pathed](#UnitOfWork.getFieldState) field name, for example:
 }
 ```
 
-### label
+### <a name='Field.label'>label</a>
 
 for purposes of display.
 
-### required
+### <a name='Field.required'>required</a>
 
 see [validation](/docs/validationWiring.md)
 
-### validate
+### <a name='Field.validate'>validate</a>
 
 see [validation](/docs/validationWiring.md)
 
@@ -81,7 +125,7 @@ casts a string to an integer, or an array of strings to an array of integers. se
 
 useful for a select input for instance.
 
-### defaultValue
+### <a name='Field.defaultValue'>defaultValue</a>
 
 defines a default value for your input.
 
@@ -91,7 +135,7 @@ if a model is [injected](#UnitOfWork.injectModel) into form state, the model val
 
 do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
-### <a name='noCoercion'>noCoercion</a>
+### <a name='Field.noCoercion'>noCoercion</a>
 
 most html inputs work with string values. [injected](#UnitOfWork.injectModel) values are coerced to strings by default. the noCoercion setting disables this logic:
 
@@ -243,7 +287,7 @@ then ideally your jsx is structured along the following lines:
 
 if you absolutely cannot align your model with your jsx in this manner, transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel). see [UnitOfWork.add](#UnitOfWork.add)
 
-### required props
+### <a name='FormObject.requiredProps'>required props</a>
 
 FormObjects and FormArrays require different props in different situations.
 
@@ -285,7 +329,7 @@ export default class Contact extends React.Component {
       </FormObject>
 ```
 
-### optional props
+### <a name='FormObject.optionalProps'>optional props</a>
 
 <a name='labelPrefix'>*labelPrefix*</a>
 
@@ -308,7 +352,7 @@ for a FormArray with no elements, upon model [generation](#UnitOfWork.createMode
 </FormArray>
 ```
 
-### property generation
+### <a name='FormObject.generatedProps'>generated props</a>
 
 FormObjects and FormArrays are essentially property generators. for a nested "formField", the following props are added:
 
@@ -555,7 +599,7 @@ export default class Contact extends React.Component {
 
 ### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
 
-initializes form state. values are [coerced](#noCoercion) to strings by default.
+initializes form state. values are [coerced](#Field.noCoercion) to strings by default.
 
 ```jsx
 export default class UserForm extends React.Component {
