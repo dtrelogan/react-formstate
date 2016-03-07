@@ -263,7 +263,7 @@ FormObject and FormArray components are meant to align with your backing model. 
 }
 ```
 
-then ideally your jsx is structured along the following lines:
+then you can structure your jsx along the following lines:
 
 ```jsx
 <FormObject formState={this.formState}>
