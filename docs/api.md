@@ -299,7 +299,7 @@ alternatively, for nested objects (not arrays), you can flatten your jsx:
 </FormObject>
 ```
 
-if for some reason your use case simply won't fit in the box, you can always transform your model before [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel). see [UnitOfWork.add](#UnitOfWork.add)
+if for some reason your use case simply won't fit in the box, you can always transform your model during [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
 
 ### <a name='FormObject.requiredProps'>required props</a>
 
@@ -641,7 +641,7 @@ export default class UserForm extends React.Component {
 }
 ```
 
-if necessary, after injection, you can transform the injected form state using the [add](#UnitOfWork.add) method.
+if necessary, during injection, you can transform the injected form state using the [add](#UnitOfWork.add) method.
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
