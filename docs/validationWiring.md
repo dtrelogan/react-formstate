@@ -10,7 +10,7 @@ this is *not* a validation library per se, but it *wires up* validation, which i
 
 for reusable validation logic, in addition to [react-formstate-validation](https://github.com/dtrelogan/react-formstate-validation), reference [validator](https://www.npmjs.com/package/validator).
 
-also, [joi](https://www.npmjs.com/package/joi) has an awesome api, but it's not meant for client-side validation and adds about a megabyte to your bundle.
+([joi](https://www.npmjs.com/package/joi) has an awesome api, but it's not meant for client-side validation and adds about a megabyte to your bundle.)
 
 ### basic usage
 
@@ -54,7 +54,7 @@ validateUsername(username) {
 
 required validation is called first, and if that passes, the autowired validateUsername function will be called.
 
-### tailoring a message
+### tailor a message
 
 ```jsx
 <Input required='Please provide a username' />
@@ -175,24 +175,24 @@ you can optionally tailor messages in the jsx:
   />
 ```
 
-msgs is an abbreviation for validationMessages. this also works:
+'msgs' is an abbreviation for 'validationMessages'. this also works:
 
 ```jsx
 <Input validate='noSpaces' msgs='no spaces please' />
 ```
 
-note you can tailor selectively:
+note you can selectively tailor:
 
 ```jsx
 <Input
   validate={['noSpaces',['minLength',4]]}
-  validationMessages={[null, 'At least 4 characters please']}
+  msgs={[null, 'At least 4 characters please']}
   />
 ```
 
 ### fsValidate
 
-a registered validation also receives the following syntax, accessed through 'fsValidate':
+a registered validation also receives the following syntax, accessible through 'fsValidate':
 
 ```jsx
 <Input
@@ -227,6 +227,8 @@ fsValidatePasswordConfirmation(fsv, context) {
 ```
 
 you may have noticed that fsValidate functions can return either an 'fsv' object or a string.
+
+enjoy!
 
 ### asynchronous validation
 
