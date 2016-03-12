@@ -221,6 +221,8 @@ fsValidatePassword(fsv, context, field) {
 
 fsValidatePasswordConfirmation(fsv, context) {
   if (fsv.value !== context.getFieldState('password').getValue()) { return 'Passwords do not match'; }
+  // alternatively
+  return fsv.equals(context.getFieldState('password').getValue()).msg('Passwords do not match');
 }
 ```
 
