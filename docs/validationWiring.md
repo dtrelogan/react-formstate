@@ -8,9 +8,7 @@ see [react-formstate-validation](https://github.com/dtrelogan/react-formstate-va
 
 this is *not* a validation library per se, but it *wires up* validation, which in react is just as valuable.
 
-for reusable validation logic, in addition to [react-formstate-validation](https://github.com/dtrelogan/react-formstate-validation), reference [validator](https://www.npmjs.com/package/validator).
-
-([joi](https://www.npmjs.com/package/joi) has an awesome api, but it's not meant for client-side validation and adds about a megabyte to your bundle.)
+for reusable validation logic, in addition to [react-formstate-validation](https://github.com/dtrelogan/react-formstate-validation), reference [validator](https://www.npmjs.com/package/validator). ([joi](https://www.npmjs.com/package/joi) has an awesome api, but it's not meant for client-side validation and adds about a megabyte to your bundle.)
 
 ### basic usage
 
