@@ -45,7 +45,7 @@ function _setFieldState(state, key, _fieldState) {
   state[prefix(key)] = _fieldState;
 }
 
-function isDefined(v) {
+function exists(v) {
   return v !== undefined && v !== null;
 }
 
@@ -90,7 +90,7 @@ function findField(rootFields, key, readOnly) {
 }
 
 function findFieldByFieldOrName(formState, fieldOrName) {
-  if (isDefined(fieldOrName.name)) {
+  if (exists(fieldOrName.name)) {
     return fieldOrName;
   } else {
     return findField(formState.getRootFields(), formState.buildKey(fieldOrName), true);
@@ -142,7 +142,7 @@ function isObject(v) {
 }
 
 function coerceToString(v) {
-  if (!isDefined(v)) {
+  if (!exists(v)) {
     return '';
   } // else
   if (v === true || v === false) {
@@ -150,7 +150,7 @@ function coerceToString(v) {
   } // else
   if (Array.isArray(v)) {
     return v.map(function (x) {
-      return isDefined(x) ? x.toString() : x;
+      return exists(x) ? x.toString() : x;
     });
   } // else
   return v.toString();
@@ -264,13 +264,13 @@ var FormObject = exports.FormObject = function (_React$Component) {
       var props = null,
           formState = this.formState;
 
-      if (isDefined(child.props.formField)) {
+      if (exists(child.props.formField)) {
         props = this.createFieldProps(child.props);
-      } else if (isDefined(child.props.formObject) || isDefined(child.props.formArray)) {
-        props = this.createObjectProps(isDefined(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, isDefined(child.props.formArray));
+      } else if (exists(child.props.formObject) || exists(child.props.formArray)) {
+        props = this.createObjectProps(exists(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, exists(child.props.formArray));
         this.formState = props.formState;
       } else if (child.type === FormObject || child.type === FormArray) {
-        if (!isDefined(child.props.name)) {
+        if (!exists(child.props.name)) {
           throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property');
         }
         props = this.createObjectProps(child.props.name, child.props, child.type === FormArray);
@@ -325,7 +325,14 @@ var FormObject = exports.FormObject = function (_React$Component) {
       if (!field.initialized) {
         field.initialized = true;
         field.label = (this.labelPrefix || '') + props.label;
-        field.required = Boolean(props.required);
+        if (props.required === '-') {
+          field.required = false;
+        } else {
+          field.required = Boolean(props.required);
+        }
+        if (field.required && typeof props.required === 'string' && props.required.length > 0) {
+          field.requiredMessage = props.required;
+        }
         if (props.validate) {
           field.validate = props.validate;
         } else {
@@ -337,11 +344,18 @@ var FormObject = exports.FormObject = function (_React$Component) {
         field.noTrim = Boolean(props.noTrim);
         field.preferNull = Boolean(props.preferNull);
         field.intConvert = Boolean(props.intConvert);
-        if (isDefined(props.defaultValue)) {
+        if (exists(props.defaultValue)) {
           field.defaultValue = props.defaultValue;
         }
         field.noCoercion = Boolean(props.noCoercion);
-        field.fsValidate = props.fsValidate;
+        field.fsValidate = props.fsValidate || props.fsv;
+        if (!field.fsValidate) {
+          var f = this.validationComponent['fsValidate' + capitalize(field.name)];
+          if (f) {
+            field.fsValidate = f;
+          }
+        }
+        field.validationMessages = props.validationMessages || props.msgs;
       }
 
       return {
@@ -485,7 +499,7 @@ var FieldState = function () {
   }, {
     key: 'isValidated',
     value: function isValidated() {
-      return isDefined(this.fieldState.validity);
+      return exists(this.fieldState.validity);
     }
   }, {
     key: 'isValid',
@@ -537,17 +551,29 @@ var FieldState = function () {
       var message = undefined;
       if (this.field.required) {
         message = this.callRegisteredValidationFunction(FormState.required, []);
+        if (message && this.field.requiredMessage) {
+          message = this.field.requiredMessage;
+        }
       }
 
       if (!message && this.field.fsValidate) {
         if (typeof this.field.fsValidate !== 'function') {
           throw new Error('fsValidate defined on ' + this.field.key + ' is not a function?');
         }
-        message = this.field.fsValidate(new FormStateValidation(this.getValue(), this.field.label)).message;
+        var result = this.field.fsValidate(new FormStateValidation(this.getValue(), this.field.label), this.stateContext, this.field);
+        if (typeof result === 'string') {
+          message = result;
+        } else {
+          message = result && result._message;
+        }
       } else if (!message && this.field.validate) {
-        var f = this.field.validate;
+        var f = this.field.validate,
+            msgs = this.field.validationMessages;
         if (typeof f === 'string') {
           f = [f];
+        }
+        if (typeof msgs === 'string') {
+          msgs = [msgs];
         }
         if (Array.isArray(f)) {
           for (var i = 0, len = f.length; i < len; i++) {
@@ -566,6 +592,11 @@ var FieldState = function () {
               throw new Error('no validation function registered as ' + validationName);
             }
             if (message) {
+              if (Array.isArray(msgs)) {
+                if (typeof msgs[i] === 'string') {
+                  message = msgs[i];
+                }
+              }
               break;
             }
           }
@@ -600,7 +631,7 @@ var FieldState = function () {
     key: 'showMessage',
     value: function showMessage() {
       // i don't think chaining adds any value to this method. can always change it later.
-      if (isDefined(this.getMessage()) && !this.isMessageVisible()) {
+      if (exists(this.getMessage()) && !this.isMessageVisible()) {
         // prevents unnecessary rendering
         this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
       }
@@ -631,8 +662,13 @@ var FormState = exports.FormState = function () {
       }
       this.validators[name] = f;
       FormStateValidation.prototype[name] = function () {
-        if (!this.message) {
-          this.message = f.apply(undefined, [this.value, this.label].concat(Array.prototype.slice.call(arguments)));
+        if (!this._message) {
+          this._message = f.apply(undefined, [this.value, this.label].concat(Array.prototype.slice.call(arguments)));
+          if (this._message) {
+            this.canOverrideMessage = true;
+          }
+        } else {
+          this.canOverrideMessage = false;
         }
         return this;
       };
@@ -706,7 +742,7 @@ var FormState = exports.FormState = function () {
           noCoercion = field && field.noCoercion;
 
       if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
-        if (!isDefined(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
+        if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
           _fieldState = { value: [] };
         } else {
           _fieldState = { value: noCoercion ? _fieldState.value : coerceToString(_fieldState.value) };
@@ -759,7 +795,7 @@ var FormState = exports.FormState = function () {
 }();
 
 FormState.required = function (value) {
-  if (typeof value === 'string' && value.trim() === '') {
+  if (typeof value !== 'string' || value.trim() === '') {
     return 'Required field';
   }
 };
@@ -983,9 +1019,30 @@ var UnitOfWork = function () {
 // FormStateValidation
 //
 
-var FormStateValidation = function FormStateValidation(value, label) {
-  _classCallCheck(this, FormStateValidation);
+var FormStateValidation = function () {
+  function FormStateValidation(value, label) {
+    _classCallCheck(this, FormStateValidation);
 
-  this.value = value;
-  this.label = label;
-};
+    this.value = value;
+    this.label = label;
+    this.canOverrideMessage = false;
+  }
+
+  _createClass(FormStateValidation, [{
+    key: 'message',
+    value: function message(messageOverride) {
+      if (typeof messageOverride === 'string' && messageOverride.trim() !== '' && this.canOverrideMessage) {
+        this._message = messageOverride;
+      }
+      this.canOverrideMessage = false;
+      return this;
+    }
+  }, {
+    key: 'msg',
+    value: function msg(messageOverride) {
+      return this.message(messageOverride);
+    }
+  }]);
+
+  return FormStateValidation;
+}();

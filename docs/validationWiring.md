@@ -1,12 +1,16 @@
 # validation
 
+### tl;dr
+
+see [react-formstate-validation](https://github.com/dtrelogan/react-formstate-validation)
+
 ### preliminaries
 
-this is *not* a validation library per se, but it *wires up* validation, which in react is arguably just as valuable.
+this is *not* a validation library per se, but it *wires up* validation, which in react is just as valuable.
 
-you can do whatever you'd like in your validation functions but i'd suggest using [validator](https://www.npmjs.com/package/validator).
+for reusable validation logic, in addition to [react-formstate-validation](https://github.com/dtrelogan/react-formstate-validation), reference [validator](https://www.npmjs.com/package/validator).
 
-sadly, despite the fact that many react packages steer you toward [joi](https://www.npmjs.com/package/joi), _i would NOT recommend using it_. while it has an awesome api, it's not meant for client-side validation and adds about a megabyte to your bundle.
+also, [joi](https://www.npmjs.com/package/joi) has an awesome api, but it's not meant for client-side validation and adds about a megabyte to your bundle.
 
 ### basic usage
 
@@ -50,13 +54,35 @@ validateUsername(username) {
 
 required validation is called first, and if that passes, the autowired validateUsername function will be called.
 
+### tailoring a message
+
+```jsx
+<Input required='Please provide a username' />
+```
+
+### suppressing required
+
+obviously you don't have to tag your input with required, but if you are using required to style your inputs, and if the associated validation is causing problems, you can suppress it:
+
+```jsx
+<CheckboxGroup
+  formField='roleIds'
+  label='Roles'
+  required='-'
+  fsv={v => v.minlen(1).msg('Please select a role')}
+  checkboxValues={this.roles}
+  defaultValue={[]}
+  intConvert
+  />
+```
+
 ### overriding required
 
 default behavior for required:
 
 ```jsx
 function(value) {
-  if (typeof(value) === 'string' && value.trim() === '') { return 'Required field'; }
+  if (typeof(value) !== 'string' || value.trim() === '') { return 'Required field'; }
 }
 ```
 
@@ -66,7 +92,7 @@ if you want it to work differently you can override it. i might suggest:
 import { FormState } from 'react-formstate';
 
 FormState.setRequired(function(value, label) {
-  if (typeof(value) === 'string' && value.trim() === '') { return `${label} is required`; }
+  if (typeof(value) !== 'string' || value.trim() === '') { return `${label} is required`; }
 });
 ```
 
@@ -137,6 +163,70 @@ if you only have one registered validation function to call you can use this syn
 ```jsx
 <Input formField='username' label='Username' required validate='noSpaces' />
 ```
+
+### tailoring messages
+
+you can optionally tailor messages in the jsx:
+
+```jsx
+<Input
+  validate={['noSpaces',['minLength',4]]}
+  validationMessages={['No spaces please', 'At least 4 characters please']}
+  />
+```
+
+msgs is an abbreviation for validationMessages. this also works:
+
+```jsx
+<Input validate='noSpaces' msgs='no spaces please' />
+```
+
+note you can tailor selectively:
+
+```jsx
+<Input
+  validate={['noSpaces',['minLength',4]]}
+  validationMessages={[null, 'At least 4 characters please']}
+  />
+```
+
+### fsValidate
+
+a registered validation also receives the following syntax, accessed through 'fsValidate':
+
+```jsx
+<Input
+  formField='amount'
+  label='Amount'
+  required='Please provide an amount'
+  fsValidate={v =>
+    v.min(25)
+    .message('Amount must be at least $25')
+    .max(1000)
+    .msg('Amount cannot be more than $1000')}
+  />
+```
+
+tailoring messages is optional and 'fsv' is an abbreviation for 'fsValidate':
+
+```jsx
+<Input fsv={v => v.min(25).max(1000)} />
+```
+
+like functions accessed through 'validate', 'fsValidate' functions can be autowired and are also passed context and field:
+
+```jsx
+fsValidatePassword(fsv, context, field) {
+  context.getFieldState('passwordConfirmation').setValue('');
+  return fsv.minLength(8).msg(`${field.label} must be at least 8 characters`);
+}
+
+fsValidatePasswordConfirmation(fsv, context) {
+  if (fsv.value !== context.getFieldState('password').getValue()) { return 'Passwords do not match'; }
+}
+```
+
+you may have noticed that fsValidate functions can return either an 'fsv' object or a string.
 
 ### asynchronous validation
 

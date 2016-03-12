@@ -68,18 +68,20 @@ var createUserFormFixture = function(inject, doThrow) {
       testForm = this;
       this.formState = new FormState(this);
       if (inject) {
-        return this.formState.createUnitOfWork().injectModel({
-           name: 'Henry',
-           contact: {
+        return this.formState.createUnitOfWork().injectModel(
+          {
+            name: 'Henry',
+            contact: {
              email: 'henry@ka.com',
              address: {
                line1: '123 pinecrest rd'
              }
-           }
-         });
-       } else {
-         return {};
-       }
+            }
+          }
+        );
+      } else {
+        return {};
+      }
     },
     render: function() {
       return React.createElement('form', null,
@@ -152,22 +154,24 @@ var createUserContactsFormFixture = function(inject, backwards) {
       testForm = this;
       this.formState = new FormState(this);
       if (inject) {
-        var state = this.formState.createUnitOfWork().injectModel({
-           name: 'Henry',
-           contacts: [
-             {
-               email: 'henry@ka.com',
-               address: {
-                 line1: '123 pinecrest rd'
-               }
-             }
-           ]
-         });
-         state.numContacts = 1;
-         return state;
-       } else {
-         return { numContacts: 0 };
-       }
+        var state = this.formState.createUnitOfWork().injectModel(
+          {
+            name: 'Henry',
+            contacts: [
+              {
+                email: 'henry@ka.com',
+                address: {
+                  line1: '123 pinecrest rd'
+                }
+              }
+            ]
+          }
+        );
+        state.numContacts = 1;
+        return state;
+      } else {
+        return { numContacts: 0 };
+      }
     },
     render: function() {
       var contacts = [];
@@ -209,6 +213,49 @@ var UserContactsFormBackwards = createUserContactsFormFixture(true, true);
 
 
 
+var createMessageOverrideForm = function() {
+  return React.createClass({
+    getInitialState: function() {
+      testForm = this;
+      this.formState = new FormState(this);
+      return {};
+    },
+    validateCity: function() {},
+    fsValidateZip: function() {},
+    fsValidateAutowire: function() {},
+    render: function() {
+      return React.createElement('form', null,
+        React.createElement(FormObject, { formState: this.formState },
+          React.createElement(NameInput, { formField: 'name', label: 'Name', required: '-' }),
+          React.createElement(NameInput, { formField: 'email', label: 'Email', required: 'Please provide an email' }),
+          React.createElement(NameInput, { formField: 'phone', label: 'Phone', required: '' }),
+          React.createElement(NameInput, { formField: 'line1', label: 'Line1', required: ['not a string'] }),
+          React.createElement(NameInput, { formField: 'line2', label: 'Line2', validationMessages: ['a message'] }),
+          React.createElement(NameInput, { formField: 'city', label: 'City', validate: 'noSpaces', msgs: 3 }),
+          React.createElement(NameInput, { formField: 'state', label: 'State', validationMessages: ['a message'], msgs: 3 }),
+          React.createElement(NameInput, { formField: 'zip', label: 'Zip', fsValidate: 'hello' }),
+          React.createElement(NameInput, { formField: 'zip4', label: 'Zip4', fsv: 'world' }),
+          React.createElement(NameInput, { formField: 'country', label: 'Country', fsValidate: 'hello', fsv: 'world' }),
+          React.createElement(NameInput, { formField: 'autowire', label: 'Autowire' })
+        ),
+        React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
+        React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
+      );
+    },
+    handleSubmit: function(e) {
+      e.preventDefault();
+      var model = this.formState.createUnitOfWork().createModel();
+      if (model) {
+        alert(JSON.stringify(model));
+      }
+    }
+  });
+};
+
+var MessageOverrideForm = createMessageOverrideForm();
+
+
+
 
 describe('FormState', function() {
   describe('#setRequired', function() {
@@ -225,9 +272,9 @@ describe('FormState', function() {
       assert.equal('Required field', context.stateUpdates['formState.contact.address.line1'].message);
       assert.equal(true, wasCalled);
     });
-    it('does not support arrays by default', function() {
+    it('will warn for all non-string values', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
-      var _fieldState = { value: [] };
+      var _fieldState = { value: [1,2,3] };
       testForm.state['formState.name'] = _fieldState;
       var field = testForm.formState.fields.find(x => x.name === 'name');
       field.required = true;
@@ -237,7 +284,10 @@ describe('FormState', function() {
         wasCalled = true;
       };
       var model = context.createModel();
-      assert.equal(true, Array.isArray(model.name));
+      assert.equal(true, model === null);
+      assert.equal(2, context.stateUpdates['formState.name'].validity);
+      assert.equal('Required field', context.stateUpdates['formState.name'].message);
+      assert.equal(true, wasCalled);
     });
     it('throws an error if passed something other than a function', function() {
       var f = function() { FormState.setRequired('s'); };
@@ -1852,6 +1902,14 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal('Name is required', fieldState.getMessage());
     });
+    it('honors a message override for required', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('email');
+      fieldState.setValue('').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Please provide an email', fieldState.getMessage());
+    });
     it('returns a field state if set to invalid', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -1946,6 +2004,102 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal('Name must be at most 6 characters', fieldState.getMessage());
     });
+    it('honors message override', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for noSpaces','message for between'];
+      fieldState.setValue('123 4567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('message for noSpaces', fieldState.getMessage());
+    });
+    it('honors message override for proper validation', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for noSpaces','message for between'];
+      fieldState.setValue('1234567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('message for between', fieldState.getMessage());
+    });
+    it('does not break on non-array and non-single-string message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = 3;
+      fieldState.setValue('1234567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('City must be at most 6 characters', fieldState.getMessage());
+    });
+    it('can work with a single string message override', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = 'noSpaces';
+      field.validationMessages = 'message override';
+      fieldState.setValue('123 4567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('message override', fieldState.getMessage());
+    });
+    it('does not break on non-string message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for no spaces', null];
+      fieldState.setValue('1234567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('City must be at most 6 characters', fieldState.getMessage());
+    });
+    it('does not break on non-string message overrides 2', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for no spaces', 3];
+      fieldState.setValue('1234567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('City must be at most 6 characters', fieldState.getMessage());
+    });
+    it('does not break on non-string message overrides 3', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for no spaces'];
+      fieldState.setValue('1234567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('City must be at most 6 characters', fieldState.getMessage());
+    });
+    it('does not break on non-string message overrides 4', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('city');
+      var field = fieldState.getField();
+      field.required = false;
+      field.validate = ['noSpaces',['lengthBetween',4,6]];
+      field.validationMessages = ['message for no spaces', null];
+      fieldState.setValue('123 4567').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('message for no spaces', fieldState.getMessage());
+    });
     it('calls a function', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -1953,6 +2107,23 @@ describe('FieldState', function() {
       var field = testForm.formState.fields.find(x => x.name === 'name');
       field.required = false;
       field.validate = function(value) {
+        if (value.trim() === '') { return 'this was called'; }
+      };
+      fieldState.setValue('  ').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('this was called', fieldState.getMessage());
+    });
+    it('passes value, context, and field to a called function', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = false;
+      field.validate = function(value, context, field) {
+        assert.equal('  ', value);
+        assert.equal('UnitOfWork', context.constructor.name);
+        assert.equal('name', field.name);
+        assert.equal('Name', field.label);
         if (value.trim() === '') { return 'this was called'; }
       };
       fieldState.setValue('  ').validate();
@@ -1979,6 +2150,70 @@ describe('FieldState', function() {
       fieldState.validate();
       assert.equal(true, fieldState.isValid());
     });
+    it('passes fsv, context, and field to a called fsValidate function', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = false;
+      field.fsValidate = function(fsv, context, field) {
+        assert.equal('FormStateValidation', fsv.constructor.name);
+        assert.equal('  ', fsv.value);
+        assert.equal('Name', fsv.label);
+        assert.equal('UnitOfWork', context.constructor.name);
+        assert.equal('name', field.name);
+        assert.equal('Name', field.label);
+        if (fsv.value.trim() === '') { return { _message: 'this was called' }; }
+      };
+      fieldState.setValue('  ').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('this was called', fieldState.getMessage());
+    });
+    it('can work with a string returned from fsValidate', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = false;
+      field.fsValidate = function(fsv, context, field) {
+        if (fsv.value.trim() === '') { return 'this was called'; }
+      };
+      fieldState.setValue('  ').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('this was called', fieldState.getMessage());
+    });
+    it('can work with a nonexistent value returned from fsValidate', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = false;
+      var wasCalled = false;
+      field.fsValidate = function(fsv, context, field) {
+        wasCalled = true;
+        if (fsv.value.trim() === '') { return 'this was called'; }
+      };
+      fieldState.setValue(' a ').validate();
+      assert.equal(true, wasCalled);
+      assert.equal(true, fieldState.isValid());
+      assert.equal(undefined, fieldState.getMessage());
+    });
+    it('can work with an fsv object returned from fsValidate', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = false;
+      var wasCalled = false;
+      field.fsValidate = function(fsv, context, field) {
+        wasCalled = true;
+        return fsv.noSpaces();
+      };
+      fieldState.setValue(' a ').validate();
+      assert.equal(true, wasCalled);
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('no spaces', fieldState.getMessage());
+    });
     it('throws an error if fsValidate is not a function', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var context = testForm.formState.createUnitOfWork();
@@ -1999,6 +2234,16 @@ describe('FieldState', function() {
       fieldState.setValue('thisisvalid').validate();
       assert.equal(true, fieldState.isValid());
     });
+    it('can return valid from fsValidate and not override message', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().msg('1').minLength(4).msg('2');
+      fieldState.setValue('thisisvalid').validate();
+      assert.equal(true, fieldState.isValid());
+      assert.equal(undefined, fieldState.getMessage());
+    });
     it('breaks chain if fsValidate returns a message early', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var context = testForm.formState.createUnitOfWork();
@@ -2008,6 +2253,16 @@ describe('FieldState', function() {
       fieldState.setValue('will fail early').validate();
       assert.equal(true, fieldState.isInvalid());
       assert.equal('no spaces', fieldState.getMessage());
+    });
+    it('breaks chain if fsValidate returns a message early and overrides message', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().msg('noSpaces override').minLength(4).msg('minLength override');
+      fieldState.setValue('will fail early').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('noSpaces override', fieldState.getMessage());
     });
     it('can go through a chain of fsValidate functions', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
@@ -2019,6 +2274,52 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal('Name must be at least 20 characters', fieldState.getMessage());
     });
+    it('can go through a chain of fsValidate functions and overrides message', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().msg('noSpaces override').minLength(20).msg('minLength override');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('minLength override', fieldState.getMessage());
+    });
+    it('can use message instead of msg for fsValidate', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().msg('noSpaces override').minLength(20).message('minLength override');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('minLength override', fieldState.getMessage());
+    });
+    it('can have an fsValidate span multiple lines', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().
+        msg('noSpaces override').
+        minLength(20).
+        msg('minLength override');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('minLength override', fieldState.getMessage());
+    });
+    it('can have an fsValidate span multiple lines 2', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces()
+        .msg('noSpaces override')
+        .minLength(20)
+        .msg('minLength override');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('minLength override', fieldState.getMessage());
+    });
     it('passes multiple params to fsValidate properly', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var context = testForm.formState.createUnitOfWork();
@@ -2028,6 +2329,46 @@ describe('FieldState', function() {
       fieldState.setValue('thisiswaytoolong!!!').validate();
       assert.equal(true, fieldState.isInvalid());
       assert.equal('Name must be at most 13 characters', fieldState.getMessage());
+    });
+    it('ignores empty message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(20).msg();
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Name must be at least 20 characters', fieldState.getMessage());
+    });
+    it('ignores whitespace message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(20).msg('   ');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Name must be at least 20 characters', fieldState.getMessage());
+    });
+    it('ignores non-string message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().minLength(20).msg(3);
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('Name must be at least 20 characters', fieldState.getMessage());
+    });
+    it('ignores redundant message overrides', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      var field = fieldState.getField();
+      field.fsValidate = (fsv) => fsv.noSpaces().msg().msg().msg().minLength(20).msg('override').msg('different');
+      fieldState.setValue('notlongenough').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('override', fieldState.getMessage());
     });
   });
   describe('#setValid', function() {
@@ -2176,6 +2517,111 @@ describe('Field', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var fieldState = testForm.formState.getFieldState('name');
       assert.equal('hpt', fieldState.getValue());
+    });
+  });
+  describe('#required', function() {
+    it('can be suppressed', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal(false, fieldState.getField().required);
+    });
+    it('is suppressed for empty string (documenting this behavior)', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('phone');
+      assert.equal(false, fieldState.getField().required);
+    });
+  });
+  describe('#requiredMessage', function() {
+    it('is undefined by default', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal(undefined, fieldState.getField().requiredMessage);
+    });
+    it('can be supplied', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('email');
+      assert.equal('Please provide an email', fieldState.getField().requiredMessage);
+    });
+    it('ignores empty string', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('phone');
+      assert.equal(undefined, fieldState.getField().requiredMessage);
+    });
+    it('ignores non-string values', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('line1');
+      assert.equal(undefined, fieldState.getField().requiredMessage);
+    });
+  });
+  describe('#validationMessages', function() {
+    it('is undefined by default', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal(undefined, fieldState.getField().validationMessages);
+    });
+    it('can be supplied', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('line2');
+      var msgs = fieldState.getField().validationMessages;
+      assert.equal(true, Array.isArray(msgs));
+    });
+    it('can be set via msgs', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('city');
+      var msgs = fieldState.getField().validationMessages;
+      assert.equal(3, msgs);
+    });
+    it('prefers validationMessages over msgs', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('state');
+      var msgs = fieldState.getField().validationMessages;
+      assert.equal(true, Array.isArray(msgs));
+    });
+  });
+  describe('#fsValidate', function() {
+    it('is undefined by default', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal(undefined, fieldState.getField().fsValidate);
+    });
+    it('can be supplied', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('zip');
+      var fsValidate = fieldState.getField().fsValidate;
+      assert.equal('hello', fsValidate);
+    });
+    it('can be set via fsv', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('zip4');
+      var fsValidate = fieldState.getField().fsValidate;
+      assert.equal('world', fsValidate);
+    });
+    it('prefers fsValidate over fsv', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('country');
+      var fsValidate = fieldState.getField().fsValidate;
+      assert.equal('hello', fsValidate);
+    });
+    it('can be autowired', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('autowire');
+      var fsValidate = fieldState.getField().fsValidate;
+      assert.equal(true, typeof(fsValidate) === 'function');
+    });
+    it('prefers fsValidate over autowiring', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('zip');
+      var fsValidate = fieldState.getField().fsValidate;
+      assert.equal('hello', fsValidate);
+    });
+  });
+  describe('#validate', function() {
+    // a whole lot tested elsewhere...
+    it('prefers validate over autowiring', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var fieldState = testForm.formState.getFieldState('city');
+      var validate = fieldState.getField().validate;
+      assert.equal('noSpaces', validate);
     });
   });
 });

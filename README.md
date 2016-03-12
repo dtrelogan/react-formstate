@@ -25,7 +25,7 @@ export default class LoginForm extends React.Component {
 
     // since we're not injecting a model, the above is equivalent to
     this.state = {};
-    
+
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -84,6 +84,32 @@ export default class Input extends React.Component {
     );
   }
 }
+```
+
+### expressive validation syntax
+
+credit [joi](https://www.npmjs.com/package/joi) for the inspiration
+
+```jsx
+<Input
+  formField='amount'
+  label='Amount'
+  required='Please provide an amount'
+  fsValidate={v =>
+    v.min(25)
+    .message('Amount must be at least $25')
+    .max(1000)
+    .msg('Amount cannot be more than $1000')}
+  />
+<CheckboxGroup
+  formField='roleIds'
+  label='Roles'
+  required='-'
+  fsv={v => v.minlen(1).msg('Please select a role')}
+  checkboxValues={this.roles}
+  defaultValue={[]}
+  intConvert
+  />
 ```
 
 ### remarks
