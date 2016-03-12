@@ -86,9 +86,9 @@ export default class Input extends React.Component {
 }
 ```
 
-### expressive validation syntax
+### concise validation syntax
 
-credit [joi](https://www.npmjs.com/package/joi) for the inspiration
+credit to [joi](https://www.npmjs.com/package/joi) for the inspiration
 
 ```jsx
 <Input
@@ -105,7 +105,7 @@ credit [joi](https://www.npmjs.com/package/joi) for the inspiration
   formField='roleIds'
   label='Roles'
   required='-'
-  fsv={v => v.minlen(1).msg('Please select a role')}
+  fsv={v => v.minLength(1).msg('Please select a role')}
   checkboxValues={this.roles}
   defaultValue={[]}
   intConvert
