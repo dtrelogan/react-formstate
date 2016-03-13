@@ -111,6 +111,8 @@ validatePasswordConfirmation(confirmation, context) {
 }
 ```
 
+see [getFieldState](https://github.com/dtrelogan/react-formstate/blob/master/docs/api.md#UnitOfWork.getFieldState) for more information.
+
 ### field parameter
 
 unregistered validation functions are passed three parameters: value, context, field
@@ -125,6 +127,8 @@ validateUsername(username, context, field) {
   if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
 }
 ```
+
+see [Field](https://github.com/dtrelogan/react-formstate/blob/master/docs/api.md#Field) for more information
 
 ### <a name='register'>registering validation functions</a>
 
