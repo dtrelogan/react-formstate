@@ -432,7 +432,7 @@ export default class UserForm extends React.Component {
 
 ### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
 
-creates a unit of work "context" for making changes to immutable form state.
+creates a [UnitOfWork](#UnitOfWork) "context" for making changes to immutable form state.
 
 ```jsx
 handleUsernameChange(e) {
@@ -483,7 +483,7 @@ returns true if the form is waiting for asynchronous validation to finish.
 
 ### <a name="FormState.getFieldState">FieldState getFieldState(string name)</a>
 
-retrieves form state for a particular field. returns a read-only FieldState instance.
+retrieves form state for a particular field. returns a read-only [FieldState](#FieldState) instance.
 
 note: typically field state is retrieved through a [context](#UnitOfWork.getFieldState).
 
@@ -597,7 +597,7 @@ the framework can perform common transformations for you. see [noTrim](#Field.no
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
-retrieves form state for a particular field.
+retrieves form state for a particular field, aka [FieldState](#FieldState).
 
 if asyncToken is passed, returns null unless the token matches the token embedded in the field state. (in an asynchronous validation callback, validate *only* if the fieldstate hasn't changed before the callback is invoked. see [FieldState.setValidating](#FieldState.setValidating))
 
