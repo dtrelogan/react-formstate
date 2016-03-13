@@ -94,21 +94,6 @@ FormState.setRequired(function(value, label) {
 });
 ```
 
-### field parameter
-
-unregistered validation functions are passed three parameters: value, context, field
-
-field will have a property named 'label'. in the examples above, per the jsx, label will be set to 'Username'.
-
-so you can do something like this:
-
-```jsx
-validateUsername(username, context, field) {
-  if (username.includes(' ')) { return `${field.label} must not contain spaces`; }
-  if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
-}
-```
-
 ### context parameter
 
 unregistered validation functions are passed three parameters: value, context, field
@@ -123,6 +108,21 @@ validatePassword(password, context) {
 
 validatePasswordConfirmation(confirmation, context) {
   if (confirmation !== context.getFieldState('password').getValue()) { return 'Passwords do not match'; }
+}
+```
+
+### field parameter
+
+unregistered validation functions are passed three parameters: value, context, field
+
+field will have a property named 'label'. in the examples above, per the jsx, label will be set to 'Username'.
+
+so you can do something like this:
+
+```jsx
+validateUsername(username, context, field) {
+  if (username.includes(' ')) { return `${field.label} must not contain spaces`; }
+  if (username.length < 4) { return `${field.label} must be at least 4 characters`; }
 }
 ```
 
