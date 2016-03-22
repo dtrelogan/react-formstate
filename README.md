@@ -11,7 +11,6 @@ a clean, simple form framework for [react](https://facebook.github.io/react)
 - form state lives with your form component until the form is submitted with valid data
 - framework simply provides props, you lay out your inputs
 - works with react [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
-- simple yet comprehensive; helps where it should and stays out of your way otherwise
 
 ### setup
 
