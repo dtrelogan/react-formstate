@@ -1,6 +1,6 @@
 {
   "name": "react-formstate",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
@@ -20,8 +20,15 @@
   },
   "keywords": [
     "react",
-    "nested",
     "form",
+    "validation",
+    "react",
+    "validation",
+    "react",
+    "form",
+    "framework",
+    "react",
+    "framework",
     "asynchronous",
     "validation"
   ],
