@@ -103,9 +103,3 @@ export default class Input extends React.Component {
 }
 ```
 
-### remarks
-
-- application logic is encapsulated in your form component, not your reusable input components.
-- invalid data does not leave your form component, insulating your application, allowing it to focus on more important things.
-- saves time and effort for common tasks while providing the necessary extension points.
-  - will help you get work done and won't get in your way.
