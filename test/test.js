@@ -6,6 +6,7 @@ var React = require('react');
 var ReactDOMServer = require('react-dom/server');
 
 var rf = require('../react-formstate.js');
+var Form = rf.Form;
 var FormState = rf.FormState;
 var FormObject = rf.FormObject;
 var FormArray = rf.FormArray;
@@ -195,12 +196,10 @@ var createUserContactsFormFixture = function(inject, backwards) {
         }
       }
 
-      return React.createElement('form', null,
-        React.createElement(FormObject, { formState: this.formState },
-          React.createElement(NameInput, { formField: 'name', label: 'Name' }),
-          React.createElement(FormArray, { name: 'contacts' }, contacts)
-        ),
-        React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
+      return React.createElement(Form, { formState: this.formState, onSubmit: this.handleSubmit, id: 'testingAFormProp' },
+        React.createElement(NameInput, { formField: 'name', label: 'Name' }),
+        React.createElement(FormArray, { name: 'contacts' }, contacts),
+        React.createElement('input', { type: 'submit', value: 'Submit' }),
         React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
       );
     }
@@ -227,7 +226,7 @@ var createMessageOverrideForm = function() {
       return React.createElement('form', null,
         React.createElement(FormObject, { formState: this.formState },
           React.createElement(NameInput, { formField: 'name', label: 'Name', required: '-' }),
-          React.createElement(NameInput, { formField: 'email', label: 'Email', required: 'Please provide an email' }),
+          React.createElement(NameInput, { formField: 'email', label: 'Email', required: 'Please provide an email', revalidateOnSubmit: true }),
           React.createElement(NameInput, { formField: 'phone', label: 'Phone', required: '' }),
           React.createElement(NameInput, { formField: 'line1', label: 'Line1', required: ['not a string'] }),
           React.createElement(NameInput, { formField: 'line2', label: 'Line2', validationMessages: ['a message'] }),
@@ -1575,6 +1574,37 @@ describe('UnitOfWork', function() {
       assert.equal('email2', model.contacts[1].email);
       assert.equal('line2', model.contacts[1].address.line1);
     });
+    it('doesnt revalidate validated fields by default', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var _fieldState = { isCoerced: true, value: '', validity: 1 }; // invalid value flagged as valid
+      testForm.state['formState.contact.address.line1'] = _fieldState;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var model = context.createModel();
+      assert.equal(true, model !== null);
+      assert.equal(false, wasCalled);
+    });
+    it('optionally revalidates validated fields upon submit', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'address');
+      field = field.fields.find(x => x.name === 'line1');
+      field.revalidateOnSubmit = true;
+      var _fieldState = { isCoerced: true, value: '', validity: 1 }; // invalid value flagged as valid
+      testForm.state['formState.contact.address.line1'] = _fieldState;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var model = context.createModel();
+      assert.equal(true, model === null);
+      assert.equal(2, context.stateUpdates['formState.contact.address.line1'].validity);
+      assert.equal(true, wasCalled);
+    });
   });
 });
 describe('FieldState', function() {
@@ -2624,6 +2654,15 @@ describe('Field', function() {
       assert.equal('noSpaces', validate);
     });
   });
+  describe('#revalidateOnSubmit', function() {
+    it('picks up a revalidateOnSubmit configuration', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      assert.equal(false, field.revalidateOnSubmit);
+      field = testForm.formState.fields.find(x => x.name === 'email');
+      assert.equal(true, field.revalidateOnSubmit);
+    });
+  });
 });
 describe('FormObject', function() {
   describe('#blurHandler', function() {
@@ -2828,6 +2867,14 @@ describe('FormObject', function() {
       assert.equal('name', nameInput.props.fieldState.getKey());
       assert.equal('contacts.0.email', contactEmailInput.props.fieldState.getKey());
       assert.equal('contacts.0.address.line1', contactAddressLine1Input.props.fieldState.getKey());
+    });
+  });
+});
+describe('Form', function() {
+  describe('#render', function() {
+    it('forwards form props to form element', function() {
+      let markup = ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      assert.equal(true, markup.startsWith('<form id="testingAFormProp" '));
     });
   });
 });

@@ -163,6 +163,23 @@ function blurHandler(formState, field) {
 
 
 //
+// Form
+//
+
+export class Form extends React.Component {
+  render() {
+    let { formState, ...otherProps } = this.props;
+
+    return React.createElement(
+      'form',
+      otherProps,
+      React.createElement(FormObject, {formState: formState}, this.props.children)
+    );
+  }
+}
+
+
+//
 // FormObject
 //
 
@@ -181,6 +198,8 @@ export class FormObject extends React.Component {
       this.validationComponent = this.props.validationComponent || this.formState.form;
       this.labelPrefix = this.props.labelPrefix;
     }
+
+    this.addProps = this.addProps.bind(this);
   }
 
 
@@ -191,7 +210,7 @@ export class FormObject extends React.Component {
     return React.createElement(
       'div',
       null,
-      React.Children.map(this.props.children, this.addProps.bind(this))
+      React.Children.map(this.props.children, this.addProps)
     );
   }
 
@@ -222,7 +241,7 @@ export class FormObject extends React.Component {
     let result = React.cloneElement(
       child,
       props,
-      child.props.children && React.Children.map(child.props.children, this.addProps.bind(this))
+      child.props.children && React.Children.map(child.props.children, this.addProps)
     );
 
     this.formState = formState;
@@ -293,6 +312,7 @@ export class FormObject extends React.Component {
         if (f) { field.fsValidate = f; }
       }
       field.validationMessages = props.validationMessages || props.msgs;
+      field.revalidateOnSubmit = Boolean(props.revalidateOnSubmit);
     }
 
     return {
@@ -564,14 +584,23 @@ export class FormState {
       _fieldState = _getFieldState(this.form.state, key),
       noCoercion = field && field.noCoercion;
 
+    // todo: how to get modelProp?
+    // if (!_fieldState || _fieldState.isDeleted && modelProp) {
+    //   _fieldState = { value: modelProp[field ? field.name : fieldOrName] };
+    // }
+
+    // if you inject a model and this is the first time we are using an injected value
     if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
       if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
+        // if injected model.value is null and you are providing the value to, say, a select-multiple
+        // note that you can use 'preferNull' to reverse this upon model generation
         _fieldState = { value: [] };
       } else {
         _fieldState = { value: noCoercion ? _fieldState.value : coerceToString(_fieldState.value) };
       }
     }
 
+    // if no model injected and this is the first time pulling a value
     if (!_fieldState || _fieldState.isDeleted) {
       let defaultValue = field && field.defaultValue;
       _fieldState = { value: noCoercion ? defaultValue : coerceToString(defaultValue) };
@@ -657,7 +686,7 @@ class UnitOfWork {
       else {
         let fieldState = this.getFieldState(field);
 
-        if (!fieldState.isValidated()) { fieldState.validate(); }
+        if (!fieldState.isValidated() || field.revalidateOnSubmit) { fieldState.validate(); }
         fieldState.showMessage();
         if (!fieldState.isValid()) { isModelValid = false; }
         if (!isModelValid) { continue; } // else
@@ -756,11 +785,11 @@ class UnitOfWork {
 
     let keyDot = key + '.';
 
-    iterateKeys(this.formState.form.state, function(key) {
+    iterateKeys(this.formState.form.state, key => {
       if (key.startsWith(keyDot)) {
         _setFieldState(this.stateUpdates, key, { isDeleted: true });
       }
-    }.bind(this));
+    });
   }
 
 

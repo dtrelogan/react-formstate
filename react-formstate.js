@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FormState = exports.FormArray = exports.FormObject = undefined;
+exports.FormState = exports.FormArray = exports.FormObject = exports.Form = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -16,6 +16,8 @@ var _react2 = _interopRequireDefault(_react);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -222,28 +224,58 @@ function blurHandler(formState, field) {
 }
 
 //
+// Form
+//
+
+var Form = exports.Form = function (_React$Component) {
+  _inherits(Form, _React$Component);
+
+  function Form() {
+    _classCallCheck(this, Form);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Form).apply(this, arguments));
+  }
+
+  _createClass(Form, [{
+    key: 'render',
+    value: function render() {
+      var _props = this.props;
+      var formState = _props.formState;
+
+      var otherProps = _objectWithoutProperties(_props, ['formState']);
+
+      return _react2.default.createElement('form', otherProps, _react2.default.createElement(FormObject, { formState: formState }, this.props.children));
+    }
+  }]);
+
+  return Form;
+}(_react2.default.Component);
+
+//
 // FormObject
 //
 
-var FormObject = exports.FormObject = function (_React$Component) {
-  _inherits(FormObject, _React$Component);
+var FormObject = exports.FormObject = function (_React$Component2) {
+  _inherits(FormObject, _React$Component2);
 
   function FormObject(props) {
     _classCallCheck(this, FormObject);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(FormObject).call(this, props));
+    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(FormObject).call(this, props));
 
-    if (_this.props.nestedForm) {
-      var nestedProps = _this.props.nestedForm.props;
-      _this.formState = nestedProps.formState;
-      _this.validationComponent = _this.props.nestedForm;
-      _this.labelPrefix = nestedProps.labelPrefix;
+    if (_this2.props.nestedForm) {
+      var nestedProps = _this2.props.nestedForm.props;
+      _this2.formState = nestedProps.formState;
+      _this2.validationComponent = _this2.props.nestedForm;
+      _this2.labelPrefix = nestedProps.labelPrefix;
     } else {
-      _this.formState = _this.props.formState;
-      _this.validationComponent = _this.props.validationComponent || _this.formState.form;
-      _this.labelPrefix = _this.props.labelPrefix;
+      _this2.formState = _this2.props.formState;
+      _this2.validationComponent = _this2.props.validationComponent || _this2.formState.form;
+      _this2.labelPrefix = _this2.props.labelPrefix;
     }
-    return _this;
+
+    _this2.addProps = _this2.addProps.bind(_this2);
+    return _this2;
   }
 
   _createClass(FormObject, [{
@@ -252,7 +284,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
       // to support dynamic removal, upon render, rebuild the field definitions
       this.formState.clearFields();
 
-      return _react2.default.createElement('div', null, _react2.default.Children.map(this.props.children, this.addProps.bind(this)));
+      return _react2.default.createElement('div', null, _react2.default.Children.map(this.props.children, this.addProps));
     }
   }, {
     key: 'addProps',
@@ -278,7 +310,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
         return _react2.default.cloneElement(child, props, child.props.children);
       }
 
-      var result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps.bind(this)));
+      var result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
 
       this.formState = formState;
 
@@ -356,6 +388,7 @@ var FormObject = exports.FormObject = function (_React$Component) {
           }
         }
         field.validationMessages = props.validationMessages || props.msgs;
+        field.revalidateOnSubmit = Boolean(props.revalidateOnSubmit);
       }
 
       return {
@@ -741,14 +774,23 @@ var FormState = exports.FormState = function () {
           _fieldState = _getFieldState(this.form.state, key),
           noCoercion = field && field.noCoercion;
 
+      // todo: how to get modelProp?
+      // if (!_fieldState || _fieldState.isDeleted && modelProp) {
+      //   _fieldState = { value: modelProp[field ? field.name : fieldOrName] };
+      // }
+
+      // if you inject a model and this is the first time we are using an injected value
       if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
         if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
+          // if injected model.value is null and you are providing the value to, say, a select-multiple
+          // note that you can use 'preferNull' to reverse this upon model generation
           _fieldState = { value: [] };
         } else {
           _fieldState = { value: noCoercion ? _fieldState.value : coerceToString(_fieldState.value) };
         }
       }
 
+      // if no model injected and this is the first time pulling a value
       if (!_fieldState || _fieldState.isDeleted) {
         var defaultValue = field && field.defaultValue;
         _fieldState = { value: noCoercion ? defaultValue : coerceToString(defaultValue) };
@@ -845,7 +887,7 @@ var UnitOfWork = function () {
         } else {
           var fieldState = this.getFieldState(field);
 
-          if (!fieldState.isValidated()) {
+          if (!fieldState.isValidated() || field.revalidateOnSubmit) {
             fieldState.validate();
           }
           fieldState.showMessage();
@@ -950,6 +992,8 @@ var UnitOfWork = function () {
   }, {
     key: 'remove',
     value: function remove(name) {
+      var _this4 = this;
+
       var key = this.formState.buildKey(name);
 
       _setFieldState(this.stateUpdates, key, { isDeleted: true });
@@ -960,9 +1004,9 @@ var UnitOfWork = function () {
 
       iterateKeys(this.formState.form.state, function (key) {
         if (key.startsWith(keyDot)) {
-          _setFieldState(this.stateUpdates, key, { isDeleted: true });
+          _setFieldState(_this4.stateUpdates, key, { isDeleted: true });
         }
-      }.bind(this));
+      });
     }
   }, {
     key: 'injectModel',

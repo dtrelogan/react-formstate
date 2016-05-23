@@ -1,10 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "a clean, simple form framework for react",
+  "description": "a clean, simple, fully-featured form framework for react",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",
@@ -43,6 +43,7 @@
   "homepage": "https://github.com/dtrelogan/react-formstate#readme",
   "devDependencies": {
     "babel-cli": "^6.5.1",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-preset-es2015": "^6.5.0",
     "coveralls": "^2.11.8",
     "istanbul": "^0.4.2",
