@@ -2,7 +2,7 @@
 
 ```jsx
 import React from 'react';
-import { FormState, FormObject } from 'react-formstate';
+import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 
 export default class UserForm extends React.Component {
@@ -12,6 +12,8 @@ export default class UserForm extends React.Component {
     this.formState = new FormState(this);
     this.state = this.formState.createUnitOfWork().injectModel(props.model);
     this.originalUsername = props.model && props.model.username;
+
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   render() {
@@ -22,26 +24,24 @@ export default class UserForm extends React.Component {
     } else if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
     }
-    
+
     // notice we are overriding the framework-generated updateFormState prop for username
-    
+
     // also notice username is still marked required.
     // this will prevent a valid form submission before the user enters anything.
     // (i.e., no change handler is called in that case)
 
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input
-            formField='username'
-            label='Username'
-            required
-            updateFormState={this.handleUsernameChange.bind(this)}
-          />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input
+          formField='username'
+          label='Username'
+          required
+          updateFormState={this.handleUsernameChange.bind(this)}
+        />
+        <input type='submit' value='Submit'/>
         <span>{submitMessage}</span>
-      </form>
+      </Form>
     );
   }
 
@@ -82,7 +82,7 @@ export default class UserForm extends React.Component {
     window.setTimeout(function() {
       let context = this.formState.createUnitOfWork(),
         fieldState = context.getFieldState('username', asyncToken);
-        
+
       // if the token still matches, the username we are verifying is still relevant
       if (fieldState) {
         if (username === 'taken') {

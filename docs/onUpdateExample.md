@@ -1,7 +1,7 @@
 # onUpdate callback
 
 ```jsx
-import { FormState, FormObject } from 'react-formstate';
+import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 
 export default class LoginForm extends React.Component {
@@ -9,17 +9,18 @@ export default class LoginForm extends React.Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
+    this.state = {};
 
     // set a callback from the framework generated onChange handler
     this.formState.onUpdate(this.onUpdate.bind(this));
 
-    this.state = {};
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   onUpdate(context) {
     // if in the process of logging in, ignore user input
     if (this.state.loggingIn) { return; }
-    
+
     // after a failed login, once the user enters something,
     // clear 'Invalid username or password' message
     context.updateFormState({failedLogin: false});
@@ -36,21 +37,19 @@ export default class LoginForm extends React.Component {
     }
 
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <div>{this.state.failedLogin ? 'Invalid username or password' : null}</div>
-          <Input formField='username' label='Username' required />
-          <Input formField='password' label='Password' required type='password' />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <div>{this.state.failedLogin ? 'Invalid username or password' : null}</div>
+        <Input formField='username' label='Username' required />
+        <Input formField='password' label='Password' required type='password' />
+        <input type='submit' value='Submit'/>
         <span>{submitMessage}</span>
-      </form>
+      </Form>
     );
   }
 
   handleSubmit(e) {
     e.preventDefault();
-    
+
     if (this.state.loggingIn) { return; }
 
     let model = this.formState.createUnitOfWork().createModel();

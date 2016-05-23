@@ -28,6 +28,7 @@
   - [setValue](#FieldState.setValue)
   - [showMessage](#FieldState.showMessage)
   - [validate](#FieldState.validate)
+- [Form](#Form)
 - [FormArray](#FormObject)
 - [FormObject](#FormObject)
   - [required props](#FormObject.requiredProps)
@@ -79,7 +80,8 @@ a framework object is created with the following properties:
   preferNull: false,
   intConvert: true,
   defaultValue: [],
-  noCoercion: false
+  noCoercion: false,
+  revalidateOnSubmit: false
 }
 ```
 
@@ -145,6 +147,16 @@ if (v === true || v === false) { return v; } // else
 if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
 return v.toString();
 ```
+
+### <a name='Field.revalidateOnSubmit'>revalidateOnSubmit</a>
+
+react-formstate, in the way it supports asynchronous validation, normally does not revalidate previously validated fields upon form submission.
+
+the reason? consider a username validation that calls an api to ensure a username does not already exist. if you perform the asynchronous validation as the user edits the username field, you do not want to perform it again (at least not client-side) when the user hits submit.
+
+now consider a confirm password validation. since it validates against another field that might change, you *do* want to revalidate the password confirmation upon form submission. since this is not the common case, if you want this behavior you have to add a *revalidateOnSubmit* prop to your jsx input element.
+
+revalidateOnSubmit should *not* be added to fields that perform asynchronous validation. [UnitOfWork.createModel](#UnitOfWork.createModel) is purposefully designed to run synchronously.
 
 ## <a name='FieldState'>FieldState</a>
 
@@ -237,6 +249,28 @@ calls the appropriate validation function(s). uses the result to update the vali
 
 ```jsx
 fieldState.setValue(value).validate();
+```
+
+## <a name='Form'>Form</a>
+
+this:
+
+```jsx
+<Form formState={this.formState} onSubmit={this.onSubmit} id='someOtherFormProperty'>
+  <Input formField='name' label='Name'/>
+  <input type='submit' value='Submit'/>
+</Form>
+```
+
+is equivalent to:
+
+```jsx
+<form onSubmit={this.onSubmit} id='someOtherFormProperty'>
+  <FormObject formState={this.formState}>
+    <Input formField='name' label='Name'/>
+    <input type='submit' value='Submit'/>
+  </FormObject>
+</form>
 ```
 
 ## <a name='FormObject'>FormObject/FormArray</a>

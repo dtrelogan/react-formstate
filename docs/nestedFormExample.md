@@ -5,19 +5,17 @@
 ```jsx
   render() {
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <FormObject name='contact' >
-            <Input formField='email' label='Email' />
-            <Input formField='phone' label='Phone' />
-            <FormObject name='address' labelPrefix='Address ' >
-              <Input formField='line1' label='Line 1' />
-            </FormObject>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' />
+        <FormObject name='contact' >
+          <Input formField='email' label='Email' />
+          <Input formField='phone' label='Phone' />
+          <FormObject name='address' labelPrefix='Address ' >
+            <Input formField='line1' label='Line 1' />
           </FormObject>
         </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-      </form>
+        <input type='submit' value='Submit'/>
+      </Form>
     );
   }
 ```
@@ -27,16 +25,14 @@
 ```jsx
   render() {
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <h3>Home Contact Information</h3>
-          <Contact formObject='homeContact' labelPrefix='Home ' />
-          <h3>Work Contact Information</h3>
-          <Contact formObject='workContact' labelPrefix='Work ' />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-      </form>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' />
+        <h3>Home Contact Information</h3>
+        <Contact formObject='homeContact' labelPrefix='Home ' />
+        <h3>Work Contact Information</h3>
+        <Contact formObject='workContact' labelPrefix='Work ' />
+        <input type='submit' value='Submit'/>
+      </Form>
     );
   }
 ```
@@ -83,20 +79,18 @@ export default class Address extends React.Component {
 ```jsx
   render() {
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <h3>Home Contact Information</h3>
-          <Contact formObject='homeContact' labelPrefix='Home '>
-            <Address formObject='address' labelPrefix='Address ' />
-          </Contact>
-          <h3>Work Contact Information</h3>
-          <Contact formObject='workContact' labelPrefix='Work '>
-            <Address formObject='address' labelPrefix='Address ' />
-          </Contact>
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-      </form>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' />
+        <h3>Home Contact Information</h3>
+        <Contact formObject='homeContact' labelPrefix='Home '>
+          <Address formObject='address' labelPrefix='Address ' />
+        </Contact>
+        <h3>Work Contact Information</h3>
+        <Contact formObject='workContact' labelPrefix='Work '>
+          <Address formObject='address' labelPrefix='Address ' />
+        </Contact>
+        <input type='submit' value='Submit'/>
+      </Form>
     );
   }
 ```
@@ -128,15 +122,13 @@ export default class Contact extends React.Component {
 ```jsx
   render() {
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <Input formField='contact.email' label='Email' />
-          <Input formField='contact.phone' label='Phone' />
-          <Input formField='contact.address.line1' label='Address Line 1' />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-      </form>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' />
+        <Input formField='contact.email' label='Email' />
+        <Input formField='contact.phone' label='Phone' />
+        <Input formField='contact.address.line1' label='Address Line 1' />
+        <input type='submit' value='Submit'/>
+      </Form>
     );
   }
 ```
@@ -146,18 +138,16 @@ export default class Contact extends React.Component {
 ```jsx
   render() {
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' />
-          <h3>Home Contact Information</h3>
-          <Contact formObject='homeContact' labelPrefix='Home ' />
-          <Address formObject='homeContact.address' labelPrefix='Home Address ' />
-          <h3>Work Contact Information</h3>
-          <Contact formObject='workContact' labelPrefix='Work '/>
-          <Address formObject='workContact.address' labelPrefix='Work Address ' />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
-      </form>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' />
+        <h3>Home Contact Information</h3>
+        <Contact formObject='homeContact' labelPrefix='Home ' />
+        <Address formObject='homeContact.address' labelPrefix='Home Address ' />
+        <h3>Work Contact Information</h3>
+        <Contact formObject='workContact' labelPrefix='Work '/>
+        <Address formObject='workContact.address' labelPrefix='Work Address ' />
+        <input type='submit' value='Submit'/>
+      </Form>
     );
   }
 ```

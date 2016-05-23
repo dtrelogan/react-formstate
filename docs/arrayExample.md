@@ -3,7 +3,7 @@
 
 ```jsx
 import React from 'react';
-import { FormState, FormObject, FormArray } from 'react-formstate';
+import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
 import Contact from './Contact.jsx';
 import Address from './Address.jsx';
@@ -17,6 +17,9 @@ export default class UserForm extends React.Component {
 
     let model = props.model || {};
     this.state.numContacts = model.contacts ? model.contacts.length : 0;
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.addContact = this.addContact.bind(this);
   }
 
 
@@ -38,19 +41,17 @@ export default class UserForm extends React.Component {
     }
 
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' required />
-          <h3>Contacts</h3>
-          <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
-          <FormArray name='contacts'>
-            {contacts}
-          </FormArray>
-        </FormObject>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' required />
+        <h3>Contacts</h3>
+        <a href='#' onClick={this.addContact}>add contact</a><br/>
+        <FormArray name='contacts'>
+          {contacts}
+        </FormArray>
         <br/>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+        <input type='submit' value='Submit'/>
         <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
-      </form>
+      </Form>
     );
   }
 

@@ -1,7 +1,7 @@
 # templates for other input types
 
 ```jsx
-import { FormState, FormObject, FormArray } from 'react-formstate';
+import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
 import Contact from './Contact.jsx';
 import Address from './Address.jsx';
@@ -65,6 +65,9 @@ export default class UserForm extends React.Component {
       { id: 3, name: 'Site 3' },
       { id: 4, name: 'Site 4' }
     ];
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.addContact = this.addContact.bind(this);
   }
 
 
@@ -110,63 +113,61 @@ export default class UserForm extends React.Component {
     }
 
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input formField='name' label='Name' required />
-          <Input formField='username' label='Username' required
-            updateFormState={this.handleUsernameChange.bind(this)}
-            />
-          <Input formField='password' type='password' label='Password' required />
-          <Input formField='passwordConfirmation' type='password' label='Confirm Password'/>
-          <br/>
-          <RadioGroup
-            buttonValues={this.contactChoices}
-            formField='contactPreferenceId'
-            label='Contact Preference'
-            defaultValue={1}
-            intConvert
-            />
-          <h3>Contacts</h3>
-          <a href='#' onClick={this.addContact.bind(this)}>add contact</a><br/>
-          <FormArray name='contacts'>
-            {contacts}
-          </FormArray>
-          <h3>Account Settings</h3>
-          <CheckboxGroup
-            formField='roleIds'
-            checkboxValues={this.roles}
-            label='Roles'
-            defaultValue={[]}
-            intConvert
-            />
-          <Select
-            formField='siteIds'
-            multiple={true}
-            optionValues={this.sites}
-            label='Site Access'
-            defaultValue={[1]}
-            intConvert
-            />
-          <br/>
-          <Select
-            formField='defaultSiteId'
-            optionValues={this.sites}
-            label='Default Site'
-            defaultValue={1}
-            intConvert
-            />
-          <br/>
-          <Checkbox
-            formField='active'
-            label='Active'
-            defaultValue={true}
-            />
-          <br/>
-        </FormObject>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input formField='name' label='Name' required />
+        <Input formField='username' label='Username' required
+          updateFormState={this.handleUsernameChange.bind(this)}
+          />
+        <Input formField='password' type='password' label='Password' required />
+        <Input formField='passwordConfirmation' type='password' label='Confirm Password'/>
         <br/>
-        <input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+        <RadioGroup
+          buttonValues={this.contactChoices}
+          formField='contactPreferenceId'
+          label='Contact Preference'
+          defaultValue={1}
+          intConvert
+          />
+        <h3>Contacts</h3>
+        <a href='#' onClick={this.addContact}>add contact</a><br/>
+        <FormArray name='contacts'>
+          {contacts}
+        </FormArray>
+        <h3>Account Settings</h3>
+        <CheckboxGroup
+          formField='roleIds'
+          checkboxValues={this.roles}
+          label='Roles'
+          defaultValue={[]}
+          intConvert
+          />
+        <Select
+          formField='siteIds'
+          multiple={true}
+          optionValues={this.sites}
+          label='Site Access'
+          defaultValue={[1]}
+          intConvert
+          />
+        <br/>
+        <Select
+          formField='defaultSiteId'
+          optionValues={this.sites}
+          label='Default Site'
+          defaultValue={1}
+          intConvert
+          />
+        <br/>
+        <Checkbox
+          formField='active'
+          label='Active'
+          defaultValue={true}
+          />
+        <br/>
+        <br/>
+        <input type='submit' value='Submit'/>
         <span>{submitMessage}</span>
-      </form>
+      </Form>
     );
   }
 

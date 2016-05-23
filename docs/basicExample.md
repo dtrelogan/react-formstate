@@ -2,7 +2,7 @@
 
 ```jsx
 import React from 'react';
-import { FormState, FormObject } from 'react-formstate';
+import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 
 // using the optional validation library to demonstrate fluent api
@@ -14,11 +14,6 @@ export default class ChangePasswordForm extends React.Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-
-    // if you were editing a model, you could "inject" props.model
-    this.state = this.formState.createUnitOfWork().injectModel();
-
-    // since we're not injecting a model, the above is equivalent to
     this.state = {};
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -31,36 +26,35 @@ export default class ChangePasswordForm extends React.Component {
     }
   }
 
+  // or you can use a fluent validation api as appropriate
   render() {
-    let submitMessage = '';
+    let submitMessage = null;
     if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
     }
-    // or you can use a fluent validation api as appropriate
     return (
-      <form>
-        <FormObject formState={this.formState}>
-          <Input
-            formField='newPassword'
-            type='password'
-            label='New Password'
-            required
-            fsv={v => v.regex(/^\S+$/)
-              .msg('Password must not contain whitespace')
-              .minLength(8)
-              .msg('Password must be at least 8 characters')
-            }
-            />
-          <Input
-            formField='confirmNewPassword'
-            type='password'
-            label='Confirm New Password'
-            required
-            />
-        </FormObject>
-        <input type='submit' value='Submit' onClick={this.handleSubmit} />
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <Input
+          formField='newPassword'
+          type='password'
+          label='New Password'
+          required
+          fsv={v => v.regex(/^\S+$/)
+            .msg('Password must not contain whitespace')
+            .minLength(8)
+            .msg('Password must be at least 8 characters')
+          }
+          />
+        <Input
+          formField='confirmNewPassword'
+          type='password'
+          label='Confirm New Password'
+          required
+          revalidateOnSubmit
+          />
+        <input type='submit' value='Submit'/>
         <span>{submitMessage}</span>
-      </form>
+      </Form>
     );
   }
 
@@ -102,4 +96,3 @@ export default class Input extends React.Component {
   }
 }
 ```
-
