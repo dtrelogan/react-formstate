@@ -103,9 +103,3 @@ export default class Input extends React.Component {
 }
 ```
 
-### remarks
-
-- business logic is encapsulated in your form component, not your reusable input components.
-- invalid data does not leave your form component, insulating your application, allowing it to focus on more important things.
-- saves a lot of time and effort for common tasks while also providing the proper extension points for whatever you need to accomplish.
-  - in other words it helps you get work done but doesn't get in your way.
