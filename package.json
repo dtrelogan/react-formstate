@@ -4,7 +4,7 @@
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "a clean, simple, fully-featured form framework for react",
+  "description": "a clean, fully-featured form framework for react",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",

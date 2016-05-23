@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-## a clean, simple, fully-featured form framework for [react](https://facebook.github.io/react)
+## a clean, fully-featured form framework for [react](https://facebook.github.io/react)
 
 there are a slew of react form packages out there. if you've managed to find this one, why should you use it?
 
