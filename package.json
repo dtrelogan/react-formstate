@@ -1,10 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "a flexible, well designed approach to react forms",
+  "description": "a flexible, well-designed approach to react forms",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",
