@@ -274,6 +274,8 @@ is equivalent to:
 </form>
 ```
 
+the [model prop](#modelProp) is a noteworthy feature.
+
 ## <a name='FormObject'>FormObject/FormArray</a>
 
 FormObject and FormArray components are meant to align with your backing model. for instance, if you have a model like this:
@@ -380,7 +382,7 @@ export default class Contact extends React.Component {
 
 ### <a name='FormObject.optionalProps'>optional props</a>
 
-*model*
+<a name='modelProp'>*model*</a>
 
 shorthand injection of model data into your form fields, suitable for common use cases.
 
@@ -390,7 +392,15 @@ shorthand injection of model data into your form fields, suitable for common use
 </FormObject>
 ```
 
-this is syntactic sugar and works differently from [true injection](#UnitOfWork.injectModel).
+only applies to your root FormObject. typically it is used with a [Form](#Form) component:
+
+```jsx
+<Form formState={this.formState} model={this.props.model}>
+  <Input formField='name' label='Name/>
+</Form>
+```
+
+the model prop is syntactic sugar and works differently from [true injection](#UnitOfWork.injectModel).
 
 true injection is more appropriate for dynamic forms, as your render function can then key off your form component's state.
 
