@@ -11,6 +11,7 @@
   - [intConvert](#Field.intConvert)
   - [defaultValue](#Field.defaultValue)
   - [noCoercion](#Field.noCoercion)
+  - [revalidateOnSubmit](#Field.revalidateOnSubmit)
 - [FieldState](#FieldState)
   - [equals](#FieldState.equals)
   - [getField](#FieldState.getField)
@@ -628,6 +629,8 @@ handleSubmit(e) {
 ```
 
 the framework can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
+
+note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of the framework, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
 
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
