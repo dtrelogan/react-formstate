@@ -274,7 +274,7 @@ is equivalent to:
 </form>
 ```
 
-the [model prop](#modelProp) is a noteworthy feature.
+the [model prop](#modelProp) is noteworthy.
 
 ## <a name='FormObject'>FormObject/FormArray</a>
 
@@ -392,7 +392,9 @@ shorthand injection of model data into your form fields, suitable for common use
 </FormObject>
 ```
 
-only applies to your root FormObject. typically it is used with a [Form](#Form) component:
+see [model injection](/docs/modelInjection.md) for a slightly better example.
+
+the model prop only applies to your root FormObject. typically it is used with a [Form](#Form) component:
 
 ```jsx
 <Form formState={this.formState} model={this.props.model}>
