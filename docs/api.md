@@ -257,7 +257,7 @@ fieldState.setValue(value).validate();
 this:
 
 ```jsx
-<Form formState={this.formState} onSubmit={this.onSubmit} id='someOtherFormProperty'>
+<Form formState={this.formState} model={this.props.model} onSubmit={this.onSubmit} id='foo'>
   <Input formField='name' label='Name'/>
   <input type='submit' value='Submit'/>
 </Form>
@@ -266,8 +266,8 @@ this:
 is equivalent to:
 
 ```jsx
-<form onSubmit={this.onSubmit} id='someOtherFormProperty'>
-  <FormObject formState={this.formState}>
+<form onSubmit={this.onSubmit} id='foo'>
+  <FormObject formState={this.formState} model={this.props.model}>
     <Input formField='name' label='Name'/>
     <input type='submit' value='Submit'/>
   </FormObject>
@@ -379,6 +379,20 @@ export default class Contact extends React.Component {
 ```
 
 ### <a name='FormObject.optionalProps'>optional props</a>
+
+*model*
+
+shorthand injection of model data into your form fields, suitable for common use cases.
+
+```jsx
+<FormObject formState={this.formState} model={this.props.model}>
+  <Input formField='name' label='Name/>
+</FormObject>
+```
+
+this is syntactic sugar and works differently from [true injection](#UnitOfWork.injectModel).
+
+true injection is more appropriate for dynamic forms, as your render function can then key off your form component's state.
 
 <a name='labelPrefix'>*labelPrefix*</a>
 
