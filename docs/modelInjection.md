@@ -9,7 +9,7 @@ given a model you want to edit:
 }
 ```
 
-you have a choice of syntax:
+you have a choice of syntax
 
 ### longhand
 
