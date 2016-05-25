@@ -1,6 +1,6 @@
 # Model Injection
 
-given a model:
+given a model you want to edit:
 
 ```jsx
 {
@@ -9,8 +9,6 @@ given a model:
   email: 'buster@dogs.org'
 }
 ```
-
-there are several ways to edit it.
 
 longhand:
 
@@ -43,7 +41,7 @@ render() {
 }
 ```
 
-robust form, for dynamic behavior:
+a more flexible approach that facilitates dynamic forms:
 
 ```jsx
 constructor(props) {
@@ -66,5 +64,6 @@ render() {
 }
 ```
 
+#### Note
 
-note: do not confuse the use of defaultValue here. react-formstate uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
+do not confuse the use of defaultValue as a property name. react-formstate uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
