@@ -168,12 +168,12 @@ function blurHandler(formState, field) {
 
 export class Form extends React.Component {
   render() {
-    let { formState, ...otherProps } = this.props;
+    let { formState, model, ...otherProps } = this.props;
 
     return React.createElement(
       'form',
       otherProps,
-      React.createElement(FormObject, {formState: formState}, this.props.children)
+      React.createElement(FormObject, {formState: formState, model: model}, this.props.children)
     );
   }
 }
@@ -197,6 +197,8 @@ export class FormObject extends React.Component {
       this.formState = this.props.formState;
       this.validationComponent = this.props.validationComponent || this.formState.form;
       this.labelPrefix = this.props.labelPrefix;
+
+      this.formState.injectModelProp(this.props.model); // will only apply to root form state
     }
 
     this.addProps = this.addProps.bind(this);
@@ -250,11 +252,11 @@ export class FormObject extends React.Component {
   }
 
 
-  createObjectProps(name, props, isArray) {
-    name = name.toString();
+  createObjectProps(normalizedName, props, isArray) {
+    normalizedName = normalizedName.toString();
 
     let formState = this.formState,
-      key = formState.buildKey(name),
+      key = formState.buildKey(normalizedName),
       field = findField(formState.getRootFields(), key);
 
     if (!field.initialized) {
@@ -270,18 +272,29 @@ export class FormObject extends React.Component {
     }
 
     return {
-      formState: formState.createFormState(name),
+      formState: formState.createFormState(normalizedName),
       validationComponent: this.validationComponent, // ignored by a nested COMPONENT
       labelPrefix: (this.labelPrefix || '') + (props.labelPrefix || '')
     };
+
+    // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
+    //
+    // let { name, formObject, formArray, labelPrefix, preferNull, ...newProps } = props;
+    // newProps.formState = formState.createFormState(normalizedName);
+    // newProps.validationComponent = this.validationComponent; // ignored by a nested COMPONENT
+    // newProps.labelPrefix = (this.labelPrefix || '') + (props.labelPrefix || '');
+    // return newProps;
   }
 
 
   createFieldProps(props) {
-    let name = props.formField.toString();
 
-    let formState = this.formState,
-      key = formState.buildKey(name),
+    // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
+    // let {formField,label,required,validate,etc,...newProps} = props;
+
+    let fieldName = props.formField.toString(),
+      formState = this.formState,
+      key = formState.buildKey(fieldName),
       field = findField(formState.getRootFields(), key);
 
     if (!field.initialized) {
@@ -584,12 +597,13 @@ export class FormState {
       _fieldState = _getFieldState(this.form.state, key),
       noCoercion = field && field.noCoercion;
 
-    // todo: how to get modelProp?
-    // if (!_fieldState || _fieldState.isDeleted && modelProp) {
-    //   _fieldState = { value: modelProp[field ? field.name : fieldOrName] };
-    // }
+    // if model prop provided to root FormObject
+    // decided not to replace a deleted fieldState here, hopefully that's the right call
+    if (!_fieldState && this.rootFormState.flatModel) {
+      _fieldState = _getFieldState(this.rootFormState.flatModel, key);
+    }
 
-    // if you inject a model and this is the first time we are using an injected value
+    // if you inject a model (or provide a model prop) and this is the first time we are using an injected value
     if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
       if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
         // if injected model.value is null and you are providing the value to, say, a select-multiple
@@ -636,6 +650,22 @@ export class FormState {
     if (typeof(f) !== 'function') { throw new Error('adding an update callback that is not a function?'); }
     if (this !== this.rootFormState) { throw new Error('cannot add an update callback to nested form state'); }
     this.updateCallback = f;
+  }
+
+
+  injectModelProp(model) {
+    if (this === this.rootFormState) {
+      if (!this.flatModel) { // one-time only
+        if (isObject(model)) {
+          if (isObject(this.form.state) && Object.keys(this.form.state).some(k => k.startsWith(FORM_STATE_PREFIX))) {
+            console.log('warning: react-formstate: a model prop was provided to the root FormObject element even though a model was injected in the constructor?');
+          }
+          this.flatModel = this.createUnitOfWork().injectModel(model);
+        } else {
+          this.flatModel = {};
+        }
+      }
+    }
   }
 
 }

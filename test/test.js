@@ -63,30 +63,34 @@ ContactEmailInput = createInput(function(input) { contactEmailInput = input; });
 ContactAddressLine1Input = createInput(function(input) { contactAddressLine1Input = input; });
 
 
+function createTestModel() {
+  return {
+    name: 'Henry',
+    contact: {
+     email: 'henry@ka.com',
+     address: {
+       line1: '123 pinecrest rd'
+     }
+    }
+  };
+}
+
+
 var createUserFormFixture = function(inject, doThrow) {
   return React.createClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
+
       if (inject) {
-        return this.formState.createUnitOfWork().injectModel(
-          {
-            name: 'Henry',
-            contact: {
-             email: 'henry@ka.com',
-             address: {
-               line1: '123 pinecrest rd'
-             }
-            }
-          }
-        );
+        return this.formState.createUnitOfWork().injectModel(createTestModel());
       } else {
         return {};
       }
     },
     render: function() {
       return React.createElement('form', null,
-        React.createElement(FormObject, { formState: this.formState },
+        React.createElement(FormObject, { formState: this.formState, model: this.props.model },
           React.createElement(NameInput, { formField: 'name', label: 'Name', defaultValue: 'hpt' }),
           React.createElement(FormObject, { name: 'contact', labelPrefix: 'Work ' },
             React.createElement(ContactEmailInput, { formField: 'email', label: 'Email' }),
@@ -149,27 +153,35 @@ var Address = React.createClass({
   }
 });
 
+
+
+function createTestContactsModel() {
+  return {
+    name: 'Henry',
+    contacts: [
+      {
+        email: 'henry@ka.com',
+        address: {
+          line1: '123 pinecrest rd'
+        }
+      }
+    ]
+  };
+}
+
+
+
 var createUserContactsFormFixture = function(inject, backwards) {
   return React.createClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
       if (inject) {
-        var state = this.formState.createUnitOfWork().injectModel(
-          {
-            name: 'Henry',
-            contacts: [
-              {
-                email: 'henry@ka.com',
-                address: {
-                  line1: '123 pinecrest rd'
-                }
-              }
-            ]
-          }
-        );
+        var state = this.formState.createUnitOfWork().injectModel(createTestContactsModel());
         state.numContacts = 1;
         return state;
+      } else if (this.props.model) {
+        return { numContacts: this.props.model.contacts.length };
       } else {
         return { numContacts: 0 };
       }
@@ -196,7 +208,7 @@ var createUserContactsFormFixture = function(inject, backwards) {
         }
       }
 
-      return React.createElement(Form, { formState: this.formState, onSubmit: this.handleSubmit, id: 'testingAFormProp' },
+      return React.createElement(Form, { formState: this.formState, onSubmit: this.handleSubmit, id: 'testingAFormProp', model: this.props.model },
         React.createElement(NameInput, { formField: 'name', label: 'Name' }),
         React.createElement(FormArray, { name: 'contacts' }, contacts),
         React.createElement('input', { type: 'submit', value: 'Submit' }),
@@ -209,7 +221,7 @@ var createUserContactsFormFixture = function(inject, backwards) {
 var UserContactsForm = createUserContactsFormFixture(false);
 var UserContactsFormEdit = createUserContactsFormFixture(true);
 var UserContactsFormBackwards = createUserContactsFormFixture(true, true);
-
+var UserContactsFormBackwardsModelProp = createUserContactsFormFixture(false, true);
 
 
 var createMessageOverrideForm = function() {
@@ -484,12 +496,38 @@ describe('FormState', function() {
       assert.equal(fs.fields, nnfs.getRootFields());
     });
   });
+  describe('#injectModelProp', function() {
+    it('does not crash on a null model prop', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(null);
+      var fieldState = fs.getFieldState('name');
+      assert.equal('', fieldState.getValue());
+    });
+    it('does not crash on an undefined model prop', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(undefined);
+      var fieldState = fs.getFieldState('name');
+      assert.equal('', fieldState.getValue());
+    });
+    it('does not crash on a non-object type model prop', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(1);
+      var fieldState = fs.getFieldState('name');
+      assert.equal('', fieldState.getValue());
+    });
+  });
   describe('#getFieldState', function() {
     it('looks up a field state by name', function() {
       var state = {
         'formState.name': { value: 'Henry' }
       };
       var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal('Henry', fieldState.getValue());
+    });
+    it('looks up a model prop field by name', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(createTestModel());
       var fieldState = fs.getFieldState('name');
       assert.equal('Henry', fieldState.getValue());
     });
@@ -527,11 +565,26 @@ describe('FormState', function() {
       var fieldState = fs.getFieldState('name');
       assert.equal(true, fieldState.getValue() === '');
     });
+    it('returns a field state with value set to empty string if model prop field does not exist', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp({});
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '');
+    });
     it('returns a field state with value set to empty string if deleted', function() {
       var state = {
         'formState.name': { value: 'Henry', isDeleted: true }
       };
       var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '');
+    });
+    it('returns a field state with value set to empty string if deleted, ignoring model prop', function() {
+      var state = {
+        'formState.name': { value: 'Henry', isDeleted: true }
+      };
+      var fs = new FormState({ state: state });
+      fs.injectModelProp(createTestModel());
       var fieldState = fs.getFieldState('name');
       assert.equal(true, fieldState.getValue() === '');
     });
@@ -588,6 +641,12 @@ describe('FormState', function() {
       var fieldState = fs.getFieldState('name');
       assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
     });
+    it('coerces a model prop value', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp({name: 3});
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '3');
+    });
     it('uses a name relative to form state path', function() {
       var state = {
         'formState.contact.address.line1': { value: '123 elm st' }
@@ -597,6 +656,21 @@ describe('FormState', function() {
       var fieldState = nfs.getFieldState('line1');
       assert.equal('123 elm st', fieldState.getValue());
     });
+    it('uses a name relative to form state path for model prop', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(createTestModel());
+      var nfs = fs.createFormState('contact');
+      nfs = nfs.createFormState('address');
+      var fieldState = nfs.getFieldState('line1');
+      assert.equal('123 pinecrest rd', fieldState.getValue());
+    });
+    it('uses a subkey relative to form state path for model prop', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp(createTestModel());
+      var nfs = fs.createFormState('contact.address');
+      var fieldState = nfs.getFieldState('line1');
+      assert.equal('123 pinecrest rd', fieldState.getValue());
+    });
     it('can find a nested field state by key', function() {
       var state = {
         'formState.contact.address.line1': { value: '123 elm st' }
@@ -605,8 +679,24 @@ describe('FormState', function() {
       var fieldState = fs.getFieldState('contact.address.line1');
       assert.equal('123 elm st', fieldState.getValue());
     });
-    it('can find a field state by field', function() {
+    it('can find injected field state by field', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'address');
+      field = field.fields.find(x => x.name === 'line1');
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal('123 pinecrest rd', fieldState.getValue());
+      assert.equal(field, fieldState.getField());
+    });
+    it('can find model prop field by field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: createTestModel() }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal('Henry', fieldState.getValue());
+      assert.equal(field, fieldState.getField());
+    });
+    it('can find nested model prop field by field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: createTestModel() }));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
       field = field.fields.find(x => x.name === 'address');
       field = field.fields.find(x => x.name === 'line1');
@@ -627,6 +717,13 @@ describe('FormState', function() {
       fieldState = testForm.formState.getFieldState(field);
       assert.equal(true, 1 === fieldState.getValue());
     });
+    it('noCoercion applies to model prop field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {name: 1} }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.noCoercion = true;
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, 1 === fieldState.getValue());
+    });
     it('sets value to empty array if array default value and null or undefined injected value', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
@@ -640,6 +737,14 @@ describe('FormState', function() {
       fieldState = testForm.formState.getFieldState(field);
       assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
     });
+    it('sets value to empty array if array default value and null model prop value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: { name: null }}));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = [1,2,3];
+      field.noCoercion = true; // this doesn't apply
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
+    });
     it('sets to default value if nothing injected', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
@@ -647,6 +752,27 @@ describe('FormState', function() {
       field.defaultValue = 'default';
       var fieldState = testForm.formState.getFieldState(field);
       assert.equal('default', fieldState.getValue());
+    });
+    it('sets to default value if no model prop field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {} }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = 'default';
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal('default', fieldState.getValue());
+    });
+    it('model prop field takes precedence over default value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {name: 'precedence'} }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = 'default';
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal('precedence', fieldState.getValue());
+    });
+    it('empty model prop field takes precedence over default value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {name: undefined} }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = 'default';
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal('', fieldState.getValue());
     });
     it('sets to default value if deleted', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
@@ -1278,6 +1404,22 @@ describe('UnitOfWork', function() {
       assert.equal('henry@ka.com', model.contact.email);
       assert.equal('123 pinecrest rd', model.contact.address.line1);
     });
+    it('works with a valid model prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: createTestModel() }));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal('object', typeof(model));
+      assert.equal('Henry', model.name);
+      assert.equal('henry@ka.com', model.contact.email);
+      assert.equal('123 pinecrest rd', model.contact.address.line1);
+    });
+    it('works with a valid model prop with FormArray', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsForm, { model: createTestContactsModel() }));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal('object', typeof(model));
+      assert.equal('Henry', model.name);
+      assert.equal('henry@ka.com', model.contacts[0].email);
+      assert.equal('123 pinecrest rd', model.contacts[0].address.line1);
+    });
     it('returns null and calls updateFormState if form state is invalid', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var _fieldState = { value: '', isCoerced: true, validity: 2, message: 'required', isMessageVisible: true };
@@ -1290,6 +1432,26 @@ describe('UnitOfWork', function() {
       var model = context.createModel();
       assert.equal(true, model === null);
       assert.equal(undefined, context.stateUpdates['formState.contact.email']);
+      assert.equal(true, wasCalled);
+    });
+    it('works wih an invalid model prop', function() {
+      var model = createTestModel();
+      model.name = '';
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: model }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = true;
+      field.defaultValue = undefined;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var model = context.createModel();
+      assert.equal(true, model === null);
+      var update = context.stateUpdates['formState.name'];
+      assert.equal(true, update.isCoerced);
+      assert.equal(2, update.validity);
+      assert.equal('Name is required', update.message);
       assert.equal(true, wasCalled);
     });
     it('does not call updateFormState if passed true', function() {
@@ -2838,6 +3000,11 @@ describe('FormObject', function() {
       fields = fields[0].fields;
       assert.equal('line1', fields[0].name);
       assert.equal('contacts.0.address.line1', fields[0].key);
+    });
+    it('can handle contacts.0.address before contacts.0 with a model prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwardsModelProp, { model: createTestContactsModel() }));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal('123 pinecrest rd', model.contacts[0].address.line1);
     });
     it('optionally prefixes labels', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));

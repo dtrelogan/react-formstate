@@ -241,10 +241,11 @@ var Form = exports.Form = function (_React$Component) {
     value: function render() {
       var _props = this.props;
       var formState = _props.formState;
+      var model = _props.model;
 
-      var otherProps = _objectWithoutProperties(_props, ['formState']);
+      var otherProps = _objectWithoutProperties(_props, ['formState', 'model']);
 
-      return _react2.default.createElement('form', otherProps, _react2.default.createElement(FormObject, { formState: formState }, this.props.children));
+      return _react2.default.createElement('form', otherProps, _react2.default.createElement(FormObject, { formState: formState, model: model }, this.props.children));
     }
   }]);
 
@@ -272,6 +273,8 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       _this2.formState = _this2.props.formState;
       _this2.validationComponent = _this2.props.validationComponent || _this2.formState.form;
       _this2.labelPrefix = _this2.props.labelPrefix;
+
+      _this2.formState.injectModelProp(_this2.props.model); // will only apply to root form state
     }
 
     _this2.addProps = _this2.addProps.bind(_this2);
@@ -318,11 +321,11 @@ var FormObject = exports.FormObject = function (_React$Component2) {
     }
   }, {
     key: 'createObjectProps',
-    value: function createObjectProps(name, props, isArray) {
-      name = name.toString();
+    value: function createObjectProps(normalizedName, props, isArray) {
+      normalizedName = normalizedName.toString();
 
       var formState = this.formState,
-          key = formState.buildKey(name),
+          key = formState.buildKey(normalizedName),
           field = findField(formState.getRootFields(), key);
 
       if (!field.initialized) {
@@ -340,18 +343,29 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       }
 
       return {
-        formState: formState.createFormState(name),
+        formState: formState.createFormState(normalizedName),
         validationComponent: this.validationComponent, // ignored by a nested COMPONENT
         labelPrefix: (this.labelPrefix || '') + (props.labelPrefix || '')
       };
+
+      // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
+      //
+      // let { name, formObject, formArray, labelPrefix, preferNull, ...newProps } = props;
+      // newProps.formState = formState.createFormState(normalizedName);
+      // newProps.validationComponent = this.validationComponent; // ignored by a nested COMPONENT
+      // newProps.labelPrefix = (this.labelPrefix || '') + (props.labelPrefix || '');
+      // return newProps;
     }
   }, {
     key: 'createFieldProps',
     value: function createFieldProps(props) {
-      var name = props.formField.toString();
 
-      var formState = this.formState,
-          key = formState.buildKey(name),
+      // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
+      // let {formField,label,required,validate,etc,...newProps} = props;
+
+      var fieldName = props.formField.toString(),
+          formState = this.formState,
+          key = formState.buildKey(fieldName),
           field = findField(formState.getRootFields(), key);
 
       if (!field.initialized) {
@@ -774,12 +788,13 @@ var FormState = exports.FormState = function () {
           _fieldState = _getFieldState(this.form.state, key),
           noCoercion = field && field.noCoercion;
 
-      // todo: how to get modelProp?
-      // if (!_fieldState || _fieldState.isDeleted && modelProp) {
-      //   _fieldState = { value: modelProp[field ? field.name : fieldOrName] };
-      // }
+      // if model prop provided to root FormObject
+      // decided not to replace a deleted fieldState here, hopefully that's the right call
+      if (!_fieldState && this.rootFormState.flatModel) {
+        _fieldState = _getFieldState(this.rootFormState.flatModel, key);
+      }
 
-      // if you inject a model and this is the first time we are using an injected value
+      // if you inject a model (or provide a model prop) and this is the first time we are using an injected value
       if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
         if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
           // if injected model.value is null and you are providing the value to, say, a select-multiple
@@ -830,6 +845,25 @@ var FormState = exports.FormState = function () {
         throw new Error('cannot add an update callback to nested form state');
       }
       this.updateCallback = f;
+    }
+  }, {
+    key: 'injectModelProp',
+    value: function injectModelProp(model) {
+      if (this === this.rootFormState) {
+        if (!this.flatModel) {
+          // one-time only
+          if (isObject(model)) {
+            if (isObject(this.form.state) && Object.keys(this.form.state).some(function (k) {
+              return k.startsWith(FORM_STATE_PREFIX);
+            })) {
+              console.log('warning: react-formstate: a model prop was provided to the root FormObject element even though a model was injected in the constructor?');
+            }
+            this.flatModel = this.createUnitOfWork().injectModel(model);
+          } else {
+            this.flatModel = {};
+          }
+        }
+      }
     }
   }]);
 

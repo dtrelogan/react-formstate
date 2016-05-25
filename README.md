@@ -3,12 +3,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-## a clean, fully-featured form framework for [react](https://facebook.github.io/react)
+## a flexible, well designed approach to [react](https://facebook.github.io/react) forms
 
 there are a slew of react form packages out there. if you've managed to find this one, why should you use it?
 
 - clean design allows for stateless input components - no mixin or decoration required.
-- simple architecture encapsulates UI validation logic in your form components where it typically belongs.
+- simple architecture encapsulates UI validation logic in your form component where it typically belongs.
 - feature complete and fully tested - not a half-baked, half-finished library that will leave you hanging.
 - seamlessly supports asynchronous validation and nested, reusable form components.
 
@@ -23,6 +23,7 @@ if you have feedback that would help to improve the library i am happy to hear i
 ### features and examples
 
 - [basic example](/docs/basicExample.md)
+- [model injection](/docs/modelInjection.md)
 - [validation](/docs/validationWiring.md)
 - [nested form components](/docs/nestedFormExample.md)
 - [asynchronous validation](/docs/asyncExample.md)
@@ -39,3 +40,8 @@ if you have feedback that would help to improve the library i am happy to hear i
 
 - react (!)
 - assumes es5 (for example: Object.keys and Array.isArray)
+
+### alternate titles
+
+- friendly full featured finely functioning fantastically fun form framework for [react](https://facebook.github.io/react)
+- another [react](https://facebook.github.io/react) form package?!
