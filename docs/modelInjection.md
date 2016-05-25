@@ -5,10 +5,7 @@ given a model you want to edit:
 ```jsx
 {
   firstName: 'buster',
-  lastName: 'brown',
-  address: {
-    line1: '1900 shoe st'
-  }
+  lastName: 'brown'
 }
 ```
 
@@ -21,9 +18,6 @@ render() {
     <Form formState={this.formState}>
       <Input formField='firstName' label='First' defaultValue={model.firstName}/>
       <Input formField='lastName' label='Last' defaultValue={model.lastName}/>
-      <FormObject name='address' labelPrefix='Address '>
-        <Input formField='line1' label='Line 1' defaultValue={model.address.line1}/>
-      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
@@ -38,9 +32,6 @@ render() {
     <Form formState={this.formState} model={this.props.model}>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <FormObject name='address' labelPrefix='Address '>
-        <Input formField='line1' label='Line 1'/>
-      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
@@ -63,9 +54,6 @@ render() {
     <Form formState={this.formState}>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <FormObject name='address' labelPrefix='Address '>
-        <Input formField='line1' label='Line 1'/>
-      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
