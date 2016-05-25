@@ -9,7 +9,9 @@ given a model you want to edit:
 }
 ```
 
-longhand:
+you have a choice of syntax:
+
+### longhand
 
 ```jsx
 render() {
@@ -24,7 +26,7 @@ render() {
 }
 ```
 
-shorthand:
+### shorthand
 
 ```jsx
 render() {
@@ -37,6 +39,8 @@ render() {
   );
 }
 ```
+
+### true injection
 
 a more flexible approach that facilitates dynamic forms:
 
