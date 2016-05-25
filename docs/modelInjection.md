@@ -6,7 +6,9 @@ given a model you want to edit:
 {
   firstName: 'buster',
   lastName: 'brown',
-  email: 'buster@dogs.org'
+  address: {
+    line1: '1900 shoe st'
+  }
 }
 ```
 
@@ -19,7 +21,9 @@ render() {
     <Form formState={this.formState}>
       <Input formField='firstName' label='First' defaultValue={model.firstName}/>
       <Input formField='lastName' label='Last' defaultValue={model.lastName}/>
-      <Input formField='email' label='Email' defaultValue={model.email}/>
+      <FormObject name='address' labelPrefix='Address '>
+        <Input formField='line1' label='Line 1' defaultValue={model.address.line1}/>
+      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
@@ -34,7 +38,9 @@ render() {
     <Form formState={this.formState} model={this.props.model}>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <Input formField='email' label='Email'/>
+      <FormObject name='address' labelPrefix='Address '>
+        <Input formField='line1' label='Line 1'/>
+      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
@@ -57,7 +63,9 @@ render() {
     <Form formState={this.formState}>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <Input formField='email' label='Email'/>
+      <FormObject name='address' labelPrefix='Address '>
+        <Input formField='line1' label='Line 1'/>
+      </FormObject>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
     </Form>
   );
