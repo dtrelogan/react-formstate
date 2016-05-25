@@ -274,8 +274,6 @@ is equivalent to:
 </form>
 ```
 
-the [model prop](#modelProp) is noteworthy.
-
 ## <a name='FormObject'>FormObject/FormArray</a>
 
 FormObject and FormArray components are meant to align with your backing model. for instance, if you have a model like this:
