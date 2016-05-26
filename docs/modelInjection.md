@@ -9,7 +9,7 @@ given a model you want to edit:
 }
 ```
 
-you have a choice of methods
+there are different ways to inject the model into your form
 
 ### longhand
 
