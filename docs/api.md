@@ -12,6 +12,7 @@
   - [defaultValue](#Field.defaultValue)
   - [noCoercion](#Field.noCoercion)
   - [revalidateOnSubmit](#Field.revalidateOnSubmit)
+  - [handlerBindFunction](#Field.handlerBindFunction)
 - [FieldState](#FieldState)
   - [equals](#FieldState.equals)
   - [getField](#FieldState.getField)
@@ -82,7 +83,8 @@ a framework object is created with the following properties:
   intConvert: true,
   defaultValue: [],
   noCoercion: false,
-  revalidateOnSubmit: false
+  revalidateOnSubmit: false,
+  handlerBindFunction: undefined
 }
 ```
 
@@ -158,6 +160,12 @@ the reason? consider a username validation that calls an api to ensure a usernam
 now consider a confirm password validation. since it validates against another field that might change, you *do* want to revalidate the password confirmation upon form submission. since this is not the common case, if you want this behavior you have to add a *revalidateOnSubmit* prop to your jsx input element.
 
 revalidateOnSubmit should *not* be added to fields that perform asynchronous validation. [UnitOfWork.createModel](#UnitOfWork.createModel) is purposefully designed to run synchronously.
+
+### <a name='Field.handlerBindFunction'>handlerBindFunction</a>
+
+see the [react-datepicker example](/docs/datePickerExample.md) for an explanation.
+
+note that you can alternatively configure the bind function via the noCoercion prop as shown in the example.
 
 ## <a name='FieldState'>FieldState</a>
 
