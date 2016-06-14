@@ -151,6 +151,8 @@ if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } //
 return v.toString();
 ```
 
+also see [handlerBindFunction](#Field.handlerBindFunction).
+
 ### <a name='Field.revalidateOnSubmit'>revalidateOnSubmit</a>
 
 react-formstate, in the way it supports asynchronous validation, normally does not revalidate previously validated fields upon form submission.
@@ -165,7 +167,7 @@ revalidateOnSubmit should *not* be added to fields that perform asynchronous val
 
 see the [react-datepicker example](/docs/datePickerExample.md) for an explanation.
 
-note that you can alternatively configure the bind function via the noCoercion prop as shown in the example.
+note that you can alternatively configure the bind function via the [noCoercion](#Field.noCoercion) prop as shown in the example.
 
 ## <a name='FieldState'>FieldState</a>
 
