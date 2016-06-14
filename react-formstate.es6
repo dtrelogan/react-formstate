@@ -112,33 +112,39 @@ function changeHandler(formState, field, e) {
     fieldState = context.getFieldState(field),
     value = fieldState.getValue(); // temporarily set to previous value
 
-  if (Array.isArray(value)) {
-    if (e.target.type === 'checkbox') { // checkbox group
-      if (e.target.checked) {
-        value = value.slice(0); // copy the existing array
-        if (!value.some(x => x === e.target.value)) {
-          value.push(e.target.value)
-          value.sort();
-        }
-      } else {
-        value = value.filter(x => x !== e.target.value);
-      }
-    } else { // select-multiple
-      if (e.target.type !== 'select-multiple') { throw new Error('only select-multiple and checkbox group supported for array value types. you will need to override the framework event handler or request an enhancement'); }
-      value = [];
-      let options = e.target.options;
-      for (let i = 0, len = options.length; i < len; i++) {
-        if (options[i].selected) {
-          value.push(options[i].value);
-        }
-      }
-    }
+  if (field.handlerBindFunction) {
+    if (typeof(field.handlerBindFunction) !== 'function') { throw new Error('you specified a handlerBindFunction that is not a function?'); }
+    value = field.handlerBindFunction(e);
   } else {
-    if (e.target.type === 'checkbox') {
-      value = e.target.checked;
-    } else { // note that select-one and radio group work like every other input in this regard
-      if (e.target.type === 'select-multiple') { throw new Error('a select-multiple input must have defaultValue={[]} specified'); }
-      value = e.target.value;
+    if (!exists(e) || !exists(e.target) || !exists(e.target.type)) { throw new Error(`you are using a non-standard html input for field ${field.key} - please override the framework generated change handler or specify a handlerBindFunction prop. see the documentation for more details.`); }
+    if (Array.isArray(value)) {
+      if (e.target.type === 'checkbox') { // checkbox group
+        if (e.target.checked) {
+          value = value.slice(0); // copy the existing array
+          if (!value.some(x => x === e.target.value)) {
+            value.push(e.target.value)
+            value.sort();
+          }
+        } else {
+          value = value.filter(x => x !== e.target.value);
+        }
+      } else { // select-multiple
+        if (e.target.type !== 'select-multiple') { throw new Error('only select-multiple and checkbox group supported for array value types. you will need to override the framework event handler or request an enhancement'); }
+        value = [];
+        let options = e.target.options;
+        for (let i = 0, len = options.length; i < len; i++) {
+          if (options[i].selected) {
+            value.push(options[i].value);
+          }
+        }
+      }
+    } else {
+      if (e.target.type === 'checkbox') {
+        value = e.target.checked;
+      } else { // note that select-one and radio group work like every other input in this regard
+        if (e.target.type === 'select-multiple') { throw new Error('a select-multiple input must have defaultValue={[]} specified'); }
+        value = e.target.value;
+      }
     }
   }
 
@@ -326,6 +332,12 @@ export class FormObject extends React.Component {
       }
       field.validationMessages = props.validationMessages || props.msgs;
       field.revalidateOnSubmit = Boolean(props.revalidateOnSubmit);
+
+      if (typeof(props.noCoercion) === 'function') {
+        field.handlerBindFunction = props.noCoercion;
+      } else {
+        field.handlerBindFunction = props.handlerBindFunction;
+      }
     }
 
     return {

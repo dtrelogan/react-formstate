@@ -313,7 +313,7 @@ describe('FormState', function() {
         assert.equal('Work Address Line 1', label);
       });
       testForm.setState = function() {};
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.' }});
+      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
       assert.equal(true, wasCalled);
     });
     it('sets the required validation function', function() {
@@ -364,7 +364,7 @@ describe('FormState', function() {
         }
       });
       testForm.setState = function() {};
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.' }});
+      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
       assert.equal(true, wasCalled);
       wasCalled = false;
       isFsv = true;
@@ -949,7 +949,7 @@ describe('FormState', function() {
         assert.equal('Henry!', context.stateUpdates['formState.name'].value);
         assert.equal('name', key);
       });
-      nameInput.props.updateFormState({ target: { value: 'Henry!' }});
+      nameInput.props.updateFormState({ target: { value: 'Henry!', type: 'testing' }});
       assert.equal(true, wasCalled);
     });
     it('is passed a key that may name a nested field', function() {
@@ -962,7 +962,7 @@ describe('FormState', function() {
         assert.equal('contact.address.line1', key);
         assert.equal(context.formState, context.formState.rootFormState);
       });
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.' }});
+      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
       assert.equal(true, wasCalled);
     });
   })
@@ -2861,7 +2861,7 @@ describe('FormObject', function() {
       var fieldState = testForm.formState.getFieldState('contact.email');
       assert.equal('', fieldState.getValue());
       assert.equal(false, fieldState.isValidated());
-      contactEmailInput.props.updateFormState({ target: { value: 'a' }});
+      contactEmailInput.props.updateFormState({ target: { value: 'a', type: 'testing' }});
       assert.equal(true, wasCalled);
       fieldState = testForm.formState.getFieldState('contact.email');
       assert.equal('a', fieldState.getValue());
@@ -2878,7 +2878,7 @@ describe('FormObject', function() {
       testForm.formState.onUpdate(function() {
         onUpdateWasCalled = true;
       });
-      contactEmailInput.props.updateFormState({ target: { value: 'a' }});
+      contactEmailInput.props.updateFormState({ target: { value: 'a', type: 'testing' }});
       assert.equal(false, wasCalled);
       assert.equal(true, onUpdateWasCalled);
     });
@@ -2911,7 +2911,7 @@ describe('FormObject', function() {
       };
       testForm.state['formState.contact.email'] = { value: [], isCoerced: true };
       var f = function() {
-        contactEmailInput.props.updateFormState({ target: { value: '?' }});
+        contactEmailInput.props.updateFormState({ target: { value: '?', type: 'testing' }});
       }
       assert.throws(f, /only select-multiple and checkbox group/);
     });
@@ -2973,6 +2973,39 @@ describe('FormObject', function() {
       assert.equal(true, Array.isArray(v));
       assert.equal(1, v.length);
       assert.equal('3', v[0]);
+    });
+    it('throws an error if handlerBindFunction is not a function', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      testForm.setState = function(updates) {};
+      var fieldState = testForm.formState.getFieldState('contact.email');
+      fieldState.getField().handlerBindFunction = {};
+      assert.throws(contactEmailInput.props.updateFormState, /you specified a handlerBindFunction/);
+    });
+    it('uses handlerBindFunction if specified', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('contact.email');
+      fieldState.getField().handlerBindFunction = (x) => x;
+      assert.equal('', fieldState.getValue());
+      assert.equal(false, fieldState.isValidated());
+      contactEmailInput.props.updateFormState('hello');
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('contact.email');
+      assert.equal('hello', fieldState.getValue());
+      assert.equal(true, fieldState.isValidated());
+    });
+    it('throws an error if handlerBindFunction not specified and e.target.type undefined', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      testForm.setState = function(updates) {};
+      assert.throws(contactEmailInput.props.updateFormState, /you are using a non-standard html input/);
+      var f = () => contactEmailInput.props.updateFormState({});
+      assert.throws(contactEmailInput.props.updateFormState, /you are using a non-standard html input/);
+      f = () => contactEmailInput.props.updateFormState({ target: {} });
+      assert.throws(contactEmailInput.props.updateFormState, /you are using a non-standard html input/);
     });
   });
   describe('#addProps', function() {

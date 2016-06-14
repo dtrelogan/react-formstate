@@ -12,9 +12,9 @@ there are a slew of react form packages out there. if you've managed to find thi
 - feature complete and fully tested - not a half-baked, half-finished library that will leave you hanging.
 - seamlessly supports asynchronous validation and nested, reusable form components.
 
-react-formstate allows you to compose elegant forms quickly and easily, without getting in your way. it saves you hassle and time while still providing effective extension points. in my opinion, no other package does this as successfully as react-formstate.
+react-formstate allows you to compose elegant forms quickly and easily, without getting in your way. it saves you hassle and time while still providing effective extension points. in my opinion, no other package does this as successfully.
 
-if you have feedback that would help to improve the library i am happy to hear it. thanks.
+per the download counts this package has yet to catch on. please don't let that dissuade you. react-formstate is actively used and maintained. it only lacks in advertisement. if you have any feedback i am happy to hear it. thanks.
 
 ### setup
 
@@ -29,6 +29,7 @@ if you have feedback that would help to improve the library i am happy to hear i
 - [asynchronous validation](/docs/asyncExample.md)
 - [arrays, adding and removing inputs in response to state changes](/docs/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
+- [nonstandard input example: react-datepicker](/docs/datePickerExample.md)
 - [show validation message on blur](/docs/onBlurExample.md)
 - [onUpdate callback](/docs/onUpdateExample.md)
 
