@@ -76,7 +76,9 @@ export default class SomeForm extends React.Component {
 
 in this example, the only real purpose of the custom change handler is to spell out how to get the new value out of the callback from react-datepicker.
 
-react-formstate provides the 'handlerBindFunction' prop to streamline this code:
+since the value itself is passed as the parameter, a function that, given the callback parameter as input, instructs how to produce the value, is as simple as (x) => x
+
+using such a function, react-formstate provides the 'handlerBindFunction' prop to streamline this code:
 
 ```jsx
 import React from 'react';
