@@ -1,6 +1,6 @@
 # Model Injection
 
-given a model you want to edit:
+there are different ways to edit a model:
 
 ```jsx
 {
@@ -8,8 +8,6 @@ given a model you want to edit:
   lastName: 'brown'
 }
 ```
-
-you have a choice of methods
 
 ### longhand
 
