@@ -1,13 +1,13 @@
 # react-datepicker example
 
-unlike a standard html form input, [react-datepicker](https://github.com/Hacker0x01/react-datepicker):
+unlike a standard html input, [react-datepicker](https://github.com/Hacker0x01/react-datepicker):
 
 1. does not work exclusively with string values
 2. returns a [moment](http://momentjs.com/) rather than an event in its callback.
 
-to solve problem #1, use the 'noCoercion' feature to prevent values supplied to inputs from being coerced to strings.
+to solve problem #1, use the 'noCoercion' feature to prevent react-formstate from coercing to a string the value supplied to the react-datepicker input.
 
-for problem #2, the best solution may vary. four methods are presented:
+for problem #2, the best solution may vary depending on use case. four methods are presented:
 
 ## method 1 - override the change handler
 
@@ -81,7 +81,7 @@ export default class SomeForm extends React.Component {
 
 ## method 2 - handlerBindFunction
 
-in the above example, the only real purpose of the custom change handler is to spell out how to get the new value from the event handler.
+in the above example, the only real purpose of the custom change handler is to spell out how to get the new value from the event handler. in this case the single parameter passed to the callback is the value itself, so the bind function is simply: x=>x
 
 react-formstate provides the 'handlerBindFunction' prop to streamline this code:
 
@@ -140,7 +140,9 @@ since this feature will frequently be used in tandem with 'noCoercion', you can 
 
 ## method 3 - shim the event handler
 
-another approach is to shim the nonstandard event handler:
+another approach is to wrap the nonstandard event handler to make it act as if it returns an event like a normal html input.
+
+the framework generated event handler only looks at e.target.type and e.target.value. e.target.type is only important so much as it's not 'checkbox' or 'select-multiple'.
 
 ```jsx
 import React from 'react';
@@ -149,18 +151,18 @@ import DatePicker from 'react-datepicker';
 export default class DateInput extends React.Component {
   constructor(props) {
     super(props);
-    this.onChange = this.onChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
   }
   render() {
     return (
       <div>
         <label>{this.props.label}</label>
-        <DatePicker selected={this.props.fieldState.getValue()} onChange={this.onChange}/>
+        <DatePicker selected={this.props.fieldState.getValue()} onChange={this.handleDateChange}/>
         <span>{this.props.fieldState.getMessage()}</span>
       </div>
     )
   }
-  onChange(m) {
+  handleDateChange(m) {
     this.props.updateFormState({ target: { type: 'react-datepicker', value: m } });
   }
 }
