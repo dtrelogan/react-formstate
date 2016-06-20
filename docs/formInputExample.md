@@ -4,7 +4,7 @@ form inputs have security restrictions that prevent them from being used like ot
 
 in this example a form input is used to upload a required image asynchronously prior to valid form submission.
 
-the returned url is stored as part of the form model.
+the returned image url is stored as part of the form model.
 
 ```jsx
 import React from 'react';
@@ -12,7 +12,7 @@ import { FormState, Form } from 'react-formstate';
 import HiddenInput from './HiddenInput.jsx';
 import Input from './Input.jsx';
 
-export default class CharityForm extends React.Component {
+export default class SampleForm extends React.Component {
 
   constructor(props) {
     super(props);
