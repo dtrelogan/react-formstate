@@ -44,10 +44,10 @@ export default class SampleForm extends React.Component {
         <Input formField='name' label='Name' required/>
         <Input formField='anotherField' label='Another Field' required fsv={v=>v.numeric().length(9)}/>
         <h2>Some Important Image</h2>
-        <HiddenInput formField='imageUrl'/>
+        <HiddenInput formField='imageUrl' required='please upload an image'/>
         <div>
           <input type='file' onChange={this.handleImageSelection} disabled={this.state.imageLoading}/>
-          <div>{this.state.imageMessage}</div>
+          <div>{this.state.imageMessage || this.formState.getFieldState('imageUrl').getMessage()}</div>
         </div>
         {image}
         <br/>
@@ -103,12 +103,8 @@ export default class SampleForm extends React.Component {
   submit(e) {
     e.preventDefault();
 
+    // alternatively you can disable the submit button...
     if (this.state.imageLoading) { return; }
-
-    if (!this.imageUrl()) {
-      this.setState({imageMessage: 'please upload some important image'});
-      return;
-    }
 
     let model = this.formState.createUnitOfWork().createModel();
     if (model) {
