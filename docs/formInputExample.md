@@ -6,6 +6,8 @@ in this example a form input is used to upload a required image asynchronously p
 
 the returned image url is stored as part of the form model.
 
+note: the form input file selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
+
 ```jsx
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
@@ -21,6 +23,7 @@ export default class SampleForm extends React.Component {
     this.state = this.formState.createUnitOfWork().injectModel(this.props.model);
 
     this.handleImageSelection = this.handleImageSelection.bind(this);
+    this.removeImage = this.removeImage.bind(this);
     this.submit = this.submit.bind(this);
   }
   
@@ -33,7 +36,10 @@ export default class SampleForm extends React.Component {
 
     if (this.imageUrl()) {
       image = (
-        <img src={this.imageUrl()}/>
+        <div>
+          <img src={this.imageUrl()}/>
+          <button onClick={this.removeImage}>Remove</button>
+        </div>
       );
     }
 
@@ -46,7 +52,12 @@ export default class SampleForm extends React.Component {
         <h2>Some Important Image</h2>
         <HiddenInput formField='imageUrl' required='please upload an image'/>
         <div>
-          <input type='file' onChange={this.handleImageSelection} disabled={this.state.imageLoading}/>
+          <input
+            type='file'
+            onChange={this.handleImageSelection}
+            disabled={this.state.imageLoading}
+            ref={(c) => this.imageFileInput = c}
+            />
           <div>{this.state.imageMessage || this.formState.getFieldState('imageUrl').getMessage()}</div>
         </div>
         {image}
@@ -81,15 +92,10 @@ export default class SampleForm extends React.Component {
         this.setState({imageLoading: false, imageMessage: 'failed to load.'});
       });
     }
-    else // user cleared the file selection
-    {
-      
-      let context = this.formState.createUnitOfWork(),
-        fieldState = context.getFieldState('imageUrl');
-
-      fieldState.setValue('').validate();
-      context.updateFormState();
-    }
+    
+    // clear the file input selection
+    // makes the form behave consistently across create and edit
+    this.imageFileInput.value = '';
   }
   
   uploadImage(formData) {
@@ -98,6 +104,12 @@ export default class SampleForm extends React.Component {
     return new Promise((resolve, reject) => {
       resolve({ url: 'http://somedomain.com/someapi/images/someId' });
     });
+  }
+  
+  removeImage() {
+    let context = this.formState.createUnitOfWork();
+    context.getFieldState('imageUrl').setValue('');
+    context.updateFormState();
   }
 
   submit(e) {
