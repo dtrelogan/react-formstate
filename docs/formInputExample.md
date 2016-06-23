@@ -125,3 +125,19 @@ export default class SampleForm extends React.Component {
   }
 }
 ```
+
+the Input component was previously shown in the basic example.
+
+the HiddenInput component is simply
+
+```jsx
+import React from 'react';
+
+export default class HiddenInput extends React.Component {
+  render() {
+    return (
+      <input type='hidden' value={this.props.fieldState.getValue()} />
+    );
+  }
+}
+```
