@@ -126,7 +126,7 @@ export default class SampleForm extends React.Component {
 }
 ```
 
-the Input component was previously shown in the basic example.
+the Input component was previously shown in the [basic example](./basicExample.md).
 
 the HiddenInput component is simply
 
