@@ -1,5 +1,13 @@
 import React from 'react';
 
+// "backlog"
+// add a getUncoercedFieldState function?
+//  use case: getValue in initial render before fields are defined
+// name='contacts[0][address][line1]'
+// coerceToString in FieldState.setValue?
+//  i could see how it might prevent accidental misuse but
+//  99% of the time it won't be helpful
+
 //
 // private functions, local to module
 //
