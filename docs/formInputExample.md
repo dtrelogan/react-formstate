@@ -6,9 +6,9 @@ in this example a file input is used to upload a required image asynchronously p
 
 the returned image url is stored as part of the form model.
 
-note: the file input's file selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
+note: the file input selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
 import HiddenInput from './HiddenInput.jsx';
@@ -100,8 +100,8 @@ export default class SampleForm extends React.Component {
   
   
   uploadImage(formData) {
-    // this example uses xmlHttpRequest. you could alternatively use fetch,
-    // but as of writing this example fetch does not support a "progress callback"
+    // this example uses xmlHttpRequest. you could alternatively use fetch.
+    // at present fetch does not support a "progress" callback but things change fast...
     
     return new Promise((resolve, reject) => {
       let xhr = new XMLHttpRequest();
