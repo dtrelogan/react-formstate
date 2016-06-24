@@ -26,7 +26,7 @@ export default class SampleForm extends React.Component {
     this.removeImage = this.removeImage.bind(this);
     this.submit = this.submit.bind(this);
   }
-  
+
   imageUrl() {
     return this.formState.getFieldState('imageUrl').getValue();
   }
@@ -71,7 +71,7 @@ export default class SampleForm extends React.Component {
     let files = e.target.files;
 
     if (files.length > 0) {
-      
+
       let formData = new FormData();
       for(let i = 0, len = files.length; i < len; i++) {
         formData.append('file' + i, files.item(i));
@@ -80,32 +80,32 @@ export default class SampleForm extends React.Component {
       this.setState({imageLoading: true, imageMessage: 'loading...'});
 
       this.uploadImage(formData).then(data => {
-        
+
         let context = this.formState.createUnitOfWork(),
           fieldState = context.getFieldState('imageUrl');
-        
+
         fieldState.setValue(data.url).validate();
         context.updateFormState({imageLoading: false, imageMessage: null});
-      
+
       }).catch(err => {
-        
+
         this.setState({imageLoading: false, imageMessage: 'failed to load.'});
       });
     }
-    
+
     // clear the file input selection
     // makes the form behave consistently across create and edit
     this.imageFileInput.value = '';
   }
-  
-  
+
+
   uploadImage(formData) {
     // this example uses xmlHttpRequest. you could alternatively use fetch.
     // at present fetch does not support a "progress" callback but things change fast...
-    
+
     return new Promise((resolve, reject) => {
       let xhr = new XMLHttpRequest();
-      
+
       xhr.onload = (response) => {
         if (xhr.status === 200) {
           // get the new image url from the reponse somehow
@@ -115,24 +115,24 @@ export default class SampleForm extends React.Component {
           reject(new Error('an error occurred'));
         }
       };
-      
+
       xhr.upload.onprogress = (e) => {
         // here you could update a progress bar by calling this.setState appropriately
         console.log('progress...');
         console.log(e);
       };
-      
+
       // the third parameter is set to true for asynchronous upload
       xhr.open('POST', 'yourFileServerUrlHere', true);
-      
+
       // you might need to set a header or two to make your server happy
       //xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-      
+
       xhr.send(formData);
     });
   }
-  
-  
+
+
   removeImage() {
     let context = this.formState.createUnitOfWork();
     context.getFieldState('imageUrl').setValue('');
@@ -157,7 +157,7 @@ the Input component was previously shown in the [basic example](./basicExample.m
 
 the HiddenInput component is simply
 
-```jsx
+```es6
 import React from 'react';
 
 export default class HiddenInput extends React.Component {

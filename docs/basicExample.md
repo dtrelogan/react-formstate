@@ -1,6 +1,6 @@
 # Basic Example
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
@@ -71,7 +71,7 @@ export default class ChangePasswordForm extends React.Component {
 
 an associated input component manages no state and is essentially a layout of your choosing. it might look like:
 
-```jsx
+```es6
 import React from 'react';
 
 export default class Input extends React.Component {

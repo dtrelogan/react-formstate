@@ -13,7 +13,7 @@ for problem #2, the best solution may vary depending on use case. four methods a
 
 the most straightforward way to deal with a nonstandard input is to override the framework generated event handler:
 
-```jsx
+```es6
 import React from 'react';
 import DatePicker from 'react-datepicker';
 
@@ -30,7 +30,7 @@ export default class DateInput extends React.Component {
 }
 ```
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
 import DateInput from './DateInput.jsx';
@@ -60,11 +60,11 @@ export default class SomeForm extends React.Component {
       </Form>
     );
   }
-  
+
   handleDateInputChange(newMoment) {
     let context = this.formState.createUnitOfWork(),
       fieldState = context.getFieldState('when');
-    
+
     fieldState.setValue(newMoment).validate();
     context.updateFormState();
   }
@@ -85,7 +85,7 @@ in the above example, the only real purpose of the custom change handler is to s
 
 react-formstate provides the 'handlerBindFunction' prop to streamline this code:
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
 import DateInput from './DateInput.jsx';
@@ -114,7 +114,7 @@ export default class SomeForm extends React.Component {
       </Form>
     );
   }
-  
+
   // no longer need to type out the handler
 
   submit(e) {
@@ -144,7 +144,7 @@ another approach is to wrap the nonstandard event handler to make it act as if i
 
 the framework generated event handler only looks at e.target.type and e.target.value. e.target.type is only important so much as it's not 'checkbox' or 'select-multiple'.
 
-```jsx
+```es6
 import React from 'react';
 import DatePicker from 'react-datepicker';
 
@@ -181,22 +181,22 @@ export default class DateInput extends React.Component {
 
 you could also create a factory for your custom event handler:
 
-```jsx
+```es6
 import React from 'react';
 import DatePicker from 'react-datepicker';
 
 export default class DateInput extends React.Component {
-  
+
   static buildHandler(formState, fieldName) {
     return function(m) {
       let context = formState.createUnitOfWork(),
         fieldState = context.getFieldState(fieldName);
-    
+
       fieldState.setValue(m).validate();
       context.updateFormState();
     };
   }
-  
+
   render() {
     return (
       <div>

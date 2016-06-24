@@ -1,6 +1,6 @@
 # asynchronous validation
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';

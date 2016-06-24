@@ -1,6 +1,6 @@
 # onUpdate callback
 
-```jsx
+```es6
 import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 

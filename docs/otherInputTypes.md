@@ -1,6 +1,6 @@
 # templates for other input types
 
-```jsx
+```es6
 import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
 import Contact from './Contact.jsx';
@@ -243,7 +243,7 @@ export default class UserForm extends React.Component {
 
 ### Checkbox
 
-```jsx
+```es6
 import React from 'react';
 
 export default class Checkbox extends React.Component {
@@ -266,7 +266,7 @@ export default class Checkbox extends React.Component {
 
 ### CheckboxGroup
 
-```jsx
+```es6
 import React from 'react';
 
 export default class CheckboxGroup extends React.Component {
@@ -301,7 +301,7 @@ export default class CheckboxGroup extends React.Component {
 
 ### RadioGroup
 
-```jsx
+```es6
 import React from 'react';
 
 export default class RadioGroup extends React.Component {
@@ -334,7 +334,7 @@ export default class RadioGroup extends React.Component {
 
 ### Select (and multi-select)
 
-```jsx
+```es6
 import React from 'react';
 
 export default class Select extends React.Component {

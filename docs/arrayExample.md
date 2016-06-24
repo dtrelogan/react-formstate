@@ -1,7 +1,7 @@
 # FormArray
 ### adding and removing inputs in response to state changes
 
-```jsx
+```es6
 import React from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';

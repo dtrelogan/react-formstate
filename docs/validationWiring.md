@@ -86,7 +86,7 @@ function(value) {
 
 if you want it to work differently you can override it. i might suggest:
 
-```jsx
+```es6
 import { FormState } from 'react-formstate';
 
 FormState.setRequired(function(value, label) {
@@ -140,7 +140,7 @@ additional parameters can be provided as necessary.
 
 if you were to do the following:
 
-```jsx
+```es6
 import { FormState } from 'react-formstate';
 
 FormState.registerValidation('noSpaces', function(value, label) {
