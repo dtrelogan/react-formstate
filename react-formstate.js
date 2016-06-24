@@ -25,6 +25,14 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+// "backlog"
+// add a getUncoercedFieldState function?
+//  use case: getValue in initial render before fields are defined
+// name='contacts[0][address][line1]'
+// coerceToString in FieldState.setValue?
+//  i could see how it might prevent accidental misuse but
+//  99% of the time it won't be helpful
+
 //
 // private functions, local to module
 //
