@@ -1,12 +1,12 @@
-# Form Input Example
+# File Input Example
 
-form inputs have security restrictions that prevent them from being used like other controlled components in react.
+file inputs have security restrictions that prevent them from being used like other controlled components in react.
 
-in this example a form input is used to upload a required image asynchronously prior to valid form submission.
+in this example a file input is used to upload a required image asynchronously prior to valid form submission.
 
 the returned image url is stored as part of the form model.
 
-note: the form input file selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
+note: the file input's file selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
 
 ```jsx
 import React from 'react';
@@ -98,13 +98,40 @@ export default class SampleForm extends React.Component {
     this.imageFileInput.value = '';
   }
   
+  
   uploadImage(formData) {
-    // simulate using fetch or xhr to upload image to server
+    // this example uses xmlHttpRequest. you could alternatively use fetch,
+    // but as of writing this example fetch does not support a "progress callback"
     
     return new Promise((resolve, reject) => {
-      resolve({ url: 'http://somedomain.com/someapi/images/someId' });
+      let xhr = new XMLHttpRequest();
+      
+      xhr.onload = (response) => {
+        if (xhr.status === 200) {
+          // get the new image url from the reponse somehow
+          // how you do this will depend on your server's response
+          resolve({ url: JSON.parse(xhr.responseText).imageUrl });
+        } else {
+          reject(new Error('an error occurred'));
+        }
+      };
+      
+      xhr.upload.onprogress = (e) => {
+        // here you could update a progress bar by calling this.setState appropriately
+        console.log('progress...');
+        console.log(e);
+      };
+      
+      // the third parameter is set to true for asynchronous upload
+      xhr.open('POST', 'yourFileServerUrlHere', true);
+      
+      // you might need to set a header or two to make your server happy
+      //xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      
+      xhr.send(formData);
     });
   }
+  
   
   removeImage() {
     let context = this.formState.createUnitOfWork();
