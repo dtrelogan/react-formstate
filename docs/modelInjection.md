@@ -52,8 +52,12 @@ constructor(props) {
 }
 
 render() {
+  let firstName = this.formState.getFieldState('firstName').getValue(),
+    dynamicBehavior = (firstName === 'buster' ? 'hi buster!' : null);
+
   return (
     <Form formState={this.formState}>
+      {dynamicBehavior}
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
       <input type='submit' value='Submit' onClick={this.handleSubmit}/>
