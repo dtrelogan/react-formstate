@@ -362,3 +362,25 @@ export default class Select extends React.Component {
   }
 }
 ```
+
+### Text Area
+
+```es6
+import React from 'react';
+
+export default class TextArea extends React.Component {
+
+  render() {
+    return (
+      <div>
+        <label>{this.props.label}</label>
+        <textarea
+          value={this.props.fieldState.getValue()}
+          onChange={this.props.updateFormState}
+          />
+        <span className='help'>{this.props.fieldState.getMessage()}</span>
+      </div>
+    );
+  }
+}
+```
