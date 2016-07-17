@@ -5,16 +5,16 @@
 
 ## a flexible, well-designed approach to [react forms](https://facebook.github.io/react/docs/forms.html)
 
-there are a slew of react form packages out there. if you've managed to find this one, why should you use it?
+there are a slew of react form packages out there. why react-formstate?
 
+- seamlessly supports dynamic forms, asynchronous validation, and nested, reusable form components.
 - clean design allows for stateless input components - no mixin or decoration required.
 - simple architecture encapsulates UI validation logic in your form component where it typically belongs.
 - feature complete and fully tested - not a half-baked, half-finished library that will leave you hanging.
-- seamlessly supports asynchronous validation and nested, reusable form components.
 
 react-formstate allows you to compose elegant forms quickly and easily, without getting in your way. it saves you hassle and time while still providing effective extension points. in my opinion, no other package does this as successfully.
 
-per the download counts this package has yet to catch on. please don't let that dissuade you. react-formstate is actively used and maintained. it only lacks in advertisement. if you have any feedback i am happy to hear it. thanks.
+if you have any feedback i am happy to hear it. thanks.
 
 ### setup
 
@@ -30,6 +30,7 @@ per the download counts this package has yet to catch on. please don't let that 
 - [arrays, adding and removing inputs in response to state changes](/docs/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
 - [nonstandard input example: react-datepicker](/docs/datePickerExample.md)
+- [file input example](/docs/fileInputExample.md)
 - [show validation message on blur](/docs/onBlurExample.md)
 - [onUpdate callback](/docs/onUpdateExample.md)
 
