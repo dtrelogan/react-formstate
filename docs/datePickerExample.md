@@ -14,10 +14,10 @@ for problem #2, the best solution may vary depending on use case. four methods a
 the most straightforward way to deal with a nonstandard input is to override the framework generated event handler:
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
 
-export default class DateInput extends React.Component {
+export default class DateInput extends Component {
   render() {
     return (
       <div>
@@ -31,12 +31,12 @@ export default class DateInput extends React.Component {
 ```
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 import DateInput from './DateInput.jsx';
 import moment from 'moment';
 
-export default class SomeForm extends React.Component {
+export default class SomeForm extends Component {
 
   constructor(props) {
     super(props);
@@ -86,12 +86,12 @@ in the above example, the only real purpose of the custom change handler is to s
 react-formstate provides the 'handlerBindFunction' prop to streamline this code:
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 import DateInput from './DateInput.jsx';
 import moment from 'moment';
 
-export default class SomeForm extends React.Component {
+export default class SomeForm extends Component {
 
   constructor(props) {
     super(props);
@@ -145,10 +145,10 @@ another approach is to wrap the nonstandard event handler to make it act as if i
 the framework generated event handler only looks at e.target.type and e.target.value. e.target.type is only important so much as it's not 'checkbox' or 'select-multiple'.
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
 
-export default class DateInput extends React.Component {
+export default class DateInput extends Component {
   constructor(props) {
     super(props);
     this.handleDateChange = this.handleDateChange.bind(this);
@@ -182,10 +182,10 @@ export default class DateInput extends React.Component {
 you could also create a factory for your custom event handler:
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
 
-export default class DateInput extends React.Component {
+export default class DateInput extends Component {
 
   static buildHandler(formState, fieldName) {
     return function(m) {

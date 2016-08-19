@@ -38,7 +38,9 @@
 ```
 
 ```jsx
-export default class Contact extends React.Component {
+import React, { Component } from 'react';
+
+export default class Contact extends Component {
 
   validateEmail(email) {
     let emailPattern = /.+@.+\..+/;
@@ -58,7 +60,9 @@ export default class Contact extends React.Component {
 ```
 
 ```jsx
-export default class Address extends React.Component {
+import React, { Component } from 'react';
+
+export default class Address extends Component {
 
   validateLine1(line1) {
     if (line1.trim() === '') { return 'Required field'; }
@@ -96,7 +100,9 @@ export default class Address extends React.Component {
 ```
 
 ```jsx
-export default class Contact extends React.Component {
+import React, { Component } from 'react';
+
+export default class Contact extends Component {
 
   validateEmail(email) {
     let emailPattern = /.+@.+\..+/;

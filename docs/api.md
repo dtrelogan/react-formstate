@@ -380,8 +380,10 @@ a 'formObject' attribute allows a "hop" from one component to another
 
 to complete the "hop", within the nested form component, place a FormObject at the root of its jsx. pass the FormObject the nested form component using a 'nestedForm' prop
 
-```jsx
-export default class Contact extends React.Component {
+```es6
+import React, { Component } from 'react';
+
+export default class Contact extends Component {
   render() {
     return (
       <FormObject nestedForm={this}>
@@ -486,8 +488,10 @@ creates a root form state instance.
 
 pass your root form component to the constructor to allow the form state instance to manipulate component state.
 
-```jsx
-export default class UserForm extends React.Component {
+```es6
+import React, { Component } from 'react';
+
+export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
@@ -683,8 +687,10 @@ function validateAsync() {
 
 in a nested form component, name is relative to the path embedded in the nested form state.
 
-```jsx
-export default class Contact extends React.Component {
+```es6
+import React, { Component } from 'react';
+
+export default class Contact extends Component {
   function handleEmailChange(e) {
     // a pathed formState is passed to a nested component
     let context = this.props.formState.createUnitOfWork(),
@@ -699,8 +705,10 @@ export default class Contact extends React.Component {
 
 initializes form state. values are [coerced](#Field.noCoercion) to strings by default.
 
-```jsx
-export default class UserForm extends React.Component {
+```es6
+import React, { Component } from 'react';
+
+export default class UserForm extends Component {
 
   constructor(props) {
     super(props);

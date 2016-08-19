@@ -9,12 +9,12 @@ the returned image url is stored as part of the form model.
 note: the file input selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 import HiddenInput from './HiddenInput.jsx';
 import Input from './Input.jsx';
 
-export default class SampleForm extends React.Component {
+export default class SampleForm extends Component {
 
   constructor(props) {
     super(props);
@@ -158,9 +158,9 @@ the Input component was previously shown in the [basic example](./basicExample.m
 the HiddenInput component is simply
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class HiddenInput extends React.Component {
+export default class HiddenInput extends Component {
   render() {
     return (
       <input type='hidden' value={this.props.fieldState.getValue()} />

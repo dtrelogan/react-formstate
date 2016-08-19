@@ -247,11 +247,17 @@ export class FormObject extends React.Component {
       );
       this.formState = props.formState;
     }
+    else if (exists(child.props.formExtension)) {
+      props = this.createExtensionProps();
+    }
     else if (child.type === FormObject || child.type === FormArray) {
       if (!exists(child.props.name)) { throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property'); }
       props = this.createObjectProps(child.props.name, child.props, child.type === FormArray);
       // let the child FormObject/FormArray create the appropriate props for its children
       return React.cloneElement(child, props, child.props.children);
+    }
+    else if (child.type === FormExtension) {
+      throw new Error('a FormExtension element should not be nested within a Form, FormObject, or FormArray element in the same render function');
     }
 
     let result = React.cloneElement(
@@ -298,6 +304,14 @@ export class FormObject extends React.Component {
     // newProps.validationComponent = this.validationComponent; // ignored by a nested COMPONENT
     // newProps.labelPrefix = (this.labelPrefix || '') + (props.labelPrefix || '');
     // return newProps;
+  }
+
+
+  createExtensionProps() {
+    return {
+      formState: this.formState,
+      labelPrefix: this.labelPrefix
+    };
   }
 
 
@@ -363,6 +377,12 @@ export class FormObject extends React.Component {
 //
 
 export class FormArray extends FormObject {}
+
+//
+// FormExtension
+//
+
+export class FormExtension extends FormObject {}
 
 //
 // FieldState
@@ -518,6 +538,7 @@ class FieldState {
     return this.setValid();
   }
 
+  setMessage(message) { return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
   setValid(message) { return this.setProps(this.getValue(), 1, message); }
   setInvalid(message) { return this.setProps(this.getValue(), 2, message); }
   setValidating(message) {

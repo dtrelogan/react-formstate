@@ -1,7 +1,7 @@
 # Basic Example
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 
@@ -9,7 +9,7 @@ import Input from './Input.jsx';
 import { validationAdapter } from 'react-formstate-validation';
 validationAdapter.plugInto(FormState);
 
-export default class ChangePasswordForm extends React.Component {
+export default class ChangePasswordForm extends Component {
 
   constructor(props) {
     super(props);
@@ -72,9 +72,9 @@ export default class ChangePasswordForm extends React.Component {
 an associated input component manages no state and is essentially a layout of your choosing. it might look like:
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class Input extends React.Component {
+export default class Input extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);

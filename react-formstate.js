@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FormState = exports.FormArray = exports.FormObject = exports.Form = undefined;
+exports.FormState = exports.FormExtension = exports.FormArray = exports.FormObject = exports.Form = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -322,6 +322,8 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       } else if (exists(child.props.formObject) || exists(child.props.formArray)) {
         props = this.createObjectProps(exists(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, exists(child.props.formArray));
         this.formState = props.formState;
+      } else if (exists(child.props.formExtension)) {
+        props = this.createExtensionProps();
       } else if (child.type === FormObject || child.type === FormArray) {
         if (!exists(child.props.name)) {
           throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property');
@@ -329,6 +331,8 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         props = this.createObjectProps(child.props.name, child.props, child.type === FormArray);
         // let the child FormObject/FormArray create the appropriate props for its children
         return _react2.default.cloneElement(child, props, child.props.children);
+      } else if (child.type === FormExtension) {
+        throw new Error('a FormExtension element should not be nested within a Form, FormObject, or FormArray element in the same render function');
       }
 
       var result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
@@ -373,6 +377,14 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       // newProps.validationComponent = this.validationComponent; // ignored by a nested COMPONENT
       // newProps.labelPrefix = (this.labelPrefix || '') + (props.labelPrefix || '');
       // return newProps;
+    }
+  }, {
+    key: 'createExtensionProps',
+    value: function createExtensionProps() {
+      return {
+        formState: this.formState,
+        labelPrefix: this.labelPrefix
+      };
     }
   }, {
     key: 'createFieldProps',
@@ -455,6 +467,22 @@ var FormArray = exports.FormArray = function (_FormObject) {
   }
 
   return FormArray;
+}(FormObject);
+
+//
+// FormExtension
+//
+
+var FormExtension = exports.FormExtension = function (_FormObject2) {
+  _inherits(FormExtension, _FormObject2);
+
+  function FormExtension() {
+    _classCallCheck(this, FormExtension);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(FormExtension).apply(this, arguments));
+  }
+
+  return FormExtension;
 }(FormObject);
 
 //
@@ -680,6 +708,11 @@ var FieldState = function () {
         return this.setInvalid(message);
       } // else
       return this.setValid();
+    }
+  }, {
+    key: 'setMessage',
+    value: function setMessage(message) {
+      return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible());
     }
   }, {
     key: 'setValid',
@@ -1050,7 +1083,7 @@ var UnitOfWork = function () {
   }, {
     key: 'remove',
     value: function remove(name) {
-      var _this4 = this;
+      var _this5 = this;
 
       var key = this.formState.buildKey(name);
 
@@ -1062,7 +1095,7 @@ var UnitOfWork = function () {
 
       iterateKeys(this.formState.form.state, function (key) {
         if (key.startsWith(keyDot)) {
-          _setFieldState(_this4.stateUpdates, key, { isDeleted: true });
+          _setFieldState(_this5.stateUpdates, key, { isDeleted: true });
         }
       });
     }

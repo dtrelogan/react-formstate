@@ -3,7 +3,9 @@
 your input component looks like:
 
 ```jsx
-export default class Input extends React.Component {
+import React, { Component } from 'react';
+
+export default class Input extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);

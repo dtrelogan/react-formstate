@@ -1,6 +1,7 @@
 # templates for other input types
 
 ```es6
+import React, { Component } from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
 import Contact from './Contact.jsx';
@@ -10,7 +11,7 @@ import CheckboxGroup from './CheckboxGroup.jsx';
 import RadioGroup from './RadioGroup.jsx';
 import Select from './Select.jsx';
 
-export default class UserForm extends React.Component {
+export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
@@ -244,9 +245,9 @@ export default class UserForm extends React.Component {
 ### Checkbox
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class Checkbox extends React.Component {
+export default class Checkbox extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);
@@ -267,9 +268,9 @@ export default class Checkbox extends React.Component {
 ### CheckboxGroup
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class CheckboxGroup extends React.Component {
+export default class CheckboxGroup extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);
@@ -302,9 +303,9 @@ export default class CheckboxGroup extends React.Component {
 ### RadioGroup
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class RadioGroup extends React.Component {
+export default class RadioGroup extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);
@@ -335,9 +336,9 @@ export default class RadioGroup extends React.Component {
 ### Select (and multi-select)
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class Select extends React.Component {
+export default class Select extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !nextProps.fieldState.equals(this.props.fieldState);
@@ -366,9 +367,9 @@ export default class Select extends React.Component {
 ### Text Area
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 
-export default class TextArea extends React.Component {
+export default class TextArea extends Component {
 
   render() {
     return (

@@ -1,10 +1,11 @@
 # onUpdate callback
 
 ```es6
+import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 import Input from './Input.jsx';
 
-export default class LoginForm extends React.Component {
+export default class LoginForm extends Component {
 
   constructor(props) {
     super(props);

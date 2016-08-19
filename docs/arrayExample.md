@@ -2,13 +2,13 @@
 ### adding and removing inputs in response to state changes
 
 ```es6
-import React from 'react';
+import React, { Component } from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
 import Contact from './Contact.jsx';
 import Address from './Address.jsx';
 
-export default class UserForm extends React.Component {
+export default class UserForm extends Component {
 
   constructor(props) {
     super(props);

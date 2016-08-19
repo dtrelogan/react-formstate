@@ -1,6 +1,6 @@
 {
   "name": "react-formstate",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
@@ -48,7 +48,7 @@
     "coveralls": "^2.11.8",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7"
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0"
   }
 }
