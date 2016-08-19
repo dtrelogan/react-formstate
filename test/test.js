@@ -10,6 +10,7 @@ var Form = rf.Form;
 var FormState = rf.FormState;
 var FormObject = rf.FormObject;
 var FormArray = rf.FormArray;
+var FormExtension = rf.FormExtension;
 
 var required = function(value, label) {
   if (value.trim() === '') {
@@ -268,6 +269,75 @@ var MessageOverrideForm = createMessageOverrideForm();
 
 
 
+var addressExtensionForm;
+
+var AddressExtension = React.createClass({
+  getInitialState: function() {
+    addressExtensionForm = this;
+    return null;
+  },
+  validateLine1: function(value) {
+    if (value === 'autowired') { return 'it worked!'; }
+  },
+  render: function() {
+    return React.createElement(FormExtension, { nestedForm: this },
+      React.createElement(ContactAddressLine1Input, { formField: 'line1', label: 'Line 1' })
+    )
+  }
+});
+
+var ShouldNotManageState = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+  render: function() {
+    return React.createElement(FormExtension, { nestedForm: this },
+      React.createElement(ContactAddressLine1Input, { formField: 'line1', label: 'Line 1' })
+    )
+  }
+});
+
+
+var createExtendedUserFormFixture = function(throwFormExtensionError, stateWarning) {
+  return React.createClass({
+    getInitialState: function() {
+      testForm = this;
+      this.formState = new FormState(this);
+      return {};
+    },
+    render: function() {
+      var children = [
+        React.createElement(NameInput, { key: 4, formField: 'name', label: 'Name' }),
+        React.createElement(AddressExtension, { key: 5, formExtension: true, labelPrefix: 'Why ' }),
+        React.createElement('input', { key: 6, type: 'submit', value: 'Submit' }),
+        React.createElement('span', { key: 7 }, this.formState.isInvalid() ? 'Please fix validation errors' : null)
+      ];
+
+      if (throwFormExtensionError) {
+        children.push(
+          React.createElement(FormExtension, { key: 8, name: 'crash' })
+        );
+      }
+
+      if (stateWarning) {
+        children.push(
+          React.createElement(ShouldNotManageState, { key: 8, formExtension: true })
+        );
+      }
+
+      return React.createElement(Form, { formState: this.formState, onSubmit: this.handleSubmit, id: 'testingAFormProp', model: this.props.model },
+        children
+      );
+    }
+  });
+};
+
+var ExtendedUserForm = createExtendedUserFormFixture();
+
+
+
+
+
 describe('FormState', function() {
   describe('#setRequired', function() {
     it('is set to something by default', function() {
@@ -514,6 +584,26 @@ describe('FormState', function() {
       fs.injectModelProp(1);
       var fieldState = fs.getFieldState('name');
       assert.equal('', fieldState.getValue());
+    });
+  });
+  describe('#getUncoercedFieldState', function() {
+    it('baseline', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '3');
+    });
+    it('baseline2', function() {
+      var state = { 'formState.name': { value: 3, isCoerced: true } },
+        fs = new FormState({ state: state }),
+        fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
+    });
+    it('does not coerce', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        fieldState = fs.getUncoercedFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
     });
   });
   describe('#getFieldState', function() {
@@ -974,6 +1064,36 @@ describe('UnitOfWork', function() {
       assert.equal(fs, context.formState);
       assert.equal('object', typeof(context.stateUpdates));
       assert.equal(0, Object.keys(context.stateUpdates).length);
+    });
+  });
+  describe('#getUncoercedFieldState', function() {
+    it('baseline', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '3');
+      context.stateUpdates['formState.name'] = { value: 3, isCoerced: true };
+      fieldState = context.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
+      // would not happen
+      // context.stateUpdates['formState.name'] = { value: 3 };
+      // fieldState = context.getFieldState('name');
+      // assert.equal(true, fieldState.getValue() === 3);
+    });
+    it('baseline2', function() {
+      var state = { 'formState.name': { value: 3, isCoerced: true } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
+    });
+    it('does not coerce', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var fieldState = context.getUncoercedFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
     });
   });
   describe('#getFieldState', function() {
@@ -3078,6 +3198,35 @@ describe('Form', function() {
     });
   });
 });
-// describe('FormStateValidation', function() {
-//
-// });
+describe('FormExtension', function() {
+  describe('#createExtensionProps', function() {
+    it('does not prefix path and does not clear root fields', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal(2, Object.keys(model).length);
+      assert.equal(true, model.name !== undefined);
+      assert.equal(true, model.line1 !== undefined);
+    });
+    it('calls an autowired function', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('line1');
+      fieldState.setValue('autowired').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('it worked!', fieldState.getMessage());
+    });
+    it('passes label prefix', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      assert.equal('Why Line 1', contactAddressLine1Input.props.label);
+    });
+    it('throws error if used improperly', function() {
+      var f = function() {
+        ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(true)));
+      };
+      assert.throws(f, /a FormExtension element should not be nested/);
+    });
+    it('warns about nested components managing their own state', function() {
+      ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(false, true)));
+    });
+  });
+});

@@ -207,6 +207,10 @@ export class FormObject extends React.Component {
       this.formState = nestedProps.formState;
       this.validationComponent = this.props.nestedForm;
       this.labelPrefix = nestedProps.labelPrefix;
+
+      if (exists(this.props.nestedForm.state)) {
+        console.log('warning: nested react-formstate components should not manage their own state.');
+      }
     } else {
       this.formState = this.props.formState;
       this.validationComponent = this.props.validationComponent || this.formState.form;
@@ -221,7 +225,9 @@ export class FormObject extends React.Component {
 
   render() {
     // to support dynamic removal, upon render, rebuild the field definitions
-    this.formState.clearFields();
+    if (this.constructor !== FormExtension) {
+      this.formState.clearFields();
+    }
 
     return React.createElement(
       'div',
@@ -248,7 +254,7 @@ export class FormObject extends React.Component {
       this.formState = props.formState;
     }
     else if (exists(child.props.formExtension)) {
-      props = this.createExtensionProps();
+      props = this.createExtensionProps(child.props);
     }
     else if (child.type === FormObject || child.type === FormArray) {
       if (!exists(child.props.name)) { throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property'); }
@@ -307,10 +313,10 @@ export class FormObject extends React.Component {
   }
 
 
-  createExtensionProps() {
+  createExtensionProps(props) {
     return {
       formState: this.formState,
-      labelPrefix: this.labelPrefix
+      labelPrefix: (this.labelPrefix || '') + (props.labelPrefix || '')
     };
   }
 
@@ -538,7 +544,9 @@ class FieldState {
     return this.setValid();
   }
 
-  setMessage(message) { return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
+  // when you hit submit the message gets wiped by validation. use setValid instead.
+  // setMessage(message) { return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
+
   setValid(message) { return this.setProps(this.getValue(), 1, message); }
   setInvalid(message) { return this.setProps(this.getValue(), 2, message); }
   setValidating(message) {
@@ -632,11 +640,12 @@ export class FormState {
   }
 
 
-  getFieldState(fieldOrName, asyncToken, stateContext) {
+  getFieldState(fieldOrName, asyncToken, stateContext, noCoercion) {
     let field = findFieldByFieldOrName(this, fieldOrName),
       key = field ? field.key : this.buildKey(fieldOrName),
-      _fieldState = _getFieldState(this.form.state, key),
-      noCoercion = field && field.noCoercion;
+      _fieldState = _getFieldState(this.form.state, key);
+
+    noCoercion = Boolean(noCoercion || (field && field.noCoercion));
 
     // if model prop provided to root FormObject
     // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -666,6 +675,11 @@ export class FormState {
     } else {
       return new FieldState(_fieldState, key, field, false, stateContext);
     }
+  }
+
+
+  getUncoercedFieldState(fieldOrName, asyncToken) {
+    return this.getFieldState(fieldOrName, asyncToken, null, true);
   }
 
 
@@ -800,7 +814,7 @@ class UnitOfWork {
   // public
   //
 
-  getFieldState(fieldOrName, asyncToken) {
+  getFieldState(fieldOrName, asyncToken, noCoercion) {
     let field = findFieldByFieldOrName(this.formState, fieldOrName),
       key = field ? field.key : this.formState.buildKey(fieldOrName),
       _fieldState = _getFieldState(this.stateUpdates, key);
@@ -808,8 +822,13 @@ class UnitOfWork {
     if (_fieldState) {
       return new FieldState(_fieldState, key, field, true, this);
     } else {
-      return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this);
+      return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this, noCoercion);
     }
+  }
+
+
+  getUncoercedFieldState(fieldOrName, asyncToken) {
+    return this.getFieldState(fieldOrName, asyncToken, true);
   }
 
 

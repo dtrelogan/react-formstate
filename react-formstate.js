@@ -287,6 +287,10 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       _this2.formState = nestedProps.formState;
       _this2.validationComponent = _this2.props.nestedForm;
       _this2.labelPrefix = nestedProps.labelPrefix;
+
+      if (exists(_this2.props.nestedForm.state)) {
+        console.log('warning: nested react-formstate components should not manage their own state.');
+      }
     } else {
       _this2.formState = _this2.props.formState;
       _this2.validationComponent = _this2.props.validationComponent || _this2.formState.form;
@@ -303,7 +307,9 @@ var FormObject = exports.FormObject = function (_React$Component2) {
     key: 'render',
     value: function render() {
       // to support dynamic removal, upon render, rebuild the field definitions
-      this.formState.clearFields();
+      if (this.constructor !== FormExtension) {
+        this.formState.clearFields();
+      }
 
       return _react2.default.createElement('div', null, _react2.default.Children.map(this.props.children, this.addProps));
     }
@@ -323,7 +329,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         props = this.createObjectProps(exists(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, exists(child.props.formArray));
         this.formState = props.formState;
       } else if (exists(child.props.formExtension)) {
-        props = this.createExtensionProps();
+        props = this.createExtensionProps(child.props);
       } else if (child.type === FormObject || child.type === FormArray) {
         if (!exists(child.props.name)) {
           throw new Error('a FormObject or FormArray element nested within the same render function should have a "name" property');
@@ -380,10 +386,10 @@ var FormObject = exports.FormObject = function (_React$Component2) {
     }
   }, {
     key: 'createExtensionProps',
-    value: function createExtensionProps() {
+    value: function createExtensionProps(props) {
       return {
         formState: this.formState,
-        labelPrefix: this.labelPrefix
+        labelPrefix: (this.labelPrefix || '') + (props.labelPrefix || '')
       };
     }
   }, {
@@ -709,11 +715,10 @@ var FieldState = function () {
       } // else
       return this.setValid();
     }
-  }, {
-    key: 'setMessage',
-    value: function setMessage(message) {
-      return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible());
-    }
+
+    // when you hit submit the message gets wiped by validation. use setValid instead.
+    // setMessage(message) { return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
+
   }, {
     key: 'setValid',
     value: function setValid(message) {
@@ -839,11 +844,12 @@ var FormState = exports.FormState = function () {
     }
   }, {
     key: 'getFieldState',
-    value: function getFieldState(fieldOrName, asyncToken, stateContext) {
+    value: function getFieldState(fieldOrName, asyncToken, stateContext, noCoercion) {
       var field = findFieldByFieldOrName(this, fieldOrName),
           key = field ? field.key : this.buildKey(fieldOrName),
-          _fieldState = _getFieldState(this.form.state, key),
-          noCoercion = field && field.noCoercion;
+          _fieldState = _getFieldState(this.form.state, key);
+
+      noCoercion = Boolean(noCoercion || field && field.noCoercion);
 
       // if model prop provided to root FormObject
       // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -873,6 +879,11 @@ var FormState = exports.FormState = function () {
       } else {
         return new FieldState(_fieldState, key, field, false, stateContext);
       }
+    }
+  }, {
+    key: 'getUncoercedFieldState',
+    value: function getUncoercedFieldState(fieldOrName, asyncToken) {
+      return this.getFieldState(fieldOrName, asyncToken, null, true);
     }
   }, {
     key: 'isDeleted',
@@ -1035,7 +1046,7 @@ var UnitOfWork = function () {
 
   }, {
     key: 'getFieldState',
-    value: function getFieldState(fieldOrName, asyncToken) {
+    value: function getFieldState(fieldOrName, asyncToken, noCoercion) {
       var field = findFieldByFieldOrName(this.formState, fieldOrName),
           key = field ? field.key : this.formState.buildKey(fieldOrName),
           _fieldState = _getFieldState(this.stateUpdates, key);
@@ -1043,8 +1054,13 @@ var UnitOfWork = function () {
       if (_fieldState) {
         return new FieldState(_fieldState, key, field, true, this);
       } else {
-        return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this);
+        return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this, noCoercion);
       }
+    }
+  }, {
+    key: 'getUncoercedFieldState',
+    value: function getUncoercedFieldState(fieldOrName, asyncToken) {
+      return this.getFieldState(fieldOrName, asyncToken, true);
     }
   }, {
     key: 'updateFormState',
