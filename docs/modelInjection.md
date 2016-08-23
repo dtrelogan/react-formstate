@@ -15,10 +15,10 @@ there are different ways to edit a model:
 render() {
   let model = this.props.model;
   return (
-    <Form formState={this.formState}>
+    <Form formState={this.formState} onSubmit={this.handleSubmit}>
       <Input formField='firstName' label='First' defaultValue={model.firstName}/>
       <Input formField='lastName' label='Last' defaultValue={model.lastName}/>
-      <input type='submit' value='Submit' onClick={this.handleSubmit}/>
+      <input type='submit' value='Submit'/>
     </Form>
   );
 }
@@ -29,10 +29,10 @@ render() {
 ```jsx
 render() {
   return (
-    <Form formState={this.formState} model={this.props.model}>
+    <Form formState={this.formState} model={this.props.model} onSubmit={this.handleSubmit}>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <input type='submit' value='Submit' onClick={this.handleSubmit}/>
+      <input type='submit' value='Submit'/>
     </Form>
   );
 }
@@ -46,21 +46,21 @@ a more flexible approach that facilitates dynamic forms:
 constructor(props) {
   super(props);
   this.formState = new FormState(this);
-  this.state = this.formState.createUnitOfWork().injectModel(this.props.model);
-  
+  this.state = this.formState.injectModel(props.model);
+
   this.handleSubmit = this.handleSubmit.bind(this);
 }
 
 render() {
-  let firstName = this.formState.getFieldState('firstName').getValue(),
-    dynamicBehavior = (firstName === 'buster' ? 'hi buster!' : null);
+  let firstName = this.formState.get('firstName'),
+    dynamicBehavior = (firstName === 'buster' ? 'hi buster!' : '');
 
   return (
-    <Form formState={this.formState}>
-      {dynamicBehavior}
+    <Form formState={this.formState} onSubmit={this.handleSubmit}>
+      <p>{dynamicBehavior}</p>
       <Input formField='firstName' label='First'/>
       <Input formField='lastName' label='Last'/>
-      <input type='submit' value='Submit' onClick={this.handleSubmit}/>
+      <input type='submit' value='Submit'/>
     </Form>
   );
 }

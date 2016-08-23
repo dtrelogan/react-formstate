@@ -44,9 +44,11 @@ export default class UserForm extends Component {
 
     this.originalUsername = model.username;
 
-    let context = this.formState.createUnitOfWork();
-    context.injectModel(model);
-    this.state = context.add('active', !model.disabled);
+    this.state = this.formState.injectModel(model);
+
+    // transform model state for the UI
+    this.formState.add(this.state, 'active', !model.disabled);
+
     this.state.numContacts = model.contacts ? model.contacts.length : 0;
 
     this.contactChoices = [
@@ -73,12 +75,12 @@ export default class UserForm extends Component {
 
 
   validatePassword(password, context) {
-    context.getFieldState('passwordConfirmation').setValue('');
+    context.setc('passwordConfirmation', '');
     if (password.length < 8) { return 'Must be at least 8 characters'; }
   }
 
   validatePasswordConfirmation(confirmation, context) {
-    if (confirmation !== context.getFieldState('password').getValue()) {
+    if (confirmation !== context.get('password')) {
       return 'Passwords do not match';
     }
   }
@@ -177,6 +179,7 @@ export default class UserForm extends Component {
     e.preventDefault();
     let model = this.formState.createUnitOfWork().createModel();
     if (model) {
+      // transform model for the api
       model.disabled = !model.active;
       delete model.active;
       alert(JSON.stringify(model));
@@ -203,9 +206,7 @@ export default class UserForm extends Component {
   handleUsernameChange(e) {
     let username = e.target.value,
       context = this.formState.createUnitOfWork(),
-      fieldState = context.getFieldState('username');
-
-    fieldState.setValue(username);
+      fieldState = context.setc('username', username);
 
     if (username === this.originalUsername) {
       fieldState.setValid();
@@ -249,12 +250,7 @@ import React, { Component } from 'react';
 
 export default class Checkbox extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label);
     return (
       <div>
         <input type='checkbox' checked={this.props.fieldState.getValue()} onChange={this.props.updateFormState} /><label>{this.props.label}</label>
@@ -272,12 +268,7 @@ import React, { Component } from 'react';
 
 export default class CheckboxGroup extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label);
     let checkboxes = this.props.checkboxValues.map(function(v) {
       let checked = this.props.fieldState.getValue().some(x => x === v.id.toString());
       return (
@@ -307,12 +298,7 @@ import React, { Component } from 'react';
 
 export default class RadioGroup extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label);
     let buttons = this.props.buttonValues.map(function(v) {
       let checked = this.props.fieldState.getValue() === v.id.toString();
       return (
@@ -340,12 +326,7 @@ import React, { Component } from 'react';
 
 export default class Select extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label);
     let options = this.props.optionValues.map(function(v) {
       return (
         <option key={v.id} value={v.id.toString()} >{v.name}</option>

@@ -19,6 +19,7 @@
   - [getKey](#FieldState.getKey)
   - [getMessage](#FieldState.getMessage)
   - [getValue](#FieldState.getValue)
+  - [getUncoercedValue](#FieldState.getUncoercedValue)
   - [isInvalid](#FieldState.isInvalid)
   - [isMessageVisible](#FieldState.isMessageVisible)
   - [isValid](#FieldState.isValid)
@@ -28,6 +29,7 @@
   - [setValid](#FieldState.setValid)
   - [setValidating](#FieldState.setValidating)
   - [setValue](#FieldState.setValue)
+  - [setCoercedValue](#FieldState.setCoercedValue)
   - [showMessage](#FieldState.showMessage)
   - [validate](#FieldState.validate)
 - [Form](#Form)
@@ -36,22 +38,30 @@
   - [required props](#FormObject.requiredProps)
   - [optional props](#FormObject.optionalProps)
   - [generated props](#FormObject.generatedProps)
+- [FormExtension](#FormExtension)
 - [FormState](#FormState)
   - [registerValidation](#FormState.registerValidation)
   - [setRequired](#FormState.setRequired)
   - [constructor](#FormState.constructor)
+  - [add](#FormState.add)
   - [createUnitOfWork](#FormState.createUnitOfWork)
+  - [inject](#FormState.inject)
+  - [injectModel](#FormState.injectModel)
   - [isDeleted](#FormState.isDeleted)
   - [isInvalid](#FormState.isInvalid)
   - [isValidating](#FormState.isValidating)
+  - [get](#FormState.get)
   - [getFieldState](#FormState.getFieldState)
+  - [getu](#FormState.getu)
   - [onUpdate](#FormState.onUpdate)
 - [UnitOfWork](#UnitOfWork)
-  - [add](#UnitOfWork.add)
   - [createModel](#UnitOfWork.createModel)
+  - [get](#UnitOfWork.get)
   - [getFieldState](#UnitOfWork.getFieldState)
-  - [injectModel](#UnitOfWork.injectModel)
+  - [getu](#UnitOfWork.getu)
   - [remove](#UnitOfWork.remove)
+  - [set](#UnitOfWork.set)
+  - [setc](#UnitOfWork.setc)
   - [updateFormState](#UnitOfWork.updateFormState)
 
 ## <a name='Field'>Field</a>
@@ -71,7 +81,7 @@ a Field is a representation of a rendered input component. if you define an inpu
 
 a framework object is created with the following properties:
 
-```jsx
+```es6
 {
   name: 'roleIds',
   key: 'roleIds',
@@ -90,13 +100,13 @@ a framework object is created with the following properties:
 
 ### <a name='Field.name'>name</a>
 
-ties an input component to an [injected](#UnitOfWork.injectModel) model by way of form state. fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
+ties an input component to an [injected](#FormState.injectModel) model by way of form state. fields, as defined during a render, also form a specification of the model to be [generated](#UnitOfWork.createModel) upon form submission.
 
 ### <a name='Field.key'>key</a>
 
 the fully [pathed](#UnitOfWork.getFieldState) field name, for example:
 
-```jsx
+```es6
 {
   name: line1,
   key: workContact.address.line1,
@@ -134,7 +144,7 @@ useful for a select input for instance.
 
 defines a default value for your input.
 
-if a model is [injected](#UnitOfWork.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
+if a model is [injected](#FormState.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
 *important*: if using the framework generated change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether *your* component contains a text input or a select input.
 
@@ -142,12 +152,14 @@ do not confuse this property with the defaultValue for a react [uncontrolled com
 
 ### <a name='Field.noCoercion'>noCoercion</a>
 
-most html inputs work with string values. [injected](#UnitOfWork.injectModel) values are coerced to strings by default. the noCoercion setting disables this logic:
+most html inputs work with string values. values are then coerced to strings by default. (see [FieldState.getValue](#FieldState.getValue) and [FieldState.getUncoercedValue](#FieldState.getUncoercedValue))
 
-```jsx
+the noCoercion setting disables this logic:
+
+```es6
 if (!isDefined(v)) { return ''; } // else
 if (v === true || v === false) { return v; } // else
-if (Array.isArray(v)) { return v.map(x => isDefined(x) ? x.toString() : x); } // else
+if (Array.isArray(v)) { return v.map(x => !exists(x) ? x : (typeof(x) === 'object' ? x : x.toString())); } // else
 return v.toString();
 ```
 
@@ -183,7 +195,7 @@ a field state is essentially a collection of the following properties:
 
 use this to determine whether to render an input component. (it's a form of logical equivalence meant solely for this purpose.)
 
-```jsx
+```es6
 shouldComponentUpdate(nextProps, nextState) {
   return !nextProps.fieldState.equals(this.props.fieldState);
 }
@@ -193,7 +205,7 @@ shouldComponentUpdate(nextProps, nextState) {
 
 returns the [Field](#Field) associated with the field state, if there is one.
 
-```jsx
+```es6
 let field = fieldState.getField();
 fieldState.setValidating(`Verifying ${field.label}`);
 ```
@@ -202,7 +214,7 @@ fieldState.setValidating(`Verifying ${field.label}`);
 
 returns the canonical name for a field state. nesting is represented by a dot, i.e.
 
-```jsx
+```es6
 workContact.address.line1
 contacts.0.address.city
 ```
@@ -216,6 +228,30 @@ if you aren't using ajax to submit your data, you could use the key to create an
 ### <a name='FieldState.getMessage'>string getMessage()</a>
 
 ### <a name='FieldState.getValue'>string getValue()</a>
+
+returns the value for the field state. values are typically coerced to strings. for example:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setValue(3);
+assert(true, fieldState.getValue() === '3');
+assert(true, fieldState.getUncoercedValue() === 3);
+```
+
+you can override this behavior with [getUncoercedValue](#FieldState.getUncoercedValue) or [noCoercion](#Field.noCoercion)
+
+### <a name='FieldState.getUncoercedValue'>string getUncoercedValue()</a>
+
+bypasses string coercion:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setValue(3);
+assert(true, fieldState.getValue() === '3');
+assert(true, fieldState.getUncoercedValue() === 3);
+```
 
 ### <a name='FieldState.isInvalid'>boolean isInvalid()</a>
 
@@ -237,7 +273,7 @@ see the [on blur](/docs/onBlurExample.md) example
 
 updates validity, sets a message, and returns an 'asyncToken' for use in asynchronous validation. see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
 
-```jsx
+```es6
 // careful: user might type more letters into the username input box
 let asyncToken = fieldState.setValidating('Verifying username...');
 context.updateFormState();
@@ -247,6 +283,32 @@ function validateAsync() {
 ```
 
 ### <a name='FieldState.setValue'>void setValue(string message)</a>
+
+typical behavior. contrast with [setCoercedValue](#FieldState.setCoercedValue)
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setValue(3);
+assert(true, fieldState.getValue() === '3');
+assert(true, fieldState.getUncoercedValue() === 3);
+```
+
+### <a name='FieldState.setCoercedValue'>void setCoercedValue(string message)</a>
+
+retrieved values are typically coerced to strings, see [getValue](#FieldState.getValue)
+
+to avoid wasted effort in the getValue function, if the value you are setting is already coerced, you can use setCoercedValue:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setCoercedValue('3');
+assert(true, fieldState.getValue() === '3');
+assert(true, fieldState.getUncoercedValue() === '3');
+```
+
+the default change handler uses this function since html inputs produce string values.
 
 ### <a name='FieldState.showMessage'>boolean showMessage()</a>
 
@@ -258,7 +320,7 @@ calls the appropriate validation function(s). uses the result to update the vali
 
 *important*: a validation function called in this manner *must be synchronous*.
 
-```jsx
+```es6
 fieldState.setValue(value).validate();
 ```
 
@@ -288,7 +350,7 @@ is equivalent to:
 
 FormObject and FormArray components are meant to align with your backing model. for instance, if you have a model like this:
 
-```jsx
+```es6
 {
   name: 'buster brown',
   contacts: [
@@ -344,7 +406,7 @@ alternatively, for nested objects (not arrays), you can flatten your jsx:
 </FormObject>
 ```
 
-if for some reason your use case simply won't fit in the box, you can always transform your model during [injection](#UnitOfWork.injectModel) and after [generation](#UnitOfWork.createModel).
+if for some reason your use case simply won't fit in the box, you can always transform your model during [injection](#FormState.injectModel) and after [generation](#UnitOfWork.createModel).
 
 ### <a name='FormObject.requiredProps'>required props</a>
 
@@ -412,7 +474,7 @@ the model prop only applies to your root FormObject. typically it is used with a
 </Form>
 ```
 
-the model prop is syntactic sugar and works differently from [true injection](#UnitOfWork.injectModel).
+the model prop is syntactic sugar and works differently from [true injection](#FormState.injectModel).
 
 true injection is more appropriate for dynamic forms, as your render function can then key off your form component's state.
 
@@ -454,13 +516,17 @@ FormObjects and FormArrays pass the following properties to nested FormObjects a
 - validationComponent: for [auto-wiring](/docs/validationWiring.md#autowiring) validation functions
 - labelPrefix: see [above](#labelPrefix)
 
+## <a name='FormExtension'>FormExtension</a>
+
+similar to FormObject. see [FormExtension](/docs/formExtension.md) for an explanation.
+
 ## <a name='FormState'>FormState</a>
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 
 adds a reusable validation function with custom messaging
 
-```jsx
+```es6
 FormState.registerValidation('minLength', function(value, label, minLength) {
   if (value.length < minLength) {
     return `${label} must be at least ${minLength} characters`;
@@ -476,7 +542,7 @@ FormState.registerValidation('minLength', function(value, label, minLength) {
 
 overrides the default required field validation.
 
-```jsx
+```es6
 FormState.setRequired(function(value, label) {
   if (value.trim() === '') { return `${label} is required`; }
 });
@@ -503,11 +569,35 @@ export default class UserForm extends Component {
 }
 ```
 
+### <a name="FormState.add">object add(object state, string name, ? value)</a>
+
+adds a value directly to your form state, or updates an existing value.
+
+this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
+
+```es6
+this.state = this.formState.injectModel(model);
+// the model field is named 'disabled' but the jsx presents it as 'active'
+this.formState.add(this.state, 'active', !model.disabled);
+```
+
+you can add object, array, and primitive values:
+
+```es6
+this.state = this.formState.injectModel({});
+this.formState.add(this.state, 'x', 3);
+// { 'formState.x': 3 }
+this.formState.add(this.state, 'obj', { y: 4, z: { a: 5 } });
+// { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5 }
+this.formState.add(this.state', 'list', [1]);
+// { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.list.0': 1 }
+```
+
 ### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
 
 creates a [UnitOfWork](#UnitOfWork) "context" for making changes to immutable form state.
 
-```jsx
+```es6
 handleUsernameChange(e) {
   let username = e.target.value,
     context = this.formState.createUnitOfWork(),
@@ -518,13 +608,57 @@ handleUsernameChange(e) {
 }
 ```
 
+### <a name="FormState.inject">void inject(object state, object model)</a>
+
+alternate syntax for [injectModel](#FormState.injectModel)
+
+```es6
+import React, { Component } from 'react';
+
+export default class UserForm extends Component {
+
+  constructor(props) {
+    super(props);
+    this.formState = new FormState(this);
+    this.state = {};
+    this.formState.inject(this.state, props.model);
+  }
+
+  //...
+}
+```
+
+if necessary, during injection, you can transform the injected form state using the [add](#FormState.add) method.
+
+
+### <a name="FormState.injectModel">object injectModel(object model)</a>
+
+initializes form state. values will be [coerced](#Field.noCoercion) to strings by default.
+
+```es6
+import React, { Component } from 'react';
+
+export default class UserForm extends Component {
+
+  constructor(props) {
+    super(props);
+    this.formState = new FormState(this);
+    this.state = this.formState.injectModel(props.model);
+  }
+
+  //...
+}
+```
+
+if necessary, during injection, you can transform the injected form state using the [add](#FormState.add) method.
+
 ### <a name="FormState.isDeleted">boolean isDeleted(string name)</a>
 
 determines whether a branch of your form state was removed (using [UnitOfWork.remove](#UnitOfWork.remove)).
 
 typically used to conditionally show inputs during render.
 
-```jsx
+```es6
 render() {
   let contacts = [];
 
@@ -554,14 +688,43 @@ returns true if the form is waiting for asynchronous validation to finish.
 <span>{this.formState.isValidating() ? 'Waiting for validation to finish...' : null}</span>
 ```
 
+### <a name="FormState.get">FieldState get(string name)<a/>
+
+```es6
+let value = this.formState.getFieldState('x').getValue();
+```
+
+can be shortened to:
+
+```es6
+let value = this.formState.get('x');
+```
+
 ### <a name="FormState.getFieldState">FieldState getFieldState(string name)</a>
 
-retrieves form state for a particular field. returns a read-only [FieldState](#FieldState) instance.
+retrieves read-only form state for a particular field.
 
-note: typically field state is retrieved through a [context](#UnitOfWork.getFieldState).
+this is typically used for dynamic behavior during a render function.
 
-```jsx
+see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState) for more information.
+
+```es6
 let fieldState = this.formState.getFieldState('fieldName');
+if (fieldState.getValue() === 'success') {
+  // ...
+}
+```
+
+### <a name="FormState.getu">FieldState getu(string name)<a/>
+
+```es6
+let value = this.formState.getFieldState('x').getUncoercedValue();
+```
+
+can be shortened to:
+
+```es6
+let value = this.formState.getu('x');
 ```
 
 ### <a name='FormState.onUpdate'>void onUpdate(function callback)</a>
@@ -580,7 +743,7 @@ context will always be "[pathed](#UnitOfWork.getFieldState)" relative to your ro
 
 key identifies the field that was updated, which is potentially a nested field (for example: 'workContact.address.line1')
 
-```jsx
+```es6
 this.formState.onUpdate(function(context, key) {
   let oldValue = this.formState.getFieldState(key).getValue(),
     newValue = context.getFieldState(key).getValue();
@@ -589,36 +752,7 @@ this.formState.onUpdate(function(context, key) {
 }.bind(this));
 ```
 
-
 ## <a name='UnitOfWork'>UnitOfWork</a>
-
-### <a name="UnitOfWork.add">object add(string name, ? value)</a>
-
-adds a value directly to your form state, or updates an existing value.
-
-returns the state updates from the unit of work. this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
-
-```jsx
-let context = this.formState.createUnitOfWork();
-context.injectModel(model);
-// the model field is named 'disabled'
-// but the jsx presents it as 'active'
-this.state = context.add('active', !model.disabled);
-```
-
-another potential use is to add input components dynamically. here is a very contrived example:
-
-```jsx
-gotSomeNewDataFromTheStore(newContact) {
-  let context = this.formState.createUnitOfWork(),
-    numContacts = this.state.numContacts;
-
-  // add the new contact to the array.
-  // new inputs will be rendered dynamically.
-  context.add(`contacts.${numContacts}`, newContact);
-  context.updateFormState({ numContacts: numContacts + 1 });
-}
-```
 
 ### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
@@ -626,7 +760,7 @@ creates a model upon form submission.
 
 returns null if form state is invalid or if waiting on asynchronous validation.
 
-```jsx
+```es6
 handleSubmit(e) {
   e.preventDefault();
   let model = this.formState.createUnitOfWork().createModel();
@@ -639,7 +773,7 @@ handleSubmit(e) {
 
 passing true prevents a call to updateFormState
 
-```jsx
+```es6
 handleSubmit(e) {
   e.preventDefault();
   let context = this.formState.createUnitOfWork(),
@@ -655,7 +789,7 @@ handleSubmit(e) {
 
 if necessary, you can transform your model afterward:
 
-```jsx
+```es6
 handleSubmit(e) {
   e.preventDefault();
   let model = this.formState.createUnitOfWork().createModel();
@@ -670,13 +804,27 @@ the framework can perform common transformations for you. see [noTrim](#Field.no
 
 note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of the framework, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
 
+### <a name="UnitOfWork.get">FieldState get(string name)<a/>
+
+```es6
+let context = this.formState.createUnitOfWork();
+let value = context.getFieldState('x').getValue();
+```
+
+can be shortened to:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let value = context.get('x');
+```
+
 ### <a name="UnitOfWork.getFieldState">FieldState getFieldState(string name, string asyncToken)</a>
 
 retrieves form state for a particular field, aka [FieldState](#FieldState).
 
 if asyncToken is passed, returns null unless the token matches the token embedded in the field state. (in an asynchronous validation callback, validate *only* if the fieldstate hasn't changed before the callback is invoked. see [FieldState.setValidating](#FieldState.setValidating))
 
-```jsx
+```es6
 function validateAsync() {
   let context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState(field.name, asyncToken);
@@ -701,34 +849,27 @@ export default class Contact extends Component {
     // the nested component doesn't know or care
 ```
 
-### <a name="UnitOfWork.injectModel">object injectModel(object model)</a>
-
-initializes form state. values are [coerced](#Field.noCoercion) to strings by default.
+### <a name="UnitOfWork.getu">FieldState getu(string name)<a/>
 
 ```es6
-import React, { Component } from 'react';
-
-export default class UserForm extends Component {
-
-  constructor(props) {
-    super(props);
-    this.formState = new FormState(this);
-    this.state = this.formState.createUnitOfWork().injectModel(props.model);
-  }
-
-  //...
-}
+let context = this.formState.createUnitOfWork();
+let value = context.getFieldState('x').getUncoercedValue();
 ```
 
-if necessary, during injection, you can transform the injected form state using the [add](#UnitOfWork.add) method.
+can be shortened to:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let value = context.getu('x');
+```
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
-removes form state prior to form submission.
+removes form state. analogous to javascript's delete function.
 
 typically used to dynamically remove an input component. see [FormState.isDeleted](#FormState.isDeleted)
 
-```jsx
+```es6
 removeContact(i) {
   return function(e) {
     e.preventDefault();
@@ -739,13 +880,44 @@ removeContact(i) {
 }
 ```
 
+### <a name="UnitOfWork.set">FieldState set(string name, ? value)<a/>
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setValue(3);
+```
+
+can be shortened to:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.set('x', 3);
+```
+
+### <a name="UnitOfWork.setc">FieldState setc(string name, ? value)<a/>
+
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.getFieldState('x');
+fieldState.setCoercedValue(3);
+```
+
+can be shortened to:
+
+```es6
+let context = this.formState.createUnitOfWork();
+let fieldState = context.setc('x', 3);
+```
+
 ### <a name="UnitOfWork.updateFormState">void updateFormState(object additionalUpdates)</a>
 
 calls setState on your root form component.
 
 optionally accepts additional state updates to merge with the unit of work updates.
 
-```jsx
+```es6
 handleUsernameChange(e) {
   let username = e.target.value,
     context = this.formState.createUnitOfWork(),

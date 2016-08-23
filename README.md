@@ -3,18 +3,13 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-## a flexible, well-designed approach to [react forms](https://facebook.github.io/react/docs/forms.html)
+## a practical approach to react forms
 
-there are a slew of react form packages out there. why react-formstate?
+react-formstate is an elegant productivity solution for react forms and one-way binding. it is simple in design, simple to use, and limited in focus. it streamlines form components without buckling under complex use cases. it is feature complete and fully tested.
 
-- seamlessly supports dynamic forms, asynchronous validation, and nested, reusable form components.
-- clean design allows for stateless input components - no mixin or decoration required.
-- simple architecture encapsulates UI validation logic in your form component where it typically belongs.
-- feature complete and fully tested - not a half-baked, half-finished library that will leave you hanging.
+react-formstate turned out even better than i expected. if you give it a try i think you'll be happy with the solution too.
 
-react-formstate allows you to compose elegant forms quickly and easily, without getting in your way. it saves you hassle and time while still providing effective extension points. in my opinion, no other package does this as successfully.
-
-if you have any feedback i am happy to hear it. thanks.
+if you have any feedback i am glad to hear it. thanks.
 
 ### setup
 
@@ -23,27 +18,36 @@ if you have any feedback i am happy to hear it. thanks.
 ### features and examples
 
 - [basic example](/docs/basicExample.md)
+- [react bootstrap example](/docs/reactBootstrapExample.md)
 - [model injection](/docs/modelInjection.md)
 - [validation](/docs/validationWiring.md)
 - [nested form components](/docs/nestedFormExample.md)
 - [asynchronous validation](/docs/asyncExample.md)
-- [arrays, adding and removing inputs in response to state changes](/docs/arrayExample.md)
+- [arrays](/docs/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
 - [nonstandard input example: react-datepicker](/docs/datePickerExample.md)
 - [file input example](/docs/fileInputExample.md)
 - [show validation message on blur](/docs/onBlurExample.md)
 - [onUpdate callback](/docs/onUpdateExample.md)
 
+### recent enhancements
+
+- [form extension](/docs/formExtension.md)
+- [refactored injection](/docs/refactoredInjection.md)
+- [get getu set setc](/docs/getSetHelpers.md)
+
 ### documentation
 
 - [api](/docs/api.md)
+- [react forms](https://facebook.github.io/react/docs/forms.html)
+- [design contrast](/docs/designContrast.md)
 
 ### peer dependencies
 
-- react (!)
+- [react](https://facebook.github.io/react) (!)
 - assumes es5 (for example: Object.keys and Array.isArray)
 
 ### alternate titles
 
-- friendly full featured finely functioning fantastically fun form framework for [react](https://facebook.github.io/react)
-- another [react](https://facebook.github.io/react) form package?!
+- friendly full featured finely functioning fantastically fun form framework for react
+- another react form package?!

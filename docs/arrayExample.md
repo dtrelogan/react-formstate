@@ -13,7 +13,7 @@ export default class UserForm extends Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    this.state = this.formState.createUnitOfWork().injectModel(props.model);
+    this.state = this.formState.injectModel(props.model);
 
     let model = props.model || {};
     this.state.numContacts = model.contacts ? model.contacts.length : 0;

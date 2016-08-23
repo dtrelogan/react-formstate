@@ -586,24 +586,33 @@ describe('FormState', function() {
       assert.equal('', fieldState.getValue());
     });
   });
-  describe('#getUncoercedFieldState', function() {
-    it('baseline', function() {
+  describe('#get', function() {
+    it('coerces', function() {
       var state = { 'formState.name': { value: 3 } },
-        fs = new FormState({ state: state }),
-        fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '3');
+        fs = new FormState({ state: state });
+      assert.equal(true, fs.get('name') === '3');
     });
-    it('baseline2', function() {
+    it('does not coerce touched values', function() {
       var state = { 'formState.name': { value: 3, isCoerced: true } },
-        fs = new FormState({ state: state }),
-        fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === 3);
+        fs = new FormState({ state: state });
+      assert.equal(true, fs.get('name') === 3);
     });
+    it('returns empty string if no match', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state });
+      assert.equal(true, fs.get('noMatch') === '');
+    });
+  });
+  describe('#getu', function() {
     it('does not coerce', function() {
       var state = { 'formState.name': { value: 3 } },
-        fs = new FormState({ state: state }),
-        fieldState = fs.getUncoercedFieldState('name');
-      assert.equal(true, fieldState.getValue() === 3);
+        fs = new FormState({ state: state });
+      assert.equal(true, fs.getu('name') === 3);
+    });
+    it('returns null if no match', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state });
+      assert.equal(true, fs.getu('noMatch') === null);
     });
   });
   describe('#getFieldState', function() {
@@ -650,92 +659,33 @@ describe('FormState', function() {
       var fieldState = fs.getFieldState('name', 1);
       assert.equal('Henry', fieldState.getValue());
     });
-    it('returns a field state with value set to empty string if none exists', function() {
+    it('returns a field state with value set to null if none exists', function() {
       var fs = new FormState({ state: {} });
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
+      assert.equal(true, fieldState.fieldState.value === null);
     });
-    it('returns a field state with value set to empty string if model prop field does not exist', function() {
+    it('returns a field state with value set to null if model prop field does not exist', function() {
       var fs = new FormState({ state: {} });
       fs.injectModelProp({});
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
+      assert.equal(true, fieldState.fieldState.value === null);
     });
-    it('returns a field state with value set to empty string if deleted', function() {
+    it('returns a field state with value set to null if deleted', function() {
       var state = {
         'formState.name': { value: 'Henry', isDeleted: true }
       };
       var fs = new FormState({ state: state });
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
+      assert.equal(true, fieldState.fieldState.value === null);
     });
-    it('returns a field state with value set to empty string if deleted, ignoring model prop', function() {
+    it('returns a field state with value set to null if deleted, ignoring model prop', function() {
       var state = {
         'formState.name': { value: 'Henry', isDeleted: true }
       };
       var fs = new FormState({ state: state });
       fs.injectModelProp(createTestModel());
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
-    });
-    it('coerces a field state value of undefined to empty string', function() {
-      var state = {
-        'formState.name': { value: undefined }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
-    });
-    it('coerces a field state value of null to empty string', function() {
-      var state = {
-        'formState.name': { value: null }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '');
-    });
-    it('does not coerce a boolean false field state value', function() {
-      var state = {
-        'formState.name': { value: false }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === false);
-    });
-    it('does not coerce a boolean true field state value', function() {
-      var state = {
-        'formState.name': { value: true }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === true);
-    });
-    it('coerces an array of ints to an array of strings', function() {
-      var state = {
-        'formState.name': { value: [1, null, 3, true] }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, Array.isArray(fieldState.getValue()));
-      assert.equal(4, fieldState.getValue().length);
-      assert.equal(true, fieldState.getValue()[0] === '1');
-      assert.equal(true, fieldState.getValue()[1] === null);
-      assert.equal(true, fieldState.getValue()[2] === '3');
-      assert.equal(true, fieldState.getValue()[3] === 'true');
-    });
-    it('coerces an empty array to an empty array', function() {
-      var state = {
-        'formState.name': { value: [] }
-      };
-      var fs = new FormState({ state: state });
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
-    });
-    it('coerces a model prop value', function() {
-      var fs = new FormState({ state: {} });
-      fs.injectModelProp({name: 3});
-      var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '3');
+      assert.equal(true, fieldState.fieldState.value === null);
     });
     it('uses a name relative to form state path', function() {
       var state = {
@@ -794,47 +744,6 @@ describe('FormState', function() {
       assert.equal('123 pinecrest rd', fieldState.getValue());
       assert.equal(field, fieldState.getField());
     });
-    it('coerces injected form state unless noCoercion is set', function() {
-      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
-      var field = testForm.formState.fields.find(x => x.name === 'contact');
-      field = field.fields.find(x => x.name === 'email');
-      var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(false, Boolean(fieldState.isCoerced));
-      testForm.state = { 'formState.contact.email': { value: 1 } };
-      fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, '1' === fieldState.getValue());
-      field.noCoercion = true;
-      fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, 1 === fieldState.getValue());
-    });
-    it('noCoercion applies to model prop field', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {name: 1} }));
-      var field = testForm.formState.fields.find(x => x.name === 'name');
-      field.noCoercion = true;
-      var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, 1 === fieldState.getValue());
-    });
-    it('sets value to empty array if array default value and null or undefined injected value', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm));
-      var field = testForm.formState.fields.find(x => x.name === 'contact');
-      field = field.fields.find(x => x.name === 'email');
-      field.defaultValue = [1,2,3];
-      field.noCoercion = true; // this doesn't apply
-      testForm.state = { 'formState.contact.email': { value: null } };
-      var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
-      testForm.state = { 'formState.contact.email': { value: undefined } };
-      fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
-    });
-    it('sets value to empty array if array default value and null model prop value', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm, { model: { name: null }}));
-      var field = testForm.formState.fields.find(x => x.name === 'name');
-      field.defaultValue = [1,2,3];
-      field.noCoercion = true; // this doesn't apply
-      var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
-    });
     it('sets to default value if nothing injected', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
@@ -873,28 +782,20 @@ describe('FormState', function() {
       var fieldState = testForm.formState.getFieldState(field);
       assert.equal('default', fieldState.getValue());
     });
-    it('coerces default value unless noCoercion is set', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm));
-      var field = testForm.formState.fields.find(x => x.name === 'contact');
-      field = field.fields.find(x => x.name === 'email');
-      field.defaultValue = 3;
-      var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, '3' === fieldState.getValue());
-      testForm.state = { 'formState.contact.email': { value: 'deleted', isDeleted: true } };
-      field.noCoercion = true;
-      fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, 3 === fieldState.getValue());
-    });
-    it('can return undefined value if no coercion', function() {
+    it('could return undefined value if no coercion', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
       field = field.fields.find(x => x.name === 'email');
       field.noCoercion = true;
       var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, undefined === fieldState.getValue());
+      assert.equal(true, null === fieldState.getValue());
       testForm.state = { 'formState.contact.email': { value: undefined } };
       fieldState = testForm.formState.getFieldState(field);
       assert.equal(true, undefined === fieldState.getValue());
+      testForm.state = {};
+      field.defaultValue = undefined;
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, null === fieldState.getValue());
     });
     it('can return null value if no coercion', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
@@ -908,40 +809,14 @@ describe('FormState', function() {
       fieldState = testForm.formState.getFieldState(field);
       assert.equal(true, null === fieldState.getValue());
     });
-    it('does not mark fieldState coerced until you call set...', function() {
+    it('does not mark fieldState coerced', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       var field = testForm.formState.fields.find(x => x.name === 'contact');
       field = field.fields.find(x => x.name === 'email');
       var fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.getKey();
-      fieldState.getValue();
-      fieldState.getMessage();
-      fieldState.isValidated();
-      fieldState.isValid();
-      fieldState.isInvalid();
-      fieldState.isValidating();
-      fieldState.isDeleted();
-      fieldState.isMessageVisible();
-      fieldState.getField();
       assert.equal(false, Boolean(fieldState.fieldState.isCoerced));
-      fieldState.setValue('update');
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
-      fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.validate();
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
-      fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.setValid();
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
-      fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.setInvalid();
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
-      fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.setValidating();
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
-      fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      fieldState.fieldState.message = 'a message';
-      fieldState.showMessage();
-      assert.equal(true, Boolean(fieldState.fieldState.isCoerced));
+      assert.equal(true, fieldState.getValue() === '');
+      assert.equal(false, Boolean(fieldState.fieldState.isCoerced));
     });
   });
   describe('#isDeleted', function() {
@@ -1055,7 +930,40 @@ describe('FormState', function() {
       contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
       assert.equal(true, wasCalled);
     });
-  })
+  });
+  describe('#injectModel', function() {
+    it('returns injected state', function() {
+      var state = new FormState({}).injectModel({ x: 3 });
+      assert.equal(state['formState.x'].value, 3);
+    });
+  });
+  describe('#inject', function() {
+    it('injects into provided state', function() {
+      var state = { a: 1 };
+      new FormState({}).inject(state, { x: 3 });
+      assert.equal(state.a, 1);
+      assert.equal(state['formState.x'].value, 3);
+    });
+  });
+  describe('#add', function() {
+    it('adds a formState value to provided state', function() {
+      var fs = new FormState({});
+      var state = fs.injectModel({ x: 3 });
+      fs.add(state, 'y', 4);
+      assert.equal(state['formState.x'].value, 3);
+      assert.equal(state['formState.y'].value, 4);
+    });
+  });
+  describe('#remove', function() {
+    it('tags a formState value as deleted within provided state', function() {
+      var form = {};
+      var fs = new FormState(form);
+      form.state = fs.injectModel({ x: 3 });
+      assert.equal(form.state['formState.x'].value, 3);
+      fs.remove(form.state, 'x');
+      assert.equal(form.state['formState.x'].isDeleted, true);
+    });
+  });
 });
 describe('UnitOfWork', function() {
   describe('#constructor', function() {
@@ -1066,34 +974,114 @@ describe('UnitOfWork', function() {
       assert.equal(0, Object.keys(context.stateUpdates).length);
     });
   });
-  describe('#getUncoercedFieldState', function() {
-    it('baseline', function() {
+  describe('#set', function() {
+    it('sets a value', function() {
       var state = { 'formState.name': { value: 3 } },
         fs = new FormState({ state: state }),
         context = fs.createUnitOfWork();
-      var fieldState = context.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === '3');
-      context.stateUpdates['formState.name'] = { value: 3, isCoerced: true };
-      fieldState = context.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === 3);
-      // would not happen
-      // context.stateUpdates['formState.name'] = { value: 3 };
-      // fieldState = context.getFieldState('name');
-      // assert.equal(true, fieldState.getValue() === 3);
+      context.set('name', '4');
+      assert.equal(true, context.stateUpdates['formState.name'].value === '4');
     });
-    it('baseline2', function() {
+    it('does not set isCoerced to true', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      context.set('name', 4);
+      assert.equal(true, context.stateUpdates['formState.name'].value === 4);
+      assert.equal(true, context.stateUpdates['formState.name'].isCoerced === false);
+    });
+    it('returns a fieldstate', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        result = context.set('name', 4);
+      assert.equal(true, result.validate !== undefined);
+    });
+    it('creates a fieldstate', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        result = context.set('newField', '4');
+      assert.equal(true, context.stateUpdates['formState.newField'].value === '4');
+    });
+  });
+  describe('#setc', function() {
+    it('sets a value', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      context.setc('name', '4');
+      assert.equal(true, context.stateUpdates['formState.name'].value === '4');
+    });
+    it('sets isCoerced to true', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      context.setc('name', 4);
+      assert.equal(true, context.stateUpdates['formState.name'].value === 4);
+      assert.equal(true, context.stateUpdates['formState.name'].isCoerced === true);
+    });
+    it('returns a fieldstate', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        result = context.setc('name', 4);
+      assert.equal(true, result.validate !== undefined);
+    });
+    it('creates a fieldstate', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        result = context.setc('newField', 4);
+      assert.equal(true, context.stateUpdates['formState.newField'].value === 4);
+    });
+  });
+  describe('#get', function() {
+    it('coerces', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      assert.equal(true, context.get('name') === '3');
+    });
+    it('pulls from context', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      context.stateUpdates['formState.name'] = { value: '4', isCoerced: true };
+      assert.equal(true, context.get('name') === '4');
+    });
+    it('does not coerce touched values', function() {
       var state = { 'formState.name': { value: 3, isCoerced: true } },
         fs = new FormState({ state: state }),
         context = fs.createUnitOfWork();
-      var fieldState = context.getFieldState('name');
-      assert.equal(true, fieldState.getValue() === 3);
+      assert.equal(true, context.get('name') === 3);
     });
+    it('returns empty string if no match', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      assert.equal(true, context.get('noMatch') === '');
+    });
+  });
+  describe('#getu', function() {
     it('does not coerce', function() {
       var state = { 'formState.name': { value: 3 } },
         fs = new FormState({ state: state }),
         context = fs.createUnitOfWork();
-      var fieldState = context.getUncoercedFieldState('name');
-      assert.equal(true, fieldState.getValue() === 3);
+      assert.equal(true, context.getu('name') === 3);
+    });
+    it('pulls from context', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      context.stateUpdates['formState.name'] = { value: 4, isCoerced: true };
+      assert.equal(true, context.getu('name') === 4);
+    });
+    it('returns null if no match', function() {
+      var state = { 'formState.name': { value: 3 } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      assert.equal(true, context.getu('noMatch') === null);
     });
   });
   describe('#getFieldState', function() {
@@ -1180,16 +1168,6 @@ describe('UnitOfWork', function() {
       assert.equal('u', fieldState.getValue());
       assert.equal(field, fieldState.getField());
     });
-    it('does not coerce updated field state', function() {
-      var state = { 'formState.name': { value: 3 } },
-        fs = new FormState({ state: state }),
-        context = fs.createUnitOfWork();
-      var fieldState = context.getFieldState('name');
-      assert.equal(true, '3' === fieldState.getValue());
-      context.stateUpdates['formState.name'] = { value: 4 };
-      var fieldState = context.getFieldState('name');
-      assert.equal(true, 4 === fieldState.getValue());
-    });
   });
   describe('#updateFormState', function() {
     it('calls set state on the root form', function() {
@@ -1258,9 +1236,11 @@ describe('UnitOfWork', function() {
       context.add('x', 1);
       context.add('y', 2);
       assert.equal(true, context.stateUpdates['formState.x'].value === 1);
-      assert.equal(true, context.getFieldState('x').getValue() === 1);
+      assert.equal(true, context.getFieldState('x').getValue() === '1');
+      assert.equal(true, context.getFieldState('x').getUncoercedValue() === 1);
       assert.equal(true, context.stateUpdates['formState.y'].value === 2);
-      assert.equal(true, context.getFieldState('y').getValue() === 2);
+      assert.equal(true, context.getFieldState('y').getValue() === '2');
+      assert.equal(true, context.getFieldState('y').getUncoercedValue() === 2);
     });
     it('returns the unit of work state updates', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
@@ -1272,18 +1252,21 @@ describe('UnitOfWork', function() {
         context = fs.createUnitOfWork();
       context.add('x', 1);
       assert.equal(true, context.stateUpdates['formState.x'].value === 1);
-      assert.equal(true, context.getFieldState('x').getValue() === 1);
+      assert.equal(true, context.stateUpdates['formState.x'].isCoerced === undefined);
+      assert.equal(true, context.getFieldState('x').getValue() === '1');
+      assert.equal(true, context.getFieldState('x').getUncoercedValue() === 1);
       form.setState = function(x) {
         this.state = x;
       };
       context.updateFormState();
       assert.equal(true, '1' === fs.getFieldState('x').getValue());
+      assert.equal(true, 1 === fs.getFieldState('x').getUncoercedValue());
     });
     it('adds a nested value relative to form state path', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         nfs = fs.createFormState('nested'), context = nfs.createUnitOfWork();
       context.add('x', 1);
-      assert.equal(true, context.getFieldState('x').getValue() === 1);
+      assert.equal(true, context.getFieldState('x').getValue() === '1');
       form.setState = function(x) {
         this.state = x;
       };
@@ -1295,7 +1278,7 @@ describe('UnitOfWork', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         nfs = fs.createFormState('nested'), context = fs.createUnitOfWork();
       context.add('nested.x', 1);
-      assert.equal(true, context.getFieldState('nested.x').getValue() === 1);
+      assert.equal(true, context.getFieldState('nested.x').getValue() === '1');
       form.setState = function(x) {
         this.state = x;
       };
@@ -1347,7 +1330,7 @@ describe('UnitOfWork', function() {
 
       context.remove('name');
       assert.equal(true, context.getFieldState('name').isDeleted());
-      assert.equal(undefined, context.getFieldState('name').getValue());
+      assert.equal('', context.getFieldState('name').getValue());
       assert.equal('Henry', fs.getFieldState('name').getValue());
       context.updateFormState();
       assert.equal('', fs.getFieldState('name').getValue());
@@ -1363,7 +1346,7 @@ describe('UnitOfWork', function() {
 
       context.remove('email');
       assert.equal(true, context.getFieldState('email').isDeleted());
-      assert.equal(undefined, context.getFieldState('email').getValue());
+      assert.equal('', context.getFieldState('email').getValue());
       assert.equal('x', fs.getFieldState('contact.email').getValue());
       assert.equal('x', nfs.getFieldState('email').getValue());
       context.updateFormState();
@@ -1381,7 +1364,7 @@ describe('UnitOfWork', function() {
 
       context.remove('contact.email');
       assert.equal(true, context.getFieldState('contact.email').isDeleted());
-      assert.equal(undefined, context.getFieldState('contact.email').getValue());
+      assert.equal('', context.getFieldState('contact.email').getValue());
       assert.equal('x', fs.getFieldState('contact.email').getValue());
       assert.equal('x', nfs.getFieldState('email').getValue());
       context.updateFormState();
@@ -1554,7 +1537,7 @@ describe('UnitOfWork', function() {
       assert.equal(undefined, context.stateUpdates['formState.contact.email']);
       assert.equal(true, wasCalled);
     });
-    it('works wih an invalid model prop', function() {
+    it('works with an invalid model prop', function() {
       var model = createTestModel();
       model.name = '';
       ReactDOMServer.renderToString(React.createElement(UserForm, { model: model }));
@@ -1569,7 +1552,7 @@ describe('UnitOfWork', function() {
       var model = context.createModel();
       assert.equal(true, model === null);
       var update = context.stateUpdates['formState.name'];
-      assert.equal(true, update.isCoerced);
+      assert.equal(false, update.isCoerced);
       assert.equal(2, update.validity);
       assert.equal('Name is required', update.message);
       assert.equal(true, wasCalled);
@@ -1890,6 +1873,263 @@ describe('UnitOfWork', function() {
   });
 });
 describe('FieldState', function() {
+  describe('#getValue', function() {
+    it('returns the value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal('henry@ka.com', fieldState.getValue());
+    });
+    it('does not coerce a value tagged as coerced', function() {
+      var state = {
+        'formState.name': { value: 3, isCoerced: true }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === 3);
+    });
+    it('coerces injected form state unless noCoercion is set', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(false, Boolean(fieldState.fieldState.isCoerced));
+      testForm.state = { 'formState.contact.email': { value: 1 } };
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, '1' === fieldState.getValue());
+      field.noCoercion = true;
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, 1 === fieldState.getValue());
+    });
+    it('noCoercion applies to model prop field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: {name: 1} }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.noCoercion = true;
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, 1 === fieldState.getValue());
+    });
+    it('sets value to empty array if array default value and null or undefined injected value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.defaultValue = [1,2,3];
+      testForm.state = { 'formState.contact.email': { value: null } };
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
+      testForm.state = { 'formState.contact.email': { value: undefined } };
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
+    });
+    it('sets value to empty array if array default value and null or undefined injected value unless noCoercion is set', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.defaultValue = [1,2,3];
+      field.noCoercion = true;
+      testForm.state = { 'formState.contact.email': { value: null } };
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getValue() === null);
+      testForm.state = { 'formState.contact.email': { value: undefined } };
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getValue() === undefined);
+    });
+    it('sets value to empty array if array default value and null model prop value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: { name: null }}));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = [1,2,3];
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
+    });
+    it('sets value to empty array if array default value and null model prop value unless noCoercion is set', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: { name: null }}));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = [1,2,3];
+      field.noCoercion = true;
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getValue() === null);
+    });
+    it('coerces a field state value of undefined to empty string', function() {
+      var state = {
+        'formState.name': { value: undefined }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '');
+    });
+    it('coerces a field state value of null to empty string', function() {
+      var state = {
+        'formState.name': { value: null }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '');
+    });
+    it('does not coerce a boolean false field state value', function() {
+      var state = {
+        'formState.name': { value: false }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === false);
+    });
+    it('does not coerce a boolean true field state value', function() {
+      var state = {
+        'formState.name': { value: true }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === true);
+    });
+    it('coerces an array of ints to an array of strings', function() {
+      var state = {
+        'formState.name': { value: [1, null, 3, true] }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, Array.isArray(fieldState.getValue()));
+      assert.equal(4, fieldState.getValue().length);
+      assert.equal(true, fieldState.getValue()[0] === '1');
+      assert.equal(true, fieldState.getValue()[1] === null);
+      assert.equal(true, fieldState.getValue()[2] === '3');
+      assert.equal(true, fieldState.getValue()[3] === 'true');
+    });
+    it('coerces an empty array to an empty array', function() {
+      var state = {
+        'formState.name': { value: [] }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, Array.isArray(fieldState.getValue()) && fieldState.getValue().length === 0);
+    });
+    it('coerces an array of objects to an array of objects', function() {
+      var state = {
+        'formState.name': { value: [ {x: 3} ] }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, Array.isArray(fieldState.getValue()));
+      assert.equal(1, fieldState.getValue().length);
+      assert.equal(true, typeof(fieldState.getValue()[0]) === 'object');
+      assert.equal(true, fieldState.getValue()[0].x === 3);
+    });
+    it('coerces a model prop value', function() {
+      var fs = new FormState({ state: {} });
+      fs.injectModelProp({name: 3});
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getValue() === '3');
+    });
+    it('coerces default value unless noCoercion is set', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.defaultValue = 3;
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, '3' === fieldState.getValue());
+      testForm.state = { 'formState.contact.email': { value: 'deleted', isDeleted: true } };
+      field.noCoercion = true;
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, 3 === fieldState.getValue());
+    });
+  });
+  describe('#getUncoercedValue', function() {
+    it('does not coerce', function() {
+      var state = {
+        'formState.name': { value: 3 }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getUncoercedValue() === 3);
+    });
+    it('does not coerce a field state with value of undefined', function() {
+      var state = {
+        'formState.name': { value: undefined }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getUncoercedValue() === undefined);
+    });
+    it('does not coerce a field state with value of null', function() {
+      var state = {
+        'formState.name': { value: null }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getUncoercedValue() === null);
+    });
+    it('does not coerce an array value', function() {
+      var state = {
+        'formState.name': { value: [1] }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(true, fieldState.getUncoercedValue().length === 1);
+      assert.equal(true, fieldState.getUncoercedValue()[0] === 1);
+    });
+    it('does not set value to empty array if array default value and null or undefined injected value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.defaultValue = [1,2,3];
+      testForm.state = { 'formState.contact.email': { value: null } };
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getUncoercedValue() === null);
+      testForm.state = { 'formState.contact.email': { value: undefined } };
+      fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getUncoercedValue() === undefined);
+    });
+    it('does not set value to empty array if array default value and null model prop value', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: { name: null }}));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.defaultValue = [1,2,3];
+      var fieldState = testForm.formState.getFieldState(field);
+      assert.equal(true, fieldState.getUncoercedValue() === null);
+    });
+  });
+  describe('#setValue', function() {
+    it('does not tag as coerced', function() {
+      var state = { 'formState.name': { value: 'Henry' } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        fieldState = context.getFieldState('name');
+      fieldState.setValue('test');
+      assert.equal(false, fieldState.fieldState.isCoerced);
+      fieldState.setValid();
+      assert.equal(false, fieldState.fieldState.isCoerced);
+      fieldState.setInvalid();
+      assert.equal(false, fieldState.fieldState.isCoerced);
+      fieldState.setValidating();
+      assert.equal(false, fieldState.fieldState.isCoerced);
+      fieldState.showMessage();
+      assert.equal(false, fieldState.fieldState.isCoerced);
+      assert.equal(false, fieldState.isCoerced());
+    });
+  });
+  describe('#setCoercedValue', function() {
+    it('tags as coerced', function() {
+      var state = { 'formState.name': { value: 'Henry' } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork(),
+        fieldState = context.getFieldState('name');
+      fieldState.setCoercedValue('test');
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      fieldState.setValid();
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      fieldState.setInvalid();
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      fieldState.setValidating();
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      fieldState.showMessage();
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      assert.equal(true, fieldState.isCoerced());
+    });
+    it('is called by change handler', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var state;
+      testForm.setState = function(x) { state = x };
+      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
+      assert.equal(true, state['formState.contact.address.line1'].isCoerced);
+    });
+  });
   describe('#constructor', function() {
     it('sets props appropriately', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -1947,19 +2187,21 @@ describe('FieldState', function() {
       fieldState.setValue('');
       assert.equal(true, fieldState.isModified);
       var _modified = fieldState.fieldState;
-      assert.notEqual(_fieldState, _modified);
+      assert.equal(fieldState.fieldState, _modified);
+      assert.equal(false, _fieldState === _modified);
       fieldState.setValid();
       assert.equal(true, fieldState.isModified);
       assert.equal(fieldState.fieldState, _modified);
+      assert.equal(false, _fieldState === _modified);
       // and so on...
     });
-    it('updates isCoerced', function() {
+    it('does not update isCoerced', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.email');
       assert.equal(false, Boolean(fieldState.fieldState.isCoerced));
       fieldState.setValue('');
-      assert.equal(true, fieldState.fieldState.isCoerced);
+      assert.equal(false, fieldState.fieldState.isCoerced);
     });
     it('adds to state updates', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -1987,10 +2229,12 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.message = undefined;
-      fs2.fieldState.message = 'a message';
+      fs1.setValid('undefined');
+      fs2.setValid('a message');
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(false, fs1.equals(fs2));
     });
     it('returns false if message visibility is different', function() {
@@ -1998,13 +2242,15 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.message = 'a message';
-      fs2.fieldState.message = 'a message';
+      fs1.setValid('a message');
+      fs2.setValid('a message');
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.isMessageVisible = undefined;
-      fs2.fieldState.isMessageVisible = true;
+      fs2.showMessage();
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(false, fs1.equals(fs2));
     });
     it('returns false if non-array value is different', function() {
@@ -2012,10 +2258,12 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.value = '1';
-      fs2.fieldState.value = '2';
+      fs1.setValue('1');
+      fs2.setValue('2');
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(false, fs1.equals(fs2));
     });
     it('returns true if array value is same', function() {
@@ -2023,10 +2271,12 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.value = ['1',1,null,''];
-      fs2.fieldState.value = ['1',1,null,''];
+      fs1.setCoercedValue(['1',1,null,'']);
+      fs2.setCoercedValue(['1',1,null,'']);
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
     });
     it('returns false if array value has different values', function() {
@@ -2034,10 +2284,12 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.value = ['1',1,'',null];
-      fs2.fieldState.value = ['1',1,null,''];
+      fs1.setCoercedValue(['1',1,'',null]);
+      fs2.setCoercedValue(['1',1,null,'']);
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(false, fs1.equals(fs2));
     });
     it('returns false if array value has different length', function() {
@@ -2045,10 +2297,12 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fs1 = context.getFieldState('contact.email');
       var fs2 = context.getFieldState('contact.email');
-      assert.notEqual(fs1, fs2);
+      assert.equal(false, fs1 === fs2);
+      assert.equal(true, fs1.fieldState === fs2.fieldState);
       assert.equal(true, fs1.equals(fs2));
-      fs1.fieldState.value = ['1',1,null];
-      fs2.fieldState.value = ['1',1,null,''];
+      fs1.setValue(['1',1,null]);
+      fs2.setValue(['1',1,null,'']);
+      assert.equal(false, fs1.fieldState === fs2.fieldState);
       assert.equal(false, fs1.equals(fs2));
     });
   });
@@ -2058,14 +2312,6 @@ describe('FieldState', function() {
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.email');
       assert.equal('contact.email', fieldState.getKey());
-    });
-  });
-  describe('#getValue', function() {
-    it('returns the value', function() {
-      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
-      var context = testForm.formState.createUnitOfWork();
-      var fieldState = context.getFieldState('contact.email');
-      assert.equal('henry@ka.com', fieldState.getValue());
     });
   });
   describe('#getMessage', function() {

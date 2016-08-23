@@ -5,7 +5,7 @@ unlike a standard html input, [react-datepicker](https://github.com/Hacker0x01/r
 1. does not work exclusively with string values
 2. returns a [moment](http://momentjs.com/) rather than an event in its callback.
 
-to solve problem #1, use the 'noCoercion' feature to prevent react-formstate from coercing to a string the value supplied to the react-datepicker input.
+to solve problem #1, use the 'noCoercion' feature to prevent react-formstate from coercing the value supplied to the react-datepicker input.
 
 for problem #2, the best solution may vary depending on use case. four methods are presented:
 
@@ -62,10 +62,8 @@ export default class SomeForm extends Component {
   }
 
   handleDateInputChange(newMoment) {
-    let context = this.formState.createUnitOfWork(),
-      fieldState = context.getFieldState('when');
-
-    fieldState.setValue(newMoment).validate();
+    let context = this.formState.createUnitOfWork();
+    context.set('when', newMoment).validate();
     context.updateFormState();
   }
 
@@ -189,10 +187,8 @@ export default class DateInput extends Component {
 
   static buildHandler(formState, fieldName) {
     return function(m) {
-      let context = formState.createUnitOfWork(),
-        fieldState = context.getFieldState(fieldName);
-
-      fieldState.setValue(m).validate();
+      let context = formState.createUnitOfWork();
+      context.set(fieldName, m).validate();
       context.updateFormState();
     };
   }

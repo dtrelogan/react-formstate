@@ -28,10 +28,13 @@ export default class ChangePasswordForm extends Component {
 
   // or you can use a fluent validation api as appropriate
   render() {
-    let submitMessage = null;
-    if (this.formState.isInvalid()) {
+    let submitMessage = null,
+      isInvalid = this.formState.isInvalid();
+
+    if (isInvalid) {
       submitMessage = 'Please fix validation errors';
     }
+
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
         <Input
@@ -52,7 +55,7 @@ export default class ChangePasswordForm extends Component {
           required
           revalidateOnSubmit
           />
-        <input type='submit' value='Submit'/>
+        <input type='submit' value='Submit' disabled={isInvalid}/>
         <span>{submitMessage}</span>
       </Form>
     );
@@ -76,12 +79,7 @@ import React, { Component } from 'react';
 
 export default class Input extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label); // for demonstration only
     return (
       <div>
         <label>{this.props.label}</label>

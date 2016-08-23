@@ -7,12 +7,7 @@ import React, { Component } from 'react';
 
 export default class Input extends Component {
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.fieldState.equals(this.props.fieldState);
-  }
-
   render() {
-    console.log('render ' + this.props.label); // for demonstration only
     let fieldState = this.props.fieldState;
     return (
       <div>
@@ -35,7 +30,7 @@ export default class Input extends Component {
 in your form component, pass 'true' to FormState.isInvalid to factor in "visible" messages only
 
 ```jsx
-<input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+<input type='submit' value='Submit'/>
 <span>{this.formState.isInvalid(true) ? 'Please fix validation errors' : null}</span>
 ```
 

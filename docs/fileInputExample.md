@@ -20,7 +20,7 @@ export default class SampleForm extends Component {
     super(props);
 
     this.formState = new FormState(this);
-    this.state = this.formState.createUnitOfWork().injectModel(this.props.model);
+    this.state = this.formState.injectModel(this.props.model);
 
     this.handleImageSelection = this.handleImageSelection.bind(this);
     this.removeImage = this.removeImage.bind(this);
@@ -28,7 +28,7 @@ export default class SampleForm extends Component {
   }
 
   imageUrl() {
-    return this.formState.getFieldState('imageUrl').getValue();
+    return this.formState.get('imageUrl');
   }
 
   render() {
@@ -44,7 +44,7 @@ export default class SampleForm extends Component {
     }
 
     return (
-      <Form formState={this.formState}>
+      <Form formState={this.formState} onSubmit={this.submit}>
         <HiddenInput formField='id' defaultValue='0' intConvert/>
         <h2>General Information</h2>
         <Input formField='name' label='Name' required/>
@@ -62,7 +62,7 @@ export default class SampleForm extends Component {
         </div>
         {image}
         <br/>
-        <input type='submit' value='Submit' onClick={this.submit}/>
+        <input type='submit' value='Submit'/>
       </Form>
     );
   }
@@ -81,10 +81,8 @@ export default class SampleForm extends Component {
 
       this.uploadImage(formData).then(data => {
 
-        let context = this.formState.createUnitOfWork(),
-          fieldState = context.getFieldState('imageUrl');
-
-        fieldState.setValue(data.url).validate();
+        let context = this.formState.createUnitOfWork();
+        context.set('imageUrl', data.url).validate();
         context.updateFormState({imageLoading: false, imageMessage: null});
 
       }).catch(err => {
@@ -135,7 +133,7 @@ export default class SampleForm extends Component {
 
   removeImage() {
     let context = this.formState.createUnitOfWork();
-    context.getFieldState('imageUrl').setValue('');
+    context.setc('imageUrl', '');
     context.updateFormState();
   }
 

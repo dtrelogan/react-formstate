@@ -1,12 +1,7 @@
 import React from 'react';
 
 // "backlog"
-// add a getUncoercedFieldState function?
-//  use case: getValue in initial render before fields are defined
 // name='contacts[0][address][line1]'
-// coerceToString in FieldState.setValue?
-//  i could see how it might prevent accidental misuse but
-//  99% of the time it won't be helpful
 
 //
 // private functions, local to module
@@ -111,7 +106,7 @@ function isObject(v) {
 function coerceToString(v) {
   if (!exists(v)) { return ''; } // else
   if (v === true || v === false) { return v; } // else
-  if (Array.isArray(v)) { return v.map(x => exists(x) ? x.toString() : x); } // else
+  if (Array.isArray(v)) { return v.map(x => !exists(x) ? x : (typeof(x) === 'object' ? x : x.toString())); } // else
   return v.toString();
 }
 
@@ -156,7 +151,7 @@ function changeHandler(formState, field, e) {
     }
   }
 
-  fieldState.setValue(value).validate();
+  fieldState.setCoercedValue(value).validate();
 
   if (formState.rootFormState.updateCallback) {
     // accessing internals... clean this up?
@@ -421,16 +416,22 @@ class FieldState {
     return this.fieldState.asyncToken;
   }
 
-  setProps(value, validity, message, asyncToken, isMessageVisible) {
+  setValueImp(value, isCoerced) {
+    if (this.isModified) { throw new Error('setting value on a modified field state? if you are changing the value do that first'); }
+    return this.setProps(value, Boolean(isCoerced));
+  }
+
+  setProps(value, isCoerced, validity, message, asyncToken, isMessageVisible) {
     this.assertCanUpdate();
 
     if (!this.isModified) {
+      this.fieldState = {};
       this.isModified = true;
-      this.fieldState = { isCoerced: true }; // to get here, would have already gone through getFieldState
       _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
     }
 
     this.fieldState.value = value;
+    this.fieldState.isCoerced = isCoerced;
     this.fieldState.validity = validity;
     this.fieldState.message = message;
     this.fieldState.asyncToken = asyncToken;
@@ -463,9 +464,27 @@ class FieldState {
   }
 
   getKey() { return this.key; }
-  getValue() { return this.fieldState.value; }
+
+  getValue() {
+    let value = this.fieldState.value;
+
+    if (this.fieldState.isCoerced || (this.field && this.field.noCoercion)) {
+      return value;
+    }
+
+    if (!exists(value) && this.field && Array.isArray(this.field.defaultValue)) {
+      // if injected model.value is null and you are providing the value to, say, a select-multiple
+      // note that you can use 'preferNull' to reverse this upon model generation
+      return [];
+    }
+
+    return coerceToString(value);
+  }
+
+  getUncoercedValue() { return this.fieldState.value; }
   getMessage() { return this.fieldState.message; }
 
+  isCoerced() { return Boolean(this.fieldState.isCoerced); }
   isValidated() { return exists(this.fieldState.validity); }
   isValid() { return this.fieldState.validity === 1 }
   isInvalid() { return this.fieldState.validity === 2; }
@@ -475,10 +494,8 @@ class FieldState {
 
   getField() { return this.field; }
 
-  setValue(value) {
-    if (this.isModified) { throw new Error('setting value on a modified field state? if you are changing the value do that first'); }
-    return this.setProps(value);
-  }
+  setValue(value) { return this.setValueImp(value, false); }
+  setCoercedValue(value) { return this.setValueImp(value, true); }
 
   validate() {
     this.assertCanUpdate();
@@ -545,19 +562,19 @@ class FieldState {
   }
 
   // when you hit submit the message gets wiped by validation. use setValid instead.
-  // setMessage(message) { return this.setProps(this.getValue(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
+  // setMessage(message) { return this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
 
-  setValid(message) { return this.setProps(this.getValue(), 1, message); }
-  setInvalid(message) { return this.setProps(this.getValue(), 2, message); }
+  setValid(message) { return this.setProps(this.getValue(), this.isCoerced(), 1, message); }
+  setInvalid(message) { return this.setProps(this.getValue(), this.isCoerced(), 2, message); }
   setValidating(message) {
     let asyncToken = generateQuickGuid();
-    this.setProps(this.getValue(), 3, message, asyncToken, true);
+    this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, true);
     return asyncToken; // thinking this is more valuable than chaining
   }
   showMessage() {
     // i don't think chaining adds any value to this method. can always change it later.
     if (exists(this.getMessage()) && !this.isMessageVisible()) { // prevents unnecessary rendering
-      this.setProps(this.getValue(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
+      this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
     }
   }
 
@@ -620,6 +637,26 @@ export class FormState {
   }
 
 
+  injectModel(model) {
+    return this.createUnitOfWork().injectModel(model);
+  }
+
+
+  inject(state, model) {
+    new UnitOfWork(this, state).injectModel(model);
+  }
+
+
+  add(state, name, value) {
+    new UnitOfWork(this, state).add(name, value);
+  }
+
+
+  remove(state, name) {
+    new UnitOfWork(this, state).remove(name);
+  }
+
+
   isInvalid(visibleMessagesOnly) {
     return anyFieldState(this.form.state, x => x.isInvalid() && (!visibleMessagesOnly || x.isMessageVisible()));
   }
@@ -640,12 +677,10 @@ export class FormState {
   }
 
 
-  getFieldState(fieldOrName, asyncToken, stateContext, noCoercion) {
+  getFieldState(fieldOrName, asyncToken, stateContext) {
     let field = findFieldByFieldOrName(this, fieldOrName),
       key = field ? field.key : this.buildKey(fieldOrName),
       _fieldState = _getFieldState(this.form.state, key);
-
-    noCoercion = Boolean(noCoercion || (field && field.noCoercion));
 
     // if model prop provided to root FormObject
     // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -653,21 +688,12 @@ export class FormState {
       _fieldState = _getFieldState(this.rootFormState.flatModel, key);
     }
 
-    // if you inject a model (or provide a model prop) and this is the first time we are using an injected value
-    if (_fieldState && !_fieldState.isDeleted && !_fieldState.isCoerced) {
-      if (!exists(_fieldState.value) && field && Array.isArray(field.defaultValue)) {
-        // if injected model.value is null and you are providing the value to, say, a select-multiple
-        // note that you can use 'preferNull' to reverse this upon model generation
-        _fieldState = { value: [] };
-      } else {
-        _fieldState = { value: noCoercion ? _fieldState.value : coerceToString(_fieldState.value) };
-      }
-    }
-
-    // if no model injected and this is the first time pulling a value
     if (!_fieldState || _fieldState.isDeleted) {
-      let defaultValue = field && field.defaultValue;
-      _fieldState = { value: noCoercion ? defaultValue : coerceToString(defaultValue) };
+      _fieldState = { value: null };
+
+      if (field && (field.defaultValue !== undefined)) {
+        _fieldState.value = field.defaultValue;
+      }
     }
 
     if (asyncToken && _fieldState.asyncToken !== asyncToken) {
@@ -678,8 +704,13 @@ export class FormState {
   }
 
 
-  getUncoercedFieldState(fieldOrName, asyncToken) {
-    return this.getFieldState(fieldOrName, asyncToken, null, true);
+  get(name) {
+    return this.getFieldState(name).getValue();
+  }
+
+
+  getu(name) {
+    return this.getFieldState(name).getUncoercedValue();
   }
 
 
@@ -742,9 +773,9 @@ class UnitOfWork {
   // "private"
   //
 
-  constructor(formState) {
+  constructor(formState, state) {
     this.formState = formState;
-    this.stateUpdates = {};
+    this.stateUpdates = state || {};
   }
 
 
@@ -814,7 +845,7 @@ class UnitOfWork {
   // public
   //
 
-  getFieldState(fieldOrName, asyncToken, noCoercion) {
+  getFieldState(fieldOrName, asyncToken) {
     let field = findFieldByFieldOrName(this.formState, fieldOrName),
       key = field ? field.key : this.formState.buildKey(fieldOrName),
       _fieldState = _getFieldState(this.stateUpdates, key);
@@ -822,13 +853,28 @@ class UnitOfWork {
     if (_fieldState) {
       return new FieldState(_fieldState, key, field, true, this);
     } else {
-      return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this, noCoercion);
+      return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this);
     }
   }
 
 
-  getUncoercedFieldState(fieldOrName, asyncToken) {
-    return this.getFieldState(fieldOrName, asyncToken, true);
+  get(name) {
+    return this.getFieldState(name).getValue();
+  }
+
+
+  getu(name) {
+    return this.getFieldState(name).getUncoercedValue();
+  }
+
+
+  set(name, value) {
+    return this.getFieldState(name).setValue(value);
+  }
+
+
+  setc(name, value) {
+    return this.getFieldState(name).setCoercedValue(value);
   }
 
 

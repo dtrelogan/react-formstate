@@ -10,7 +10,7 @@ export default class UserForm extends Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    this.state = this.formState.createUnitOfWork().injectModel(props.model);
+    this.state = this.formState.injectModel(props.model);
     this.originalUsername = props.model && props.model.username;
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -61,6 +61,9 @@ export default class UserForm extends Component {
       fieldState = context.getFieldState('username');
 
     fieldState.setValue(username);
+
+    // alternatively you could use the set or setc function, see the api documentation.
+    // let fieldState = context.setc('username', username);
 
     if (username === this.originalUsername) {
       fieldState.setValid();
