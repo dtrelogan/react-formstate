@@ -53,8 +53,8 @@ export default class FsBootstrapInput extends Component {
 
     let validationState = null;
     if (this.props.fieldState.isValid()) {validationState = 'success';}
-    if (this.props.fieldState.isValidating()) {validationState = 'warning';}
-    if (this.props.fieldState.isInvalid()) {validationState = 'error';}
+    else if (this.props.fieldState.isValidating()) {validationState = 'warning';}
+    else if (this.props.fieldState.isInvalid()) {validationState = 'error';}
 
     return (
       <BootstrapInput
