@@ -10,6 +10,11 @@ import { FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap
 
 export default class BootstrapInput extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+  
   render() {
     return (
       <FormGroup
@@ -22,7 +27,7 @@ export default class BootstrapInput extends Component {
           type={this.props.type || 'text'}
           value={this.props.value}
           placeholder={this.props.placeholder}
-          onChange={this.props.onChange}
+          onChange={this.onChange}
           disabled={this.props.disabled}
           autoFocus={this.props.autoFocus}
           />
@@ -30,6 +35,10 @@ export default class BootstrapInput extends Component {
         <HelpBlock>{this.props.help}</HelpBlock>
       </FormGroup>
     );
+  }
+  
+  onChange(e) {
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```
@@ -41,11 +50,6 @@ import React, { Component } from 'react';
 import BootstrapInput from './BootstrapInput.jsx';
 
 export default class FsBootstrapInput extends Component {
-
-  constructor(props) {
-    super(props);
-    this.onChange = this.onChange.bind(this);
-  }
 
   render() {
     let {
@@ -68,15 +72,11 @@ export default class FsBootstrapInput extends Component {
         controlId={fieldState.getKey()}
         validationState={validationState}
         value={fieldState.getValue()}
-        onChange={this.onChange}
+        handleValueChange={handleValueChange}
         help={fieldState.getMessage()}
         {...other}
         />
     );
-  }
-
-  onChange(e) {
-    this.props.handleValueChange(e.target.value);
   }
 }
 ```
