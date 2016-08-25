@@ -574,7 +574,7 @@ export default class UserForm extends Component {
 
 ### <a name="FormState.add">object add(object state, string name, ? value)</a>
 
-adds a value directly to your form state, or updates an existing value.
+adds a value directly to your form state, OR UPDATES an existing value. maybe i should have named it 'upsert'.
 
 this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
 
@@ -587,13 +587,15 @@ this.formState.add(this.state, 'active', !model.disabled);
 you can add object, array, and primitive values:
 
 ```es6
-this.state = this.formState.injectModel({});
-this.formState.add(this.state, 'x', 3);
-// { 'formState.x': 3 }
-this.formState.add(this.state, 'obj', { y: 4, z: { a: 5 } });
-// { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5 }
-this.formState.add(this.state', 'list', [1]);
-// { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.list.0': 1 }
+{
+  this.state = this.formState.injectModel({});
+  this.formState.add(this.state, 'x', 3);
+  // { 'formState.x': 3 }
+  this.formState.add(this.state, 'obj', { y: 4, z: { a: 5 } });
+  // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5 }
+  this.formState.add(this.state, 'arrayValue', [1]);
+  // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.arrayValue': [1], 'formState.arrayValue.0' : 1 }
+}
 ```
 
 ### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
