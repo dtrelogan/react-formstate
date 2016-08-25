@@ -13,6 +13,7 @@ export default class UserForm extends Component {
     this.state = this.formState.injectModel(props.model);
     this.originalUsername = props.model && props.model.username;
 
+    this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -25,7 +26,7 @@ export default class UserForm extends Component {
       submitMessage = 'Please fix validation errors';
     }
 
-    // notice we are overriding the framework-generated updateFormState prop for username
+    // notice we are overriding the framework-generated handleValueChange prop for username
 
     // also notice username is still marked required.
     // this will prevent a valid form submission before the user enters anything.
@@ -37,7 +38,7 @@ export default class UserForm extends Component {
           formField='username'
           label='Username'
           required
-          updateFormState={this.handleUsernameChange.bind(this)}
+          handleValueChange={this.handleUsernameChange}
         />
         <input type='submit' value='Submit'/>
         <span>{submitMessage}</span>
@@ -55,12 +56,11 @@ export default class UserForm extends Component {
   }
 
 
-  handleUsernameChange(e) {
-    let username = e.target.value,
-      context = this.formState.createUnitOfWork(),
+  handleUsernameChange(username) {
+    let context = this.formState.createUnitOfWork(),
       fieldState = context.getFieldState('username');
 
-    fieldState.setValue(username);
+    fieldState.setCoercedValue(username);
 
     // alternatively you could use the set or setc function, see the api documentation.
     // let fieldState = context.setc('username', username);
@@ -82,7 +82,7 @@ export default class UserForm extends Component {
     context.updateFormState();
 
     // simulate calling your api
-    window.setTimeout(function() {
+    window.setTimeout(() => {
       let context = this.formState.createUnitOfWork(),
         fieldState = context.getFieldState('username', asyncToken);
 
@@ -96,7 +96,7 @@ export default class UserForm extends Component {
         fieldState.showMessage(); // in case you are showing on blur
         context.updateFormState();
       }
-    }.bind(this), 2000);
+    }, 2000);
   }
 
 }

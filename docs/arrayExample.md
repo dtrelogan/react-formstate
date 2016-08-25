@@ -72,12 +72,12 @@ export default class UserForm extends Component {
 
 
   removeContact(i) {
-    return function(e) {
+    return (e) => {
       e.preventDefault();
       let context = this.formState.createUnitOfWork();
       context.remove(`contacts.${i}`);
       context.updateFormState();
-    }.bind(this);
+    };
   }
 }
 ```

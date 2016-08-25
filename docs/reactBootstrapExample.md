@@ -41,11 +41,17 @@ import React, { Component } from 'react';
 import BootstrapInput from './BootstrapInput.jsx';
 
 export default class FsBootstrapInput extends Component {
+
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
     let {
       className,
       formField, required, validate, fsValidate, fsv, noTrim, preferNull, intConvert, defaultValue, noCoercion, revalidateOnSubmit, handlerBindFunction,
-      fieldState, updateFormState, showValidationMessage,
+      fieldState, updateFormState, handleValueChange, showValidationMessage,
       ...other
     } = this.props;
 
@@ -62,11 +68,15 @@ export default class FsBootstrapInput extends Component {
         controlId={fieldState.getKey()}
         validationState={validationState}
         value={fieldState.getValue()}
-        onChange={updateFormState}
+        onChange={this.onChange}
         help={fieldState.getMessage()}
         {...other}
         />
     );
+  }
+
+  onChange(e) {
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```

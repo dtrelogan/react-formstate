@@ -69,6 +69,7 @@ export default class UserForm extends Component {
       { id: 4, name: 'Site 4' }
     ];
 
+    this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.addContact = this.addContact.bind(this);
   }
@@ -118,8 +119,11 @@ export default class UserForm extends Component {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
         <Input formField='name' label='Name' required />
-        <Input formField='username' label='Username' required
-          updateFormState={this.handleUsernameChange.bind(this)}
+        <Input
+          formField='username'
+          label='Username'
+          required
+          handleValueChange={this.handleUsernameChange}
           />
         <Input formField='password' type='password' label='Password' required />
         <Input formField='passwordConfirmation' type='password' label='Confirm Password'/>
@@ -194,18 +198,17 @@ export default class UserForm extends Component {
 
 
   removeContact(i) {
-    return function(e) {
+    return (e) => {
       e.preventDefault();
       let context = this.formState.createUnitOfWork();
       context.remove(`contacts.${i}`);
       context.updateFormState();
-    }.bind(this);
+    };
   }
 
 
-  handleUsernameChange(e) {
-    let username = e.target.value,
-      context = this.formState.createUnitOfWork(),
+  handleUsernameChange(username) {
+    let context = this.formState.createUnitOfWork(),
       fieldState = context.setc('username', username);
 
     if (username === this.originalUsername) {
@@ -225,7 +228,7 @@ export default class UserForm extends Component {
 
     context.updateFormState();
 
-    window.setTimeout(function() {
+    window.setTimeout(() => {
       let context = this.formState.createUnitOfWork();
       let fieldState = context.getFieldState(field.name, asyncToken);
       if (fieldState) { // if it hasn't changed in the meantime
@@ -237,7 +240,7 @@ export default class UserForm extends Component {
         fieldState.showMessage(); // in case you are showing on blur
         context.updateFormState();
       }
-    }.bind(this), 2000);
+    }, 2000);
   }
 
 }
@@ -250,13 +253,27 @@ import React, { Component } from 'react';
 
 export default class Checkbox extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
     return (
       <div>
-        <input type='checkbox' checked={this.props.fieldState.getValue()} onChange={this.props.updateFormState} /><label>{this.props.label}</label>
+        <input
+          type='checkbox'
+          checked={this.props.fieldState.getValue()}
+          onChange={this.onChange}
+          />
+        <label>{this.props.label}</label>
         <span className='help'>{this.props.fieldState.getMessage()}</span>
       </div>
-    )
+    );
+  }
+
+  onChange(e) {
+    this.props.handleValueChange(e.target.checked); // NOT e.target.value!
   }
 }
 ```
@@ -268,15 +285,30 @@ import React, { Component } from 'react';
 
 export default class CheckboxGroup extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
-    let checkboxes = this.props.checkboxValues.map(function(v) {
-      let checked = this.props.fieldState.getValue().some(x => x === v.id.toString());
+    let arrayValue = this.props.fieldState.getValue() || [];
+
+    // note that in getValue react-formstate will coerce [1,2,3] to ['1','2','3']
+
+    let checkboxes = this.props.checkboxValues.map((v) => {
+      let checked = arrayValue.some(x => x === v.id.toString());
       return (
         <span key={v.id}>
-          <input type='checkbox' value={v.id} checked={checked} onChange={this.props.updateFormState} /><label>{v.name}</label><br/>
+          <input
+            type='checkbox'
+            value={v.id}
+            checked={checked}
+            onChange={this.onChange}
+            />
+          <label>{v.name}</label><br/>
         </span>
       );
-    }.bind(this));
+    });
 
     return (
       <div>
@@ -288,6 +320,22 @@ export default class CheckboxGroup extends Component {
       </div>
     );
   }
+
+  onChange(e) {
+    let value = this.props.fieldState.getValue() || []; // previous value
+
+    if (e.target.checked) {
+      value = value.slice(0); // copy the existing array
+      if (!value.some(x => x === e.target.value)) {
+        value.push(e.target.value)
+        value.sort();
+      }
+    } else {
+      value = value.filter(x => x !== e.target.value);
+    }
+
+    this.props.handleValueChange(value);
+  }
 }
 ```
 
@@ -298,15 +346,26 @@ import React, { Component } from 'react';
 
 export default class RadioGroup extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
-    let buttons = this.props.buttonValues.map(function(v) {
-      let checked = this.props.fieldState.getValue() === v.id.toString();
+    let buttons = this.props.buttonValues.map((v) => {
       return (
         <span key={v.id}>
-          <input type='radio' value={v.id} checked={checked} onChange={this.props.updateFormState} /><label>{v.name}</label><br/>
+          <input
+            type='radio'
+            value={v.id}
+            checked={this.props.fieldState.getValue() === v.id.toString()}
+            onChange={this.onChange}
+            />
+          <label>{v.name}</label><br/>
         </span>
       );
-    }.bind(this));
+    });
+
     return (
       <div>
         <label>{this.props.label}</label><br/>
@@ -315,6 +374,10 @@ export default class RadioGroup extends Component {
         <div className='help'>{this.props.fieldState.getMessage()}</div>
       </div>
     );
+  }
+
+  onChange(e) {
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```
@@ -326,21 +389,59 @@ import React, { Component } from 'react';
 
 export default class Select extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
-    let options = this.props.optionValues.map(function(v) {
+    let options = this.props.optionValues.map((v) => {
       return (
-        <option key={v.id} value={v.id.toString()} >{v.name}</option>
+        <option key={v.id} value={v.id.toString()}>
+          {v.name}
+        </option>
       );
     });
+
+    let value = this.props.fieldState.getValue();
+
+    // note that in getValue react-formstate will coerce [1,2,3] to ['1','2','3']
+
+    if (this.props.multiple) {
+      value = value || []; // null is coerced to '' not []
+    }
+
     return (
       <div>
         <div><label>{this.props.label}</label></div>
-        <select multiple={Boolean(this.props.multiple)} value={this.props.fieldState.getValue()} onChange={this.props.updateFormState} >
+        <select
+          multiple={Boolean(this.props.multiple)}
+          value={value}
+          onChange={this.onChange}
+          >
           {options}
         </select>
         <span className='help'>{this.props.fieldState.getMessage()}</span>
       </div>
     );
+  }
+
+  onChange(e) {
+    let value;
+
+    if (this.props.multiple) {
+      value = [];
+      let options = e.target.options;
+      for (let i = 0, len = options.length; i < len; i++) {
+        if (options[i].selected) {
+          value.push(options[i].value);
+        }
+      }
+    } else {
+      value = e.target.value;
+    }
+
+    this.props.handleValueChange(value);
   }
 }
 ```
@@ -352,17 +453,26 @@ import React, { Component } from 'react';
 
 export default class TextArea extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
     return (
       <div>
         <label>{this.props.label}</label>
         <textarea
           value={this.props.fieldState.getValue()}
-          onChange={this.props.updateFormState}
+          onChange={this.onChange}
           />
         <span className='help'>{this.props.fieldState.getMessage()}</span>
       </div>
     );
+  }
+
+  onChange(e) {
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```

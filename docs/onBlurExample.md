@@ -7,6 +7,11 @@ import React, { Component } from 'react';
 
 export default class Input extends Component {
 
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
   render() {
     let fieldState = this.props.fieldState;
     return (
@@ -15,7 +20,7 @@ export default class Input extends Component {
         <input
           type={this.props.type || 'text'}
           value={fieldState.getValue()}
-          onChange={this.props.updateFormState}
+          onChange={this.onChange}
           onBlur={this.props.showValidationMessage}
           />
         <span className='help'>
@@ -23,6 +28,10 @@ export default class Input extends Component {
         </span>
       </div>
     );
+  }
+
+  onChange(e) {
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```

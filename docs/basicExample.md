@@ -78,6 +78,10 @@ an associated input component manages no state and is essentially a layout of yo
 import React, { Component } from 'react';
 
 export default class Input extends Component {
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
 
   render() {
     return (
@@ -86,11 +90,16 @@ export default class Input extends Component {
         <input
           type={this.props.type || 'text'}
           value={this.props.fieldState.getValue()}
-          onChange={this.props.updateFormState}
+          onChange={this.onChange}
           />
         <span>{this.props.fieldState.getMessage()}</span>
       </div>
     );
+  }
+
+  onChange(e) {
+    // react-formstate provides a default change handler but you can override it
+    this.props.handleValueChange(e.target.value);
   }
 }
 ```

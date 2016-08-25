@@ -383,7 +383,7 @@ describe('FormState', function() {
         assert.equal('Work Address Line 1', label);
       });
       testForm.setState = function() {};
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
+      contactAddressLine1Input.props.handleValueChange('123 pinecrest rd.');
       assert.equal(true, wasCalled);
     });
     it('sets the required validation function', function() {
@@ -434,7 +434,7 @@ describe('FormState', function() {
         }
       });
       testForm.setState = function() {};
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
+      contactAddressLine1Input.props.handleValueChange('123 pinecrest rd.');
       assert.equal(true, wasCalled);
       wasCalled = false;
       isFsv = true;
@@ -914,7 +914,7 @@ describe('FormState', function() {
         assert.equal('Henry!', context.stateUpdates['formState.name'].value);
         assert.equal('name', key);
       });
-      nameInput.props.updateFormState({ target: { value: 'Henry!', type: 'testing' }});
+      nameInput.props.handleValueChange('Henry!');
       assert.equal(true, wasCalled);
     });
     it('is passed a key that may name a nested field', function() {
@@ -927,7 +927,7 @@ describe('FormState', function() {
         assert.equal('contact.address.line1', key);
         assert.equal(context.formState, context.formState.rootFormState);
       });
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
+      contactAddressLine1Input.props.handleValueChange('123 pinecrest rd.');
       assert.equal(true, wasCalled);
     });
   });
@@ -2122,13 +2122,6 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.fieldState.isCoerced);
       assert.equal(true, fieldState.isCoerced());
     });
-    it('is called by change handler', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm));
-      var state;
-      testForm.setState = function(x) { state = x };
-      contactAddressLine1Input.props.updateFormState({ target: { value: '123 pinecrest rd.', type: 'testing' }});
-      assert.equal(true, state['formState.contact.address.line1'].isCoerced);
-    });
   });
   describe('#constructor', function() {
     it('sets props appropriately', function() {
@@ -3214,6 +3207,47 @@ describe('FormObject', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal(true, fieldState.isMessageVisible());
       assert.equal(true, wasCalled);
+    });
+  });
+  describe('#simpleChangeHandler', function() {
+    it('sets value, validates, and calls updateFormState', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('contact.email');
+      assert.equal('', fieldState.getValue());
+      assert.equal(false, fieldState.isValidated());
+      contactEmailInput.props.handleValueChange('a');
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('contact.email');
+      assert.equal('a', fieldState.getValue());
+      assert.equal(true, fieldState.isValidated());
+    });
+    it('does not call updateFormState if update callback defined', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var onUpdateWasCalled = false;
+      testForm.formState.onUpdate(function() {
+        onUpdateWasCalled = true;
+      });
+      contactEmailInput.props.handleValueChange('a');
+      assert.equal(false, wasCalled);
+      assert.equal(true, onUpdateWasCalled);
+    });
+    // onUpdate callback already tested...
+    it('calls setCoercedValue', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      var state;
+      testForm.setState = function(x) { state = x };
+      contactAddressLine1Input.props.handleValueChange('123 pinecrest rd.');
+      assert.equal(true, state['formState.contact.address.line1'].isCoerced);
     });
   });
   describe('#changeHandler', function() {

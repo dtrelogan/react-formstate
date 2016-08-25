@@ -43,9 +43,9 @@ customHandler(e) {
 
 getu is an alternative that retrieves an uncoerced value.
 
-when is this useful?
+when is this useful? for starters, see the [react-datepicker example](./datePickerExample.md).
 
-well it's a bit of an edge case but for example if you are using react-datepicker and injecting a model, you might have conditional logic in your render function like so
+then, if you are using react-datepicker and injecting a model, you might have conditional logic in your render function like so
 
 ```es6
 constructor(props) {
@@ -55,15 +55,13 @@ constructor(props) {
 }
 
 render() {
-  let yay = null;
-  if (this.formState.getu('someInjectedDate').date() === 1) {
+  let yay = null, dateValue = this.formState.getu('someInjectedDate');
+  if (dateValue && dateValue.date() === 1) {
     yay = "it's the first of the month!";
   }
   // ...
 }
 ```
-
-the first time render is called react-formstate hasn't seen the fields in your jsx yet so at the time the if statement is evaluated it has no idea whether noCoercion is set. so you have to be explicit and use getu (or getFieldState('someInjectedDate').getUncoercedValue()).
 
 ### setc
 

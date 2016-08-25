@@ -228,6 +228,21 @@ function changeHandler(formState, field, e) {
   }
 }
 
+function simpleChangeHandler(formState, field, value) {
+  var context = formState.createUnitOfWork(),
+      fieldState = context.getFieldState(field);
+
+  fieldState.setCoercedValue(value).validate();
+
+  if (formState.rootFormState.updateCallback) {
+    // accessing internals... clean this up?
+    context.formState = formState.rootFormState;
+    formState.rootFormState.updateCallback(context, field.key);
+  } else {
+    context.updateFormState();
+  }
+}
+
 function blurHandler(formState, field) {
   var context = formState.createUnitOfWork(),
       fieldState = context.getFieldState(field);
@@ -445,7 +460,8 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       return {
         label: field.label,
         fieldState: formState.getFieldState(field), // read-only
-        updateFormState: props.updateFormState || changeHandler.bind(null, formState, field),
+        updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
+        handleValueChange: props.handleValueChange || simpleChangeHandler.bind(null, formState, field),
         showValidationMessage: blurHandler.bind(null, formState, field)
       };
     }

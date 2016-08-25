@@ -153,7 +153,7 @@ export default class SampleForm extends Component {
 
 the Input component was previously shown in the [basic example](./basicExample.md).
 
-the HiddenInput component is simply
+the HiddenInput component is simply:
 
 ```es6
 import React, { Component } from 'react';

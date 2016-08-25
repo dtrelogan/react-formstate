@@ -10,9 +10,7 @@
   - [preferNull](#Field.preferNull)
   - [intConvert](#Field.intConvert)
   - [defaultValue](#Field.defaultValue)
-  - [noCoercion](#Field.noCoercion)
   - [revalidateOnSubmit](#Field.revalidateOnSubmit)
-  - [handlerBindFunction](#Field.handlerBindFunction)
 - [FieldState](#FieldState)
   - [equals](#FieldState.equals)
   - [getField](#FieldState.getField)
@@ -63,6 +61,12 @@
   - [set](#UnitOfWork.set)
   - [setc](#UnitOfWork.setc)
   - [updateFormState](#UnitOfWork.updateFormState)
+- [Deprecated](#Deprecated)
+  - [Field.noCoercion](#Field.noCoercion)
+  - [Field.handlerBindFunction](#Field.handlerBindFunction)
+  - [the updateFormState handler](#updateFormStateHandler)
+  - [UnitOfWork.injectModel](#UnitOfWork.injectModel)
+  - [UnitOfWork.add](#UnitOfWork.add)
 
 ## <a name='Field'>Field</a>
 
@@ -92,9 +96,9 @@ a framework object is created with the following properties:
   preferNull: false,
   intConvert: true,
   defaultValue: [],
-  noCoercion: false,
   revalidateOnSubmit: false,
-  handlerBindFunction: undefined
+  noCoercion: false, // DEPRECATED
+  handlerBindFunction: undefined // DEPRECATED
 }
 ```
 
@@ -146,24 +150,9 @@ defines a default value for your input.
 
 if a model is [injected](#FormState.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
-*important*: if using the framework generated change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether *your* component contains a text input or a select input.
-
 do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
-### <a name='Field.noCoercion'>noCoercion</a>
-
-most html inputs work with string values. values are then coerced to strings by default. (see [FieldState.getValue](#FieldState.getValue) and [FieldState.getUncoercedValue](#FieldState.getUncoercedValue))
-
-the noCoercion setting disables this logic:
-
-```es6
-if (!isDefined(v)) { return ''; } // else
-if (v === true || v === false) { return v; } // else
-if (Array.isArray(v)) { return v.map(x => !exists(x) ? x : (typeof(x) === 'object' ? x : x.toString())); } // else
-return v.toString();
-```
-
-also see [handlerBindFunction](#Field.handlerBindFunction).
+note: if you are using the DEPRECATED framework generated 'updateFormState' change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether your component contains a text input or a select input. i would advise instead using the new 'handleValueChange' handler where this is no longer a concern.
 
 ### <a name='Field.revalidateOnSubmit'>revalidateOnSubmit</a>
 
@@ -174,12 +163,6 @@ the reason? consider a username validation that calls an api to ensure a usernam
 now consider a confirm password validation. since it validates against another field that might change, you *do* want to revalidate the password confirmation upon form submission. since this is not the common case, if you want this behavior you have to add a *revalidateOnSubmit* prop to your jsx input element.
 
 revalidateOnSubmit should *not* be added to fields that perform asynchronous validation. [UnitOfWork.createModel](#UnitOfWork.createModel) is purposefully designed to run synchronously.
-
-### <a name='Field.handlerBindFunction'>handlerBindFunction</a>
-
-see the [react-datepicker example](/docs/datePickerExample.md) for an explanation.
-
-note that you can alternatively configure the bind function via the [noCoercion](#Field.noCoercion) prop as shown in the example.
 
 ## <a name='FieldState'>FieldState</a>
 
@@ -239,11 +222,22 @@ assert(true, fieldState.getValue() === '3');
 assert(true, fieldState.getUncoercedValue() === 3);
 ```
 
-you can override this behavior with [getUncoercedValue](#FieldState.getUncoercedValue) or [noCoercion](#Field.noCoercion)
+here is the coercion logic for reference:
+
+```es6
+if (!isDefined(v)) { return ''; } // else
+if (v === true || v === false) { return v; } // else
+if (Array.isArray(v)) { return v.map(x => !exists(x) ? x : (typeof(x) === 'object' ? x : x.toString())); } // else
+return v.toString();
+```
+
+you can override this behavior with [getUncoercedValue](#FieldState.getUncoercedValue)
 
 ### <a name='FieldState.getUncoercedValue'>string getUncoercedValue()</a>
 
-bypasses string coercion:
+bypasses string coercion, see [getValue](#FieldState.getValue)
+
+for example
 
 ```es6
 let context = this.formState.createUnitOfWork();
@@ -252,6 +246,9 @@ fieldState.setValue(3);
 assert(true, fieldState.getValue() === '3');
 assert(true, fieldState.getUncoercedValue() === 3);
 ```
+
+see the [get and set helpers example](/docs/getSetHelpers.md)
+and the [react-datepicker example](/docs/datePickerExample.md)
 
 ### <a name='FieldState.isInvalid'>boolean isInvalid()</a>
 
@@ -505,10 +502,14 @@ FormObjects and FormArrays are essentially property generators. for a nested "fo
 
 - label: a label modified by an optional labelPrefix (see [above](#labelPrefix))
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
-- updateFormState: the onChange handler for your input component
+- handleValueChange: the new change handler that takes a value parameter rather than an event
 - showValidationMessage: an optional onBlur handler
 
-note: for asynchronous validation you must override the framework generated updateFormState handler. see an example [here](/docs/asyncExample.md)
+the following deprecated prop is also passed:
+
+- updateFormState: the DEPRECATED onChange handler for your input component (takes an event parameter)
+
+note: for asynchronous validation you must override the framework generated handleValueChange handler. see an example [here](/docs/asyncExample.md)
 
 FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays.
 
@@ -871,12 +872,12 @@ typically used to dynamically remove an input component. see [FormState.isDelete
 
 ```es6
 removeContact(i) {
-  return function(e) {
+  return (e) => {
     e.preventDefault();
     let context = this.formState.createUnitOfWork();
     context.remove(`contacts.${i}`);
     context.updateFormState();
-  }.bind(this);
+  };
 }
 ```
 
@@ -927,3 +928,35 @@ handleUsernameChange(e) {
   context.updateFormState({ setSomeOtherProperty: 'someValue' });
 }
 ```
+
+## <a name='Deprecated'>Deprecated</a>
+
+### <a name='Field.noCoercion'>Field.noCoercion</a>
+
+most html inputs work with string values. values are then coerced to strings by default. (see [FieldState.getValue](#FieldState.getValue) and [FieldState.getUncoercedValue](#FieldState.getUncoercedValue))
+
+noCoercion used to control whether react-formstate returned a coerced value or not but now you can control this directly with [getUncoercedValue](#FieldState.getUncoercedValue).
+
+for why this is no longer needed, see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md)
+and contrast with the [new react-datepicker example](/docs/datePickerExample.md)
+
+also see the [get and set helpers example](/docs/getSetHelpers.md)
+
+### <a name='Field.handlerBindFunction'>Field.handlerBindFunction</a>
+
+see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md) for an explanation of what this does.
+see the [new react-datepicker example](/docs/datePickerExample.md) for why this is no longer needed.
+
+### <a name='updateFormStateHandler'>the updateFormState handler</a>
+
+the introduction of [FieldState.getUncoercedValue](#FieldState.getUncoercedValue) created an opportunity to simplify things quite a bit.
+
+see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md)
+and contrast with the [new react-datepicker example](/docs/datePickerExample.md)
+
+it means you have to do a bit more work in your CheckboxGroup and Select components (see [other input types](/docs/otherInputTypes.md)), but on the whole using the new handleValueChange handler seems simpler and better.
+
+### <a name='UnitOfWork.injectModel'>UnitOfWork.injectModel</a>
+### <a name='UnitOfWork.add'>UnitOfWork.add</a>
+
+see [refactored injection](/docs/refactoredInjection.md) for why these are deprecated.

@@ -1,6 +1,6 @@
 # refactored model injection
 
-i realized that a unit of work is geared for calling setState. you don't do that in a constructor. so the old injection api is a little clumsy
+i realized that a unit of work is geared for calling setState. since you don't do that in a constructor, the old injection api is a little clumsy
 
 ```es6
 constructor(props) {
@@ -23,4 +23,4 @@ constructor(props) {
 }
 ```
 
-(the old way still works but i hid it from the examples and the documentation)
+(the old way still works but i hid it from the examples and put in in the deprecated section in the documentation)
