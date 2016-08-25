@@ -146,7 +146,7 @@ useful for a select input for instance.
 
 ### <a name='Field.defaultValue'>defaultValue</a>
 
-defines a default value for your input.
+defines a default value for your input. values will be [coerced](#FieldState.getValue) to strings by default.
 
 if a model is [injected](#FormState.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
@@ -271,12 +271,14 @@ see the [on blur](/docs/onBlurExample.md) example
 updates validity, sets a message, and returns an 'asyncToken' for use in asynchronous validation. see [UnitOfWork.getFieldState](#UnitOfWork.getFieldState)
 
 ```es6
+// ...
 // careful: user might type more letters into the username input box
 let asyncToken = fieldState.setValidating('Verifying username...');
 context.updateFormState();
 
-function validateAsync() {
-//...
+validateAsync().then((result) => {
+  //...
+});
 ```
 
 ### <a name='FieldState.setValue'>void setValue(string message)</a>
@@ -634,7 +636,7 @@ if necessary, during injection, you can transform the injected form state using 
 
 ### <a name="FormState.injectModel">object injectModel(object model)</a>
 
-initializes form state. values will be [coerced](#Field.noCoercion) to strings by default.
+initializes form state. values will be [coerced](#FieldState.getValue) to strings by default.
 
 ```es6
 import React, { Component } from 'react';
@@ -745,12 +747,12 @@ context will always be "[pathed](#UnitOfWork.getFieldState)" relative to your ro
 key identifies the field that was updated, which is potentially a nested field (for example: 'workContact.address.line1')
 
 ```es6
-this.formState.onUpdate(function(context, key) {
+this.formState.onUpdate((context, key) => {
   let oldValue = this.formState.getFieldState(key).getValue(),
     newValue = context.getFieldState(key).getValue();
   // ...
   context.updateFormState(additionalUpdates);
-}.bind(this));
+});
 ```
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
@@ -826,12 +828,14 @@ retrieves form state for a particular field, aka [FieldState](#FieldState).
 if asyncToken is passed, returns null unless the token matches the token embedded in the field state. (in an asynchronous validation callback, validate *only* if the fieldstate hasn't changed before the callback is invoked. see [FieldState.setValidating](#FieldState.setValidating))
 
 ```es6
-function validateAsync() {
+validateAsync().then((result) => {
   let context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState(field.name, asyncToken);
 
   if (fieldState) { // if it hasn't changed in the meantime
     // ...
+  }
+}
 ```
 
 in a nested form component, name is relative to the path embedded in the nested form state.
@@ -840,7 +844,7 @@ in a nested form component, name is relative to the path embedded in the nested 
 import React, { Component } from 'react';
 
 export default class Contact extends Component {
-  function handleEmailChange(e) {
+  handleEmailChange(e) {
     // a pathed formState is passed to a nested component
     let context = this.props.formState.createUnitOfWork(),
       fieldState = context.getFieldState('email');
@@ -848,6 +852,8 @@ export default class Contact extends Component {
     // the retrieved fieldState might be for homeContact.email
     // or for workContact.email
     // the nested component doesn't know or care
+    // ...
+  }
 ```
 
 ### <a name="UnitOfWork.getu">FieldState getu(string name)<a/>
