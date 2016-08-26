@@ -15,7 +15,7 @@ export default class Input extends Component {
         <input
           type={this.props.type || 'text'}
           value={this.props.fieldState.getValue()}
-          onChange={this.updateFormState}
+          onChange={this.props.updateFormState}
           />
         <span>{this.props.fieldState.getMessage()}</span>
       </div>
