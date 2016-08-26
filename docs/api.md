@@ -152,7 +152,7 @@ if a model is [injected](#FormState.injectModel) into form state, the model valu
 
 do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
-note: if you are using the DEPRECATED framework generated 'updateFormState' change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether your component contains a text input or a select input. i would advise instead using the new 'handleValueChange' handler where this is no longer a concern.
+note: if you are using the DEPRECATED framework generated 'updateFormState' change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether your component contains a text input or a select input. it is better to use the new 'handleValueChange' handler where this is no longer a concern.
 
 ### <a name='Field.revalidateOnSubmit'>revalidateOnSubmit</a>
 
@@ -574,7 +574,7 @@ export default class UserForm extends Component {
 
 ### <a name="FormState.add">object add(object state, string name, ? value)</a>
 
-adds a value directly to your form state, OR UPDATES an existing value. maybe i should have named it 'upsert'.
+adds a value directly to your form state, OR UPDATES an existing value. 'upsert' might have been a better name.
 
 this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
 
@@ -939,30 +939,13 @@ handleUsernameChange(e) {
 
 ## <a name='Deprecated'>Deprecated</a>
 
+there are no plans to remove these functions but they are no longer part of the examples.
+
 ### <a name='Field.noCoercion'>Field.noCoercion</a>
-
-most html inputs work with string values. values are then coerced to strings by default. (see [FieldState.getValue](#FieldState.getValue) and [FieldState.getUncoercedValue](#FieldState.getUncoercedValue))
-
-noCoercion used to control whether react-formstate returned a coerced value or not but now you can control this directly with [getUncoercedValue](#FieldState.getUncoercedValue).
-
-for why this is no longer needed, see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md)
-and contrast with the [new react-datepicker example](/docs/datePickerExample.md)
-
-also see the [get and set helpers example](/docs/getSetHelpers.md)
-
 ### <a name='Field.handlerBindFunction'>Field.handlerBindFunction</a>
-
-see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md) for an explanation of what this does.
-see the [new react-datepicker example](/docs/datePickerExample.md) for why this is no longer needed.
-
 ### <a name='updateFormStateHandler'>the updateFormState handler</a>
 
-the introduction of [FieldState.getUncoercedValue](#FieldState.getUncoercedValue) created an opportunity to simplify things quite a bit.
-
-see the [old react-datepicker example](/docs/deprecatedDatePickerExample.md)
-and contrast with the [new react-datepicker example](/docs/datePickerExample.md)
-
-it means you have to do a bit more work in your CheckboxGroup and Select components (see [other input types](/docs/otherInputTypes.md)), but on the whole using the new handleValueChange handler seems simpler and better.
+see [handleValueChange](/docs/handleValueChange.md) for why these are deprecated
 
 ### <a name='UnitOfWork.injectModel'>UnitOfWork.injectModel</a>
 ### <a name='UnitOfWork.add'>UnitOfWork.add</a>

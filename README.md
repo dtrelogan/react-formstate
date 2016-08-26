@@ -35,6 +35,7 @@ if you have any feedback i am glad to hear it. thanks.
 - [form extension](/docs/formExtension.md)
 - [refactored injection](/docs/refactoredInjection.md)
 - [get getu set setc](/docs/getSetHelpers.md)
+- [handleValueChange](/docs/handleValueChange.md)
 
 ### documentation
 
