@@ -2,9 +2,9 @@
 
 file inputs have security restrictions that prevent them from being used like other controlled components in react.
 
-in this example a file input is used to upload a required image asynchronously prior to valid form submission.
+in this example two file input components are used to upload an optional and a required document asynchronously prior to valid form submission.
 
-the returned image url is stored as part of the form model.
+the returned document url is stored as part of the form model.
 
 ### sample form component
 
@@ -218,7 +218,7 @@ export default class DocumentUpload extends Component {
 
     this.update({isUploading: true, message: 'uploading...'});
 
-    this.uploadImage(formData).then(document => {
+    this.uploadDocument(formData).then(document => {
       this.update({documentUrl: document.url});
     }).catch(err => {
       this.update({message: 'upload failed'});
@@ -226,7 +226,7 @@ export default class DocumentUpload extends Component {
   }
 
 
-  uploadImage(formData) {
+  uploadDocument(formData) {
     // this example uses xmlHttpRequest. you could alternatively use fetch.
     // at present fetch does not support a "progress" callback but things change fast...
 
@@ -235,7 +235,7 @@ export default class DocumentUpload extends Component {
 
       xhr.onload = (response) => {
         if (xhr.status === 200) {
-          // get the new image url from the reponse somehow
+          // get the new document url from the reponse somehow
           // how you do this will depend on your server's response
           resolve({ url: JSON.parse(xhr.responseText).url });
         } else {
