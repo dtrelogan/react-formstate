@@ -6,94 +6,219 @@ in this example a file input is used to upload a required image asynchronously p
 
 the returned image url is stored as part of the form model.
 
-note: the file input selection message causes problems for workflow and styling. see this [stack overflow](http://stackoverflow.com/questions/210643/in-javascript-can-i-make-a-click-event-fire-programmatically-for-a-file-input?answertab=votes#tab-top) for how to hide it.
+### form component sample
 
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
-import HiddenInput from './HiddenInput.jsx';
-import Input from './Input.jsx';
+import DocumentInput from './DocumentInput.jsx';
 
-export default class SampleForm extends Component {
+export default class FormComponent extends Component {
 
   constructor(props) {
     super(props);
 
     this.formState = new FormState(this);
-    this.state = this.formState.injectModel(this.props.model);
+    this.state = this.formState.injectModel(props.model);
+    this.state.isUploadingByKey = {};
 
-    this.handleImageSelection = this.handleImageSelection.bind(this);
-    this.removeImage = this.removeImage.bind(this);
+    this.updateDocumentState = this.updateDocumentState.bind(this);
     this.submit = this.submit.bind(this);
   }
 
-  imageUrl() {
-    return this.formState.get('imageUrl');
-  }
-
   render() {
-    let image = null;
+    let submitMessage = null,
+      isInvalid = this.formState.isInvalid(),
+      isUploading = Object.keys(this.state.isUploadingByKey).some(key => this.state.isUploadingByKey[key]),
+      disableSubmit = isInvalid || isUploading;
 
-    if (this.imageUrl()) {
-      image = (
-        <div>
-          <img src={this.imageUrl()}/>
-          <button onClick={this.removeImage}>Remove</button>
-        </div>
-      );
-    }
+    if (isUploading) { submitMessage = 'Waiting for upload...'; }
+    else if (isInvalid) { submitMessage = 'Please fix validation errors'; }
 
     return (
       <Form formState={this.formState} onSubmit={this.submit}>
-        <HiddenInput formField='id' defaultValue='0' intConvert/>
-        <h2>General Information</h2>
-        <Input formField='name' label='Name' required/>
-        <Input formField='anotherField' label='Another Field' required fsv={v=>v.numeric().length(9)}/>
-        <h2>Some Important Image</h2>
-        <HiddenInput formField='imageUrl' required='please upload an image'/>
-        <div>
-          <input
-            type='file'
-            onChange={this.handleImageSelection}
-            disabled={this.state.imageLoading}
-            ref={(c) => this.imageFileInput = c}
-            />
-          <div>{this.state.imageMessage || this.formState.getFieldState('imageUrl').getMessage()}</div>
-        </div>
-        {image}
-        <br/>
-        <input type='submit' value='Submit'/>
+        <h3>Optional Document</h3>
+        <DocumentInput
+          formField='optionalDocumentUrl'
+          api={this.props.api}
+          fileReferenceName='optionalDocument'
+          updateDocumentState={this.updateDocumentState}
+          />
+        <h3>Required Document</h3>
+        <DocumentInput
+          formField='requiredDocumentUrl'
+          required='Please upload the required document'
+          api={this.props.api}
+          fileReferenceName='requiredDocument'
+          updateDocumentState={this.updateDocumentState}
+          />
+        <input type='submit' value='Submit' disabled={disableSubmit}/>
+        <span>{submitMessage}</span>
       </Form>
     );
   }
 
-  handleImageSelection(e) {
-    let files = e.target.files;
+  // documentState is an object that may contain:
+  //  documentUrl: only on successful upload
+  //  isUploading: set to true only while uploading
+  //  message: only if something useful to communicate
+  updateDocumentState(key, documentState) {
+    let context = this.formState.createUnitOfWork(),
+      fi = context.getFieldState(key);
 
-    if (files.length > 0) {
+    fi.setValue(documentState.documentUrl).validate(); // document might be required
 
-      let formData = new FormData();
-      for(let i = 0, len = files.length; i < len; i++) {
-        formData.append('file' + i, files.item(i));
-      }
-
-      this.setState({imageLoading: true, imageMessage: 'loading...'});
-
-      this.uploadImage(formData).then(data => {
-
-        let context = this.formState.createUnitOfWork();
-        context.set('imageUrl', data.url).validate();
-        context.updateFormState({imageLoading: false, imageMessage: null});
-
-      }).catch(err => {
-
-        this.setState({imageLoading: false, imageMessage: 'failed to load.'});
-      });
+    if (documentState.isUploading) {
+      fi.setValidating(documentState.message); // overrides required
+    }
+    else if (fi.isValid()) {
+      fi.setValid(documentState.message); // when document exists or is not required
+    }
+    else if (documentState.message) {
+      fi.setInvalid(documentState.message); // message overrides required message
     }
 
-    // clear the file input selection
-    // makes the form behave consistently across create and edit
-    this.imageFileInput.value = '';
+    let isUploadingByKey = Object.assign({}, this.state.isUploadingByKey);
+    isUploadingByKey[key] = Boolean(documentState.isUploading);
+    context.updateFormState({isUploadingByKey: isUploadingByKey});
+  }
+
+  submit(e) {
+    e.preventDefault();
+    let model = this.formState.createUnitOfWork().createModel();
+    if (model) {
+      alert(JSON.stringify(model)); // proceed with valid data
+    }
+    // else: createModel called setState to set the appropriate validation messages
+  }
+}
+```
+
+### DocumentInput
+
+```es6
+import React, { Component } from 'react';
+import DocumentUpload from './DocumentUpload.jsx';
+
+export default class DocumentInput extends Component {
+
+  constructor(props) {
+    super(props);
+
+    this.validateFileType = this.validateFileType.bind(this);
+    this.removeDocument = this.removeDocument.bind(this);
+  }
+
+  render() {
+    let document, documentUrl = this.props.fieldState.getValue();
+
+    if (documentUrl) {
+      document = (
+        <div>
+          <a href={documentUrl} target="_blank">{documentUrl}</a>
+          <span className='remove-document-spacer'></span>
+          <button onClick={this.removeDocument}>Remove</button>
+        </div>
+      );
+    }
+    else {
+      document = (
+        <DocumentUpload
+          api={this.props.api}
+          fieldState={this.props.fieldState}
+          fileReferenceName={this.props.fileReferenceName}
+          updateDocumentState={this.props.updateDocumentState}
+          accept='.pdf,application/pdf'
+          validateFileType={this.validateFileType}
+          />
+      );
+    }
+
+    return (
+      <div>
+        <input type='hidden' value={documentUrl}/>
+        {document}
+      </div>
+    );
+  }
+
+  validateFileType(fileType) {
+    if (fileType !== 'application/pdf') { return 'only .pdf files accepted please'; }
+  }
+
+  removeDocument() {
+    this.props.updateDocumentState(this.props.fieldState.getKey(), {});
+  }
+}
+```
+
+### DocumentUpload
+
+```es6
+import React, { Component } from 'react';
+import FileInput from './BootstrapFileInput.jsx';
+
+export default class DocumentUpload extends Component {
+
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this);
+  }
+
+
+  render() {
+    let fi = this.props.fieldState, validationState = null;
+
+    // on success unmount this component
+    if (fi.getMessage() || fi.isValidating()) { validationState = 'warning'; }
+    if (fi.isInvalid()) { validationState = 'error'; }
+
+    return (
+      <FileInput
+        controlId={fi.getKey()}
+        validationState={validationState}
+        onChange={this.onChange}
+        disabled={fi.isValidating()}
+        accept={this.props.accept}
+        help={fi.getMessage()}
+        />
+    );
+  }
+
+
+  update(documentState) {
+    this.props.updateDocumentState(this.props.fieldState.getKey(), documentState);
+  }
+
+
+  onChange(e) {
+    let files = e.target.files;
+
+    if (files.length === 0) {
+      this.update({});
+      return;
+    }
+
+    let f = files.item(0),
+      message = this.props.validateFileType && this.props.validateFileType(f.type);
+
+    if (message) {
+      this.update({message: message});
+      return;
+    }
+
+    // TODO: validate file size...
+
+    let formData = new FormData();
+    formData.append(this.props.fileReferenceName, f);
+
+    this.update({isUploading: true, message: 'uploading...'});
+
+    this.uploadImage(formData).then(document => {
+      this.update({documentUrl: document.url});
+    }).catch(err => {
+      this.update({message: 'upload failed'});
+    });
   }
 
 
@@ -123,46 +248,56 @@ export default class SampleForm extends Component {
       // the third parameter is set to true for asynchronous upload
       xhr.open('POST', 'yourFileServerUrlHere', true);
 
+      xhr.onerror = () => {
+        reject(new Error('an error occurred'));
+      };
+
       // you might need to set a header or two to make your server happy
       //xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 
       xhr.send(formData);
     });
   }
-
-
-  removeImage() {
-    let context = this.formState.createUnitOfWork();
-    context.setc('imageUrl', '');
-    context.updateFormState();
-  }
-
-  submit(e) {
-    e.preventDefault();
-
-    // alternatively you can disable the submit button...
-    if (this.state.imageLoading) { return; }
-
-    let model = this.formState.createUnitOfWork().createModel();
-    if (model) {
-      // save to api and update the view
-    }
-  }
 }
+
+DocumentUpload.propTypes = {
+  api: React.PropTypes.object.isRequired,
+  fieldState: React.PropTypes.object.isRequired,
+  fileReferenceName: React.PropTypes.string.isRequired,
+  updateDocumentState: React.PropTypes.func.isRequired,
+  accept: React.PropTypes.string,
+  validateFileType: React.PropTypes.func
+};
 ```
 
-the Input component was previously shown in the [basic example](./basicExample.md).
-
-the HiddenInput component is simply:
+### [react bootstrap](https://react-bootstrap.github.io/components.html) file input component
 
 ```es6
 import React, { Component } from 'react';
+import { FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 
-export default class HiddenInput extends Component {
+export default class FileInput extends Component {
+
   render() {
     return (
-      <input type='hidden' value={this.props.fieldState.getValue()} />
+      <FormGroup
+        className={this.props.className}
+        controlId={this.props.controlId}
+        validationState={this.props.validationState}
+        >
+        <ControlLabel>{this.props.label || ''}</ControlLabel>
+        <FormControl
+          type='file'
+          placeholder={this.props.placeholder}
+          onChange={this.props.onChange}
+          disabled={this.props.disabled}
+          accept={this.props.accept}
+          />
+        <HelpBlock>{this.props.help || ''}</HelpBlock>
+      </FormGroup>
     );
   }
 }
 ```
+
+voila!
