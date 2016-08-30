@@ -6,7 +6,7 @@ in this example a file input is used to upload a required image asynchronously p
 
 the returned image url is stored as part of the form model.
 
-### form component sample
+### sample form component
 
 ```es6
 import React, { Component } from 'react';
@@ -29,7 +29,7 @@ export default class FormComponent extends Component {
   render() {
     let submitMessage = null,
       isInvalid = this.formState.isInvalid(),
-      isUploading = Object.keys(this.state.isUploadingByKey).some(key => this.state.isUploadingByKey[key]),
+      isUploading = this.isUploading(),
       disableSubmit = isInvalid || isUploading;
 
     if (isUploading) { submitMessage = 'Waiting for upload...'; }
@@ -81,6 +81,10 @@ export default class FormComponent extends Component {
     let isUploadingByKey = Object.assign({}, this.state.isUploadingByKey);
     isUploadingByKey[key] = Boolean(documentState.isUploading);
     context.updateFormState({isUploadingByKey: isUploadingByKey});
+  }
+  
+  isUploading() {
+    return Object.keys(this.state.isUploadingByKey).some(key => this.state.isUploadingByKey[key]);
   }
 
   submit(e) {
@@ -233,7 +237,7 @@ export default class DocumentUpload extends Component {
         if (xhr.status === 200) {
           // get the new image url from the reponse somehow
           // how you do this will depend on your server's response
-          resolve({ url: JSON.parse(xhr.responseText).imageUrl });
+          resolve({ url: JSON.parse(xhr.responseText).url });
         } else {
           reject(new Error('an error occurred'));
         }
