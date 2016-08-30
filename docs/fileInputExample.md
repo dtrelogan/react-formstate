@@ -4,7 +4,7 @@ file inputs have security restrictions that prevent them from being used like ot
 
 in this example two file input components are used to upload an optional and a required document asynchronously prior to valid form submission.
 
-the returned document url is stored as part of the form model.
+the document urls are stored as part of the form model.
 
 ### sample form component
 
