@@ -38,14 +38,12 @@ export default class FormComponent extends Component {
         <h3>Optional Document</h3>
         <DocumentInput
           formField='optionalDocumentUrl'
-          api={this.props.api}
           fileReferenceName='optionalDocument'
           />
         <h3>Required Document</h3>
         <DocumentInput
           formField='requiredDocumentUrl'
           required='Please upload the required document'
-          api={this.props.api}
           fileReferenceName='requiredDocument'
           />
         <input type='submit' value='Submit' disabled={disableSubmit}/>
@@ -96,7 +94,6 @@ export default class DocumentInput extends Component {
     else {
       document = (
         <DocumentUpload
-          api={this.props.api}
           fieldState={this.props.fieldState}
           fileReferenceName={this.props.fileReferenceName}
           updateDocumentState={this.updateDocumentState}
@@ -262,7 +259,6 @@ export default class DocumentUpload extends Component {
 }
 
 DocumentUpload.propTypes = {
-  api: React.PropTypes.object.isRequired,
   fieldState: React.PropTypes.object.isRequired,
   fileReferenceName: React.PropTypes.string.isRequired,
   updateDocumentState: React.PropTypes.func.isRequired,
