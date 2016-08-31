@@ -55,7 +55,7 @@ export default class FsBootstrapInput extends Component {
     let {
       className,
       formField, required, validate, fsValidate, fsv, noTrim, preferNull, intConvert, defaultValue, noCoercion, revalidateOnSubmit, handlerBindFunction,
-      fieldState, updateFormState, handleValueChange, showValidationMessage, formState
+      fieldState, updateFormState, handleValueChange, showValidationMessage, formState,
       ...other
     } = this.props;
 
