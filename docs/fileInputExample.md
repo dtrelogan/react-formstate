@@ -82,7 +82,7 @@ export default class FormComponent extends Component {
     isUploadingByKey[key] = Boolean(documentState.isUploading);
     context.updateFormState({isUploadingByKey: isUploadingByKey});
   }
-  
+
   isUploading() {
     return Object.keys(this.state.isUploadingByKey).some(key => this.state.isUploadingByKey[key]);
   }
@@ -244,7 +244,7 @@ export default class DocumentUpload extends Component {
       };
 
       xhr.upload.onprogress = (e) => {
-        // here you could update a progress bar by calling this.setState appropriately
+        // here you could update a progress bar
         console.log('progress...');
         console.log(e);
       };

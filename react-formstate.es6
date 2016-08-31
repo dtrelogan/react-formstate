@@ -383,7 +383,8 @@ export class FormObject extends React.Component {
       fieldState: formState.getFieldState(field), // read-only
       updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
       handleValueChange: props.handleValueChange || simpleChangeHandler.bind(null, formState, field),
-      showValidationMessage: blurHandler.bind(null, formState, field)
+      showValidationMessage: blurHandler.bind(null, formState, field),
+      formState: this.formState
     };
   }
 
@@ -479,7 +480,10 @@ class FieldState {
     return a.length === b.length && a.every((v,i) => v === b[i]);
   }
 
+  get(name) { return this.fieldState[name]; }
+
   getKey() { return this.key; }
+  getName() { return this.field && this.field.name; }
 
   getValue() {
     let value = this.fieldState.value;
@@ -505,6 +509,7 @@ class FieldState {
   isValid() { return this.fieldState.validity === 1 }
   isInvalid() { return this.fieldState.validity === 2; }
   isValidating() { return this.fieldState.validity === 3; }
+  isUploading() { return this.fieldState.validity === 4; }
   isDeleted() { return Boolean(this.fieldState.isDeleted); }
   isMessageVisible() { return Boolean(this.fieldState.isMessageVisible); }
 
@@ -580,6 +585,14 @@ class FieldState {
   // when you hit submit the message gets wiped by validation. use setValid instead.
   // setMessage(message) { return this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
 
+  set(name, value) {
+    if (!this.isModified) {
+      this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), this.isMessageVisible());
+    }
+    this.fieldState[name] = value;
+    return this;
+  }
+
   setValid(message) { return this.setProps(this.getValue(), this.isCoerced(), 1, message); }
   setInvalid(message) { return this.setProps(this.getValue(), this.isCoerced(), 2, message); }
   setValidating(message) {
@@ -587,6 +600,7 @@ class FieldState {
     this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, true);
     return asyncToken; // thinking this is more valuable than chaining
   }
+  setUploading(message) { return this.setProps(this.getValue(), this.isCoerced(), 4, message, null, true); }
   showMessage() {
     // i don't think chaining adds any value to this method. can always change it later.
     if (exists(this.getMessage()) && !this.isMessageVisible()) { // prevents unnecessary rendering
@@ -680,6 +694,11 @@ export class FormState {
 
   isValidating() {
     return anyFieldState(this.form.state, fieldState => fieldState.isValidating());
+  }
+
+
+  isUploading() {
+    return anyFieldState(this.form.state, fieldState => fieldState.isUploading());
   }
 
 

@@ -535,12 +535,27 @@ describe('FormState', function() {
       var state = {
         'formState.name': {},
         'formState.email': { validity: 1 },
-        'formState.phone': { validity: 2 }
+        'formState.phone': { validity: 2 },
+        'formState.document': { validity: 4 }
       };
       var fs = new FormState({ state: state });
       assert.equal(false, fs.isValidating());
       state['formState.address.line1'] = { validity: 3 };
       assert.equal(true, fs.isValidating());
+    });
+  });
+  describe('#isUploading', function() {
+    it('returns false unless an uploading field state exists', function() {
+      var state = {
+        'formState.name': {},
+        'formState.email': { validity: 1 },
+        'formState.phone': { validity: 2 },
+        'formState.username': { validity: 3 }
+      };
+      var fs = new FormState({ state: state });
+      assert.equal(false, fs.isUploading());
+      state['formState.address.document'] = { validity: 4 };
+      assert.equal(true, fs.isUploading());
     });
   });
   describe('#buildKey', function() {
@@ -1873,6 +1888,21 @@ describe('UnitOfWork', function() {
   });
 });
 describe('FieldState', function() {
+  describe('#getName', function() {
+    it('returns the field name', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.email');
+      assert.equal('contact.email', fieldState.getKey());
+      assert.equal('email', fieldState.getName());
+    });
+    it('does not crash if no field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.email');
+      fieldState.field = null;
+      assert.equal('contact.email', fieldState.getKey());
+      assert.equal(true, fieldState.getName() === null);
+    });
+  });
   describe('#getValue', function() {
     it('returns the value', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2099,6 +2129,8 @@ describe('FieldState', function() {
       assert.equal(false, fieldState.fieldState.isCoerced);
       fieldState.setValidating();
       assert.equal(false, fieldState.fieldState.isCoerced);
+      fieldState.setUploading();
+      assert.equal(false, fieldState.fieldState.isCoerced);
       fieldState.showMessage();
       assert.equal(false, fieldState.fieldState.isCoerced);
       assert.equal(false, fieldState.isCoerced());
@@ -2117,6 +2149,8 @@ describe('FieldState', function() {
       fieldState.setInvalid();
       assert.equal(true, fieldState.fieldState.isCoerced);
       fieldState.setValidating();
+      assert.equal(true, fieldState.fieldState.isCoerced);
+      fieldState.setUploading();
       assert.equal(true, fieldState.fieldState.isCoerced);
       fieldState.showMessage();
       assert.equal(true, fieldState.fieldState.isCoerced);
@@ -2164,6 +2198,8 @@ describe('FieldState', function() {
       f = function() { fieldState.setInvalid(); };
       assert.throws(f, /read-only/);
       f = function() { fieldState.setValidating(); };
+      assert.throws(f, /read-only/);
+      f = function() { fieldState.setUploading(); };
       assert.throws(f, /read-only/);
       fieldState.fieldState.message = 'a message';
       f = function() { fieldState.showMessage(); };
@@ -2326,6 +2362,38 @@ describe('FieldState', function() {
       fieldState.fieldState.validity = 1;
       assert.equal(true, fieldState.isValidated());
     });
+    it('returns true if valid', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal(false, fieldState.isValidated());
+      fieldState.setValid();
+      assert.equal(true, fieldState.isValidated());
+    });
+    it('returns true if invalid', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal(false, fieldState.isValidated());
+      fieldState.setInvalid();
+      assert.equal(true, fieldState.isValidated());
+    });
+    it('returns true if validating', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal(false, fieldState.isValidated());
+      fieldState.setValidating();
+      assert.equal(true, fieldState.isValidated());
+    });
+    it('returns true if uploading', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal(false, fieldState.isValidated());
+      fieldState.setUploading();
+      assert.equal(true, fieldState.isValidated());
+    });
   });
   describe('#isValid', function() {
     it('returns whether field state is valid', function() {
@@ -2355,6 +2423,16 @@ describe('FieldState', function() {
       assert.equal(false, fieldState.isValidating());
       fieldState.fieldState.validity = 3;
       assert.equal(true, fieldState.isValidating());
+    });
+  });
+  describe('#isUploading', function() {
+    it('returns whether field state is uploading', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.email');
+      assert.equal(false, fieldState.isUploading());
+      fieldState.fieldState.validity = 4;
+      assert.equal(true, fieldState.isUploading());
     });
   });
   describe('#isDeleted', function() {
@@ -2406,12 +2484,14 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = true;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
       fieldState.setValue('');
       assert.equal('', fieldState.fieldState.value);
       assert.equal(undefined, fieldState.fieldState.validity);
       assert.equal(undefined, fieldState.fieldState.message);
       assert.equal(undefined, fieldState.fieldState.asyncToken);
       assert.equal(undefined, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
     });
     it('returns a field state', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2932,12 +3012,14 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = true;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
       fieldState.setValid('new');
       assert.equal('old', fieldState.fieldState.value);
       assert.equal(1, fieldState.fieldState.validity);
       assert.equal('new', fieldState.fieldState.message);
       assert.equal(undefined, fieldState.fieldState.asyncToken);
       assert.equal(undefined, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
     });
     it('returns a field state', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2961,12 +3043,14 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = true;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
       fieldState.setInvalid('new');
       assert.equal('old', fieldState.fieldState.value);
       assert.equal(2, fieldState.fieldState.validity);
       assert.equal('new', fieldState.fieldState.message);
       assert.equal(undefined, fieldState.fieldState.asyncToken);
       assert.equal(undefined, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
     });
     it('returns a field state', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2981,7 +3065,7 @@ describe('FieldState', function() {
     });
   });
   describe('#setValidating', function() {
-    it('sets all the props except value and returns an asyncToken', function() {
+    it('sets all the core props except value and returns an asyncToken', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
@@ -2990,6 +3074,7 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = false;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
       var asyncToken = fieldState.setValidating('new');
       assert.equal('string', typeof(asyncToken));
       assert.equal('old', fieldState.fieldState.value);
@@ -2998,10 +3083,11 @@ describe('FieldState', function() {
       assert.notEqual('old, asyncToken');
       assert.equal(asyncToken, fieldState.fieldState.asyncToken);
       assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
     });
   });
-  describe('#showMessage', function() {
-    it('shows the message and copies all the other props', function() {
+  describe('#setUploading', function() {
+    it('sets all the core props except value and asyncToken', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
@@ -3010,6 +3096,39 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = false;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.setUploading('new');
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(4, fieldState.fieldState.validity);
+      assert.equal('new', fieldState.fieldState.message);
+      assert.equal(true, fieldState.fieldState.asyncToken === null);
+      assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
+    });
+    it('returns a field state', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      var newFieldState = fieldState.setUploading('new');
+      assert.equal('FieldState',  newFieldState.constructor.name);
+      assert.equal('123 pinecrest rd', newFieldState.getValue());
+      assert.equal(4, newFieldState.getValidity());
+      assert.equal('new', newFieldState.getMessage());
+      assert.equal(true, newFieldState.getAsyncToken() === null);
+      assert.equal(true, newFieldState.isMessageVisible());
+    });
+  });
+  describe('#showMessage', function() {
+    it('shows the message and copies all the other core props', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.validity = 2;
+      fieldState.fieldState.message = 'old';
+      fieldState.fieldState.asyncToken = 'old';
+      fieldState.fieldState.isMessageVisible = false;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
       var _fieldState = fieldState.fieldState;
       fieldState.showMessage();
       assert.notEqual(_fieldState, fieldState.fieldState);
@@ -3019,6 +3138,7 @@ describe('FieldState', function() {
       assert.equal('old', fieldState.fieldState.message);
       assert.equal('old', fieldState.fieldState.asyncToken);
       assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
     });
     it('returns nothing', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -3059,6 +3179,78 @@ describe('FieldState', function() {
       assert.equal(false, fieldState.isModified);
       assert.equal('old', fieldState.getMessage());
       assert.equal(true, fieldState.isMessageVisible());
+    });
+  });
+  describe('#set', function() {
+    it('adds the prop and only copies the other core props', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.validity = 2;
+      fieldState.fieldState.message = 'old';
+      fieldState.fieldState.asyncToken = 'old';
+      fieldState.fieldState.isMessageVisible = true;
+      var _fieldState = fieldState.fieldState;
+      var fi = fieldState.set('test', 3);
+      assert.notEqual(_fieldState, fieldState.fieldState);
+      assert.equal(true, fieldState.isModified);
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(2, fieldState.fieldState.validity);
+      assert.equal('old', fieldState.fieldState.message);
+      assert.equal('old', fieldState.fieldState.asyncToken);
+      assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(true, 3 === fieldState.fieldState.test);
+    });
+    it('clears other props upon initial modification and returns the FieldState object', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.formerProp = 'willBeRemoved';
+      var _fieldState = fieldState.fieldState;
+      var fi = fieldState.set('test', 3);
+      assert.notEqual(_fieldState, fieldState.fieldState);
+      assert.equal(true, fieldState.isModified);
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal(true, 3 === fieldState.fieldState.test);
+      fi.set('anotherProp', 4);
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal(true, 3 === fieldState.fieldState.test);
+      assert.equal(true, 4 === fieldState.fieldState.anotherProp);
+    });
+    it('additional props not wiped by other set functions after modification', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.formerProp = 'willBeRemoved';
+      var _fieldState = fieldState.fieldState;
+      var fi = fieldState.set('test', 3);
+      assert.notEqual(_fieldState, fieldState.fieldState);
+      assert.equal(true, fieldState.isModified);
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal(true, 3 === fieldState.fieldState.test);
+      fi.setValid();
+      fi.setInvalid();
+      fi.setValidating();
+      fi.setUploading();
+      fi.showMessage();
+      assert.equal(true, 3 === fieldState.fieldState.test);
+      assert.equal(true, 3 === fi.get('test'));
+    });
+  });
+  describe('#get', function() {
+    it('gets a prop value by name', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.test = 3;
+      assert.equal(true, 3 === fieldState.get('test'));
+      assert.equal(true, undefined === fieldState.get('noMatch'));
     });
   });
 });
@@ -3186,6 +3378,133 @@ describe('Field', function() {
   });
 });
 describe('FormObject', function() {
+  describe('#addProps', function() {
+    it('throws assertion for nested FormObject unless name specified', function() {
+      var f = function() {
+        ReactDOMServer.renderToString(React.createElement(UserFormThrow));
+      };
+      assert.throws(f, /should have a/)
+    });
+    it('can handle contacts.0.address before contacts.0', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwards));
+      var fields = testForm.formState.fields;
+      assert.equal('name', fields[0].name);
+      assert.equal('name', fields[0].key);
+      assert.equal('contacts', fields[1].name);
+      assert.equal('contacts', fields[1].key);
+      fields = fields[1].array;
+      assert.equal('0', fields[0].name);
+      assert.equal('contacts.0', fields[0].key);
+      fields = fields[0].fields;
+      assert.equal('address', fields[0].name);
+      assert.equal('contacts.0.address', fields[0].key);
+      assert.equal('email', fields[1].name);
+      assert.equal('contacts.0.email', fields[1].key);
+      fields = fields[0].fields;
+      assert.equal('line1', fields[0].name);
+      assert.equal('contacts.0.address.line1', fields[0].key);
+    });
+    it('can handle contacts.0.address before contacts.0 with a model prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwardsModelProp, { model: createTestContactsModel() }));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal('123 pinecrest rd', model.contacts[0].address.line1);
+    });
+    it('optionally prefixes labels', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal('Name', nameInput.props.label);
+      assert.equal('Work Email', contactEmailInput.props.label);
+      assert.equal('Work Address Line 1', contactAddressLine1Input.props.label);
+    });
+    it('optionally prefixes labels across a formObject attribute', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      assert.equal('Name', nameInput.props.label);
+      assert.equal('Work Email', contactEmailInput.props.label);
+      assert.equal('Work Address Line 1', contactAddressLine1Input.props.label);
+    });
+    it('paths nested form states', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      assert.equal('contacts.0', contactForm.props.formState.path);
+      assert.equal('contacts.0.address', addressForm.props.formState.path);
+    })
+    it('provides the right field state props', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal('name', nameInput.props.fieldState.getKey());
+      assert.equal('contact.email', contactEmailInput.props.fieldState.getKey());
+      assert.equal('contact.address.line1', contactAddressLine1Input.props.fieldState.getKey());
+    });
+    it('provides the right field state props across a formObject attribute', function() {
+      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      assert.equal('name', nameInput.props.fieldState.getKey());
+      assert.equal('contacts.0.email', contactEmailInput.props.fieldState.getKey());
+      assert.equal('contacts.0.address.line1', contactAddressLine1Input.props.fieldState.getKey());
+    });
+  });
+});
+describe('Form', function() {
+  describe('#render', function() {
+    it('forwards form props to form element', function() {
+      let markup = ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      assert.equal(true, markup.startsWith('<form id="testingAFormProp" '));
+    });
+  });
+});
+describe('FormExtension', function() {
+  describe('#createExtensionProps', function() {
+    it('does not prefix path and does not clear root fields', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      var model = testForm.formState.createUnitOfWork().createModel();
+      assert.equal(2, Object.keys(model).length);
+      assert.equal(true, model.name !== undefined);
+      assert.equal(true, model.line1 !== undefined);
+    });
+    it('calls an autowired function', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('line1');
+      fieldState.setValue('autowired').validate();
+      assert.equal(true, fieldState.isInvalid());
+      assert.equal('it worked!', fieldState.getMessage());
+    });
+    it('passes label prefix', function() {
+      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
+      assert.equal('Why Line 1', contactAddressLine1Input.props.label);
+    });
+    it('throws error if used improperly', function() {
+      var f = function() {
+        ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(true)));
+      };
+      assert.throws(f, /a FormExtension element should not be nested/);
+    });
+    it('warns about nested components managing their own state', function() {
+      ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(false, true)));
+    });
+  });
+});
+describe('formField', function() {
+  describe('#addProps', function() {
+    it('adds a fieldState prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, contactEmailInput.props.fieldState !== null);
+      assert.equal(true, typeof(contactEmailInput.props.fieldState) === 'object');
+    });
+    it('adds an updateFormState prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, typeof(contactEmailInput.props.updateFormState) === 'function');
+    });
+    it('adds a handleValueChange prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, typeof(contactEmailInput.props.handleValueChange) === 'function');
+    });
+    it('adds a showValidationMessage prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, typeof(contactEmailInput.props.showValidationMessage) === 'function');
+    });
+    it('adds a formState prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, contactEmailInput.props.formState !== null);
+      assert.equal(true, typeof(contactEmailInput.props.formState) === 'object');
+    });
+  });
   describe('#blurHandler', function() {
     it('shows message and updates form state', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -3406,107 +3725,6 @@ describe('FormObject', function() {
       assert.throws(contactEmailInput.props.updateFormState, /you are using a non-standard html input/);
       f = () => contactEmailInput.props.updateFormState({ target: {} });
       assert.throws(contactEmailInput.props.updateFormState, /you are using a non-standard html input/);
-    });
-  });
-  describe('#addProps', function() {
-    it('throws assertion for nested FormObject unless name specified', function() {
-      var f = function() {
-        ReactDOMServer.renderToString(React.createElement(UserFormThrow));
-      };
-      assert.throws(f, /should have a/)
-    });
-    it('can handle contacts.0.address before contacts.0', function() {
-      ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwards));
-      var fields = testForm.formState.fields;
-      assert.equal('name', fields[0].name);
-      assert.equal('name', fields[0].key);
-      assert.equal('contacts', fields[1].name);
-      assert.equal('contacts', fields[1].key);
-      fields = fields[1].array;
-      assert.equal('0', fields[0].name);
-      assert.equal('contacts.0', fields[0].key);
-      fields = fields[0].fields;
-      assert.equal('address', fields[0].name);
-      assert.equal('contacts.0.address', fields[0].key);
-      assert.equal('email', fields[1].name);
-      assert.equal('contacts.0.email', fields[1].key);
-      fields = fields[0].fields;
-      assert.equal('line1', fields[0].name);
-      assert.equal('contacts.0.address.line1', fields[0].key);
-    });
-    it('can handle contacts.0.address before contacts.0 with a model prop', function() {
-      ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwardsModelProp, { model: createTestContactsModel() }));
-      var model = testForm.formState.createUnitOfWork().createModel();
-      assert.equal('123 pinecrest rd', model.contacts[0].address.line1);
-    });
-    it('optionally prefixes labels', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm));
-      assert.equal('Name', nameInput.props.label);
-      assert.equal('Work Email', contactEmailInput.props.label);
-      assert.equal('Work Address Line 1', contactAddressLine1Input.props.label);
-    });
-    it('optionally prefixes labels across a formObject attribute', function() {
-      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
-      assert.equal('Name', nameInput.props.label);
-      assert.equal('Work Email', contactEmailInput.props.label);
-      assert.equal('Work Address Line 1', contactAddressLine1Input.props.label);
-    });
-    it('paths nested form states', function() {
-      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
-      assert.equal('contacts.0', contactForm.props.formState.path);
-      assert.equal('contacts.0.address', addressForm.props.formState.path);
-    })
-    it('provides the right field state props', function() {
-      ReactDOMServer.renderToString(React.createElement(UserForm));
-      assert.equal('name', nameInput.props.fieldState.getKey());
-      assert.equal('contact.email', contactEmailInput.props.fieldState.getKey());
-      assert.equal('contact.address.line1', contactAddressLine1Input.props.fieldState.getKey());
-    });
-    it('provides the right field state props across a formObject attribute', function() {
-      ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
-      assert.equal('name', nameInput.props.fieldState.getKey());
-      assert.equal('contacts.0.email', contactEmailInput.props.fieldState.getKey());
-      assert.equal('contacts.0.address.line1', contactAddressLine1Input.props.fieldState.getKey());
-    });
-  });
-});
-describe('Form', function() {
-  describe('#render', function() {
-    it('forwards form props to form element', function() {
-      let markup = ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
-      assert.equal(true, markup.startsWith('<form id="testingAFormProp" '));
-    });
-  });
-});
-describe('FormExtension', function() {
-  describe('#createExtensionProps', function() {
-    it('does not prefix path and does not clear root fields', function() {
-      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
-      var model = testForm.formState.createUnitOfWork().createModel();
-      assert.equal(2, Object.keys(model).length);
-      assert.equal(true, model.name !== undefined);
-      assert.equal(true, model.line1 !== undefined);
-    });
-    it('calls an autowired function', function() {
-      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
-      var context = testForm.formState.createUnitOfWork();
-      var fieldState = context.getFieldState('line1');
-      fieldState.setValue('autowired').validate();
-      assert.equal(true, fieldState.isInvalid());
-      assert.equal('it worked!', fieldState.getMessage());
-    });
-    it('passes label prefix', function() {
-      ReactDOMServer.renderToString(React.createElement(ExtendedUserForm));
-      assert.equal('Why Line 1', contactAddressLine1Input.props.label);
-    });
-    it('throws error if used improperly', function() {
-      var f = function() {
-        ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(true)));
-      };
-      assert.throws(f, /a FormExtension element should not be nested/);
-    });
-    it('warns about nested components managing their own state', function() {
-      ReactDOMServer.renderToString(React.createElement(createExtendedUserFormFixture(false, true)));
     });
   });
 });

@@ -5,7 +5,7 @@
 
 ## a practical approach to react forms
 
-react-formstate is an elegant productivity solution for react forms and one-way binding. it is simple in design, simple to use, and limited in focus. it streamlines form components without buckling under complex use cases. it is feature complete and fully tested.
+react-formstate is an elegant productivity solution for react forms. it is simple in design, simple to use, and limited in focus. it streamlines form components without buckling under complex use cases. it is feature complete and fully tested.
 
 react-formstate turned out even better than i expected. if you give it a try i think you'll be happy with the solution too.
 
@@ -36,6 +36,8 @@ if you have any feedback i am glad to hear it. thanks.
 - [refactored injection](/docs/refactoredInjection.md)
 - [get getu set setc](/docs/getSetHelpers.md)
 - [handleValueChange](/docs/handleValueChange.md)
+- [custom FieldState properties](/docs/fieldStateProperties.md)
+- [isUploading](/docs/isUploading.md)
 
 ### documentation
 

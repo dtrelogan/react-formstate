@@ -13,17 +13,22 @@
   - [revalidateOnSubmit](#Field.revalidateOnSubmit)
 - [FieldState](#FieldState)
   - [equals](#FieldState.equals)
+  - [get](#FieldState.get)
   - [getField](#FieldState.getField)
   - [getKey](#FieldState.getKey)
   - [getMessage](#FieldState.getMessage)
+  - [getName](#FieldState.getName)
   - [getValue](#FieldState.getValue)
   - [getUncoercedValue](#FieldState.getUncoercedValue)
   - [isInvalid](#FieldState.isInvalid)
   - [isMessageVisible](#FieldState.isMessageVisible)
+  - [isUploading](#FieldState.isUploading)
   - [isValid](#FieldState.isValid)
   - [isValidated](#FieldState.isValidated)
   - [isValidating](#FieldState.isValidating)
+  - [set](#FieldState.set)
   - [setInvalid](#FieldState.setInvalid)
+  - [setUploading](#FieldState.setUploading)
   - [setValid](#FieldState.setValid)
   - [setValidating](#FieldState.setValidating)
   - [setValue](#FieldState.setValue)
@@ -47,6 +52,7 @@
   - [injectModel](#FormState.injectModel)
   - [isDeleted](#FormState.isDeleted)
   - [isInvalid](#FormState.isInvalid)
+  - [isUploading](#FormState.isUploading)
   - [isValidating](#FormState.isValidating)
   - [get](#FormState.get)
   - [getFieldState](#FormState.getFieldState)
@@ -184,6 +190,15 @@ shouldComponentUpdate(nextProps, nextState) {
 }
 ```
 
+### <a name='FieldState.get'>string get(string propertyName)</a>
+
+use this to retrieve custom property values
+
+```es6
+fieldState.set('warn', true);
+assert.equal(true, true === fieldState.get('warn'));
+```
+
 ### <a name='FieldState.getField'>Field getField()</a>
 
 returns the [Field](#Field) associated with the field state, if there is one.
@@ -209,6 +224,8 @@ if you aren't using ajax to submit your data, you could use the key to create an
 ```
 
 ### <a name='FieldState.getMessage'>string getMessage()</a>
+
+### <a name='FieldState.getName'>string getName()</a>
 
 ### <a name='FieldState.getValue'>string getValue()</a>
 
@@ -256,11 +273,22 @@ and the [react-datepicker example](/docs/datePickerExample.md)
 
 see the [on blur](/docs/onBlurExample.md) example
 
+### <a name='FieldState.isUploading'>boolean isUploading()</a>
+
 ### <a name='FieldState.isValid'>boolean isValid()</a>
 
 ### <a name='FieldState.isValidated'>boolean isValidated()</a>
 
 ### <a name='FieldState.isValidating'>boolean isValidating()</a>
+
+### <a name='FieldState.set'>string set(string propertyName, ? value)</a>
+
+use this to set custom property values
+
+```es6
+fieldState.set('warn', true);
+assert.equal(true, true === fieldState.get('warn'));
+```
 
 ### <a name='FieldState.setInvalid'>void setInvalid(string message)</a>
 
@@ -280,6 +308,8 @@ validateAsync().then((result) => {
   //...
 });
 ```
+
+### <a name='FieldState.setUploading'>string setUploading(string message)</a>
 
 ### <a name='FieldState.setValue'>void setValue(string message)</a>
 
@@ -506,6 +536,7 @@ FormObjects and FormArrays are essentially property generators. for a nested "fo
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
 - handleValueChange: the new change handler that takes a value parameter rather than an event
 - showValidationMessage: an optional onBlur handler
+- formState: the relevant formState object
 
 the following deprecated prop is also passed:
 
@@ -680,8 +711,17 @@ determines whether to show a form-level validation message, or disable the submi
 if you are showing validation messages on blur pass 'true' to this function
 
 ```jsx
-<input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+<input type='submit' value='Submit' disabled={this.formState.isInvalid()} />
 <span>{this.formState.isInvalid() ? 'Please fix validation errors' : null}</span>
+```
+
+### <a name="FormState.isUploading">boolean isUploading()</a>
+
+returns true if the form is waiting for an upload to finish.
+
+```jsx
+<input type='submit' value='Submit' disabled={this.formState.isUploading()} />
+<span>{this.formState.isUploading() ? 'Uploading...' : null}</span>
 ```
 
 ### <a name="FormState.isValidating">boolean isValidating()</a>
@@ -689,7 +729,7 @@ if you are showing validation messages on blur pass 'true' to this function
 returns true if the form is waiting for asynchronous validation to finish.
 
 ```jsx
-<input type='submit' value='Submit' onClick={this.handleSubmit.bind(this)} />
+<input type='submit' value='Submit' disabled={this.formState.isValidating()} />
 <span>{this.formState.isValidating() ? 'Waiting for validation to finish...' : null}</span>
 ```
 
@@ -763,7 +803,7 @@ this.formState.onUpdate((context, key) => {
 
 creates a model upon form submission.
 
-returns null if form state is invalid or if waiting on asynchronous validation.
+returns null if form state is invalid or if waiting on asynchronous validation or uploading.
 
 ```es6
 handleSubmit(e) {

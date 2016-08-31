@@ -462,7 +462,8 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         fieldState: formState.getFieldState(field), // read-only
         updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
         handleValueChange: props.handleValueChange || simpleChangeHandler.bind(null, formState, field),
-        showValidationMessage: blurHandler.bind(null, formState, field)
+        showValidationMessage: blurHandler.bind(null, formState, field),
+        formState: this.formState
       };
     }
   }]);
@@ -607,9 +608,19 @@ var FieldState = function () {
       });
     }
   }, {
+    key: 'get',
+    value: function get(name) {
+      return this.fieldState[name];
+    }
+  }, {
     key: 'getKey',
     value: function getKey() {
       return this.key;
+    }
+  }, {
+    key: 'getName',
+    value: function getName() {
+      return this.field && this.field.name;
     }
   }, {
     key: 'getValue',
@@ -662,6 +673,11 @@ var FieldState = function () {
     key: 'isValidating',
     value: function isValidating() {
       return this.fieldState.validity === 3;
+    }
+  }, {
+    key: 'isUploading',
+    value: function isUploading() {
+      return this.fieldState.validity === 4;
     }
   }, {
     key: 'isDeleted',
@@ -764,6 +780,15 @@ var FieldState = function () {
     // setMessage(message) { return this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
 
   }, {
+    key: 'set',
+    value: function set(name, value) {
+      if (!this.isModified) {
+        this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), this.isMessageVisible());
+      }
+      this.fieldState[name] = value;
+      return this;
+    }
+  }, {
     key: 'setValid',
     value: function setValid(message) {
       return this.setProps(this.getValue(), this.isCoerced(), 1, message);
@@ -779,6 +804,11 @@ var FieldState = function () {
       var asyncToken = generateQuickGuid();
       this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, true);
       return asyncToken; // thinking this is more valuable than chaining
+    }
+  }, {
+    key: 'setUploading',
+    value: function setUploading(message) {
+      return this.setProps(this.getValue(), this.isCoerced(), 4, message, null, true);
     }
   }, {
     key: 'showMessage',
@@ -894,6 +924,13 @@ var FormState = exports.FormState = function () {
     value: function isValidating() {
       return anyFieldState(this.form.state, function (fieldState) {
         return fieldState.isValidating();
+      });
+    }
+  }, {
+    key: 'isUploading',
+    value: function isUploading() {
+      return anyFieldState(this.form.state, function (fieldState) {
+        return fieldState.isUploading();
       });
     }
   }, {

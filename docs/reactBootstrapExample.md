@@ -14,7 +14,7 @@ export default class BootstrapInput extends Component {
     super(props);
     this.onChange = this.onChange.bind(this);
   }
-  
+
   render() {
     return (
       <FormGroup
@@ -36,7 +36,7 @@ export default class BootstrapInput extends Component {
       </FormGroup>
     );
   }
-  
+
   onChange(e) {
     this.props.handleValueChange(e.target.value);
   }
@@ -55,16 +55,19 @@ export default class FsBootstrapInput extends Component {
     let {
       className,
       formField, required, validate, fsValidate, fsv, noTrim, preferNull, intConvert, defaultValue, noCoercion, revalidateOnSubmit, handlerBindFunction,
-      fieldState, updateFormState, handleValueChange, showValidationMessage,
+      fieldState, updateFormState, handleValueChange, showValidationMessage, formState
       ...other
     } = this.props;
 
     className = `${className || ''} ${required ? 'required' : ''}`;
 
     let validationState = null;
-    if (this.props.fieldState.isValid()) {validationState = 'success';}
-    else if (this.props.fieldState.isValidating()) {validationState = 'warning';}
-    else if (this.props.fieldState.isInvalid()) {validationState = 'error';}
+
+    if (fieldState.isValid()) {
+      validationState = fieldState.get('warn') ? 'warning' : 'success';
+    }
+    else if (fieldState.isValidating()) {validationState = 'warning';}
+    else if (fieldState.isInvalid()) {validationState = 'error';}
 
     return (
       <BootstrapInput
