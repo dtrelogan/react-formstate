@@ -119,7 +119,7 @@ export default class DocumentInput extends Component {
   }
 
   removeDocument() {
-    this.updateDocumentState(this.props.fieldState.getKey(), {});
+    this.updateDocumentState({});
   }
   
   // documentState is an object that may contain:
@@ -178,7 +178,7 @@ export default class DocumentUpload extends Component {
         controlId={fi.getKey()}
         validationState={validationState}
         onChange={this.onChange}
-        disabled={fi.isValidating()}
+        disabled={fi.isUploading()}
         accept={this.props.accept}
         help={fi.getMessage()}
         />
