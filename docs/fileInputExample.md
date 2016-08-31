@@ -20,16 +20,14 @@ export default class FormComponent extends Component {
 
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
-    this.state.isUploadingByKey = {};
 
-    this.updateDocumentState = this.updateDocumentState.bind(this);
     this.submit = this.submit.bind(this);
   }
 
   render() {
     let submitMessage = null,
       isInvalid = this.formState.isInvalid(),
-      isUploading = this.isUploading(),
+      isUploading = this.formState.isUploading(),
       disableSubmit = isInvalid || isUploading;
 
     if (isUploading) { submitMessage = 'Waiting for upload...'; }
@@ -42,7 +40,6 @@ export default class FormComponent extends Component {
           formField='optionalDocumentUrl'
           api={this.props.api}
           fileReferenceName='optionalDocument'
-          updateDocumentState={this.updateDocumentState}
           />
         <h3>Required Document</h3>
         <DocumentInput
@@ -50,41 +47,11 @@ export default class FormComponent extends Component {
           required='Please upload the required document'
           api={this.props.api}
           fileReferenceName='requiredDocument'
-          updateDocumentState={this.updateDocumentState}
           />
         <input type='submit' value='Submit' disabled={disableSubmit}/>
         <span>{submitMessage}</span>
       </Form>
     );
-  }
-
-  // documentState is an object that may contain:
-  //  documentUrl: only on successful upload
-  //  isUploading: set to true only while uploading
-  //  message: only if something useful to communicate
-  updateDocumentState(key, documentState) {
-    let context = this.formState.createUnitOfWork(),
-      fi = context.getFieldState(key);
-
-    fi.setValue(documentState.documentUrl).validate(); // document might be required
-
-    if (documentState.isUploading) {
-      fi.setValidating(documentState.message); // overrides required
-    }
-    else if (fi.isValid()) {
-      fi.setValid(documentState.message); // when document exists or is not required
-    }
-    else if (documentState.message) {
-      fi.setInvalid(documentState.message); // message overrides required message
-    }
-
-    let isUploadingByKey = Object.assign({}, this.state.isUploadingByKey);
-    isUploadingByKey[key] = Boolean(documentState.isUploading);
-    context.updateFormState({isUploadingByKey: isUploadingByKey});
-  }
-
-  isUploading() {
-    return Object.keys(this.state.isUploadingByKey).some(key => this.state.isUploadingByKey[key]);
   }
 
   submit(e) {
@@ -111,6 +78,7 @@ export default class DocumentInput extends Component {
 
     this.validateFileType = this.validateFileType.bind(this);
     this.removeDocument = this.removeDocument.bind(this);
+    this.updateDocumentState = this.updateDocumentState.bind(this);
   }
 
   render() {
@@ -131,7 +99,7 @@ export default class DocumentInput extends Component {
           api={this.props.api}
           fieldState={this.props.fieldState}
           fileReferenceName={this.props.fileReferenceName}
-          updateDocumentState={this.props.updateDocumentState}
+          updateDocumentState={this.updateDocumentState}
           accept='.pdf,application/pdf'
           validateFileType={this.validateFileType}
           />
@@ -151,7 +119,33 @@ export default class DocumentInput extends Component {
   }
 
   removeDocument() {
-    this.props.updateDocumentState(this.props.fieldState.getKey(), {});
+    this.updateDocumentState(this.props.fieldState.getKey(), {});
+  }
+  
+  // documentState is an object that may contain:
+  //  documentUrl: only on successful upload
+  //  isUploading: set to true only while uploading
+  //  message: only if something useful to communicate
+  updateDocumentState(documentState) {
+    let context = this.props.formState.createUnitOfWork(),
+      fi = context.getFieldState(this.props.fieldState.getName());
+
+    fi.setValue(documentState.documentUrl).validate(); // document might be required
+
+    if (documentState.isUploading) {
+      fi.setUploading(documentState.message); // overrides required
+    }
+    else if (fi.isValid()) {
+      fi.setValid(documentState.message); // document exists or is not required
+    }
+    else if (documentState.message) {
+      fi.setInvalid(documentState.message); // message overrides required message
+    }
+    
+    if (documentState.warn) { fi.set('warn', true); }
+    if (typeof(documentState.progress) === 'number') { fi.set('progress', documentState.progress); }
+
+    context.updateFormState();
   }
 }
 ```
@@ -173,9 +167,11 @@ export default class DocumentUpload extends Component {
   render() {
     let fi = this.props.fieldState, validationState = null;
 
-    // on success unmount this component
-    if (fi.getMessage() || fi.isValidating()) { validationState = 'warning'; }
-    if (fi.isInvalid()) { validationState = 'error'; }
+    if (fi.isValid()) {
+      validationState = fi.get('warn') ? 'warning' : 'success';
+    }
+    else if (fi.isInvalid()) { validationState = 'error'; }
+    else if (fi.isUploading()) { validationState = 'warning'; }
 
     return (
       <FileInput
@@ -191,7 +187,7 @@ export default class DocumentUpload extends Component {
 
 
   update(documentState) {
-    this.props.updateDocumentState(this.props.fieldState.getKey(), documentState);
+    this.props.updateDocumentState(documentState);
   }
 
 
@@ -207,7 +203,7 @@ export default class DocumentUpload extends Component {
       message = this.props.validateFileType && this.props.validateFileType(f.type);
 
     if (message) {
-      this.update({message: message});
+      this.update({message: message, warn: true});
       return;
     }
 
@@ -221,7 +217,7 @@ export default class DocumentUpload extends Component {
     this.uploadDocument(formData).then(document => {
       this.update({documentUrl: document.url});
     }).catch(err => {
-      this.update({message: 'upload failed'});
+      this.update({message: 'upload failed', warn: true});
     });
   }
 
@@ -245,6 +241,7 @@ export default class DocumentUpload extends Component {
 
       xhr.upload.onprogress = (e) => {
         // here you could update a progress bar
+        // i.e., this.update({isUploading: true, progress: getProgressFromEvent})
         console.log('progress...');
         console.log(e);
       };
