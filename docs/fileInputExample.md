@@ -86,7 +86,6 @@ export default class DocumentInput extends Component {
       document = (
         <div>
           <a href={documentUrl} target="_blank">{documentUrl}</a>
-          <span className='remove-document-spacer'></span>
           <button onClick={this.removeDocument}>Remove</button>
         </div>
       );
