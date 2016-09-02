@@ -23,4 +23,20 @@ constructor(props) {
 }
 ```
 
-(the old way still works but i hid it from the examples and put in in the deprecated section in the documentation)
+of course if necessary you can still use a unit of work for injection
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  this.props.getModel().then((model) => {
+    let context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.add('someOtherField', 'someValue');
+    context.updateFormState();
+  });
+}
+```
