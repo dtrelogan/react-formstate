@@ -69,3 +69,23 @@ render() {
 #### Note
 
 do not read too much into the use of defaultValue as a property name. react-formstate uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
+
+#### injecting outside of the constructor
+
+if necessary you can alternatively use a unit of work for injection
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  this.props.getModel().then((model) => {
+    let context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.add('someOtherField', 'someValue');
+    context.updateFormState();
+  });
+}
+```
