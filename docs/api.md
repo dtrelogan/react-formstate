@@ -73,8 +73,6 @@
   - [Field.noCoercion](#Field.noCoercion)
   - [Field.handlerBindFunction](#Field.handlerBindFunction)
   - [the updateFormState handler](#updateFormStateHandler)
-  - [UnitOfWork.injectModel](#UnitOfWork.injectModel)
-  - [UnitOfWork.add](#UnitOfWork.add)
 
 ## <a name='Field'>Field</a>
 
