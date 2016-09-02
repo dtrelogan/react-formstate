@@ -799,7 +799,7 @@ this.formState.onUpdate((context, key) => {
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
 
-### <a name='UnitOfWork.add'>add(string name, ? value)</a>
+### <a name='UnitOfWork.add'>void add(string name, ? value)</a>
 
 see [injectModel](#UnitOfWork.injectModel)
 and [add](#FormState.add)
@@ -917,7 +917,7 @@ let context = this.formState.createUnitOfWork();
 let value = context.getu('x');
 ```
 
-### <a name='UnitOfWork.injectModel'>injectModel(object model)</a>
+### <a name='UnitOfWork.injectModel'>void injectModel(object model)</a>
 
 before you use this see [injectModel](#FormState.injectModel)
 
