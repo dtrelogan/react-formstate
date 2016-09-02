@@ -59,10 +59,12 @@
   - [getu](#FormState.getu)
   - [onUpdate](#FormState.onUpdate)
 - [UnitOfWork](#UnitOfWork)
+  - [add](#UnitOfWork.add)
   - [createModel](#UnitOfWork.createModel)
   - [get](#UnitOfWork.get)
   - [getFieldState](#UnitOfWork.getFieldState)
   - [getu](#UnitOfWork.getu)
+  - [injectModel](#UnitOfWork.injectModel)
   - [remove](#UnitOfWork.remove)
   - [set](#UnitOfWork.set)
   - [setc](#UnitOfWork.setc)
@@ -799,6 +801,11 @@ this.formState.onUpdate((context, key) => {
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
 
+### <a name='UnitOfWork.add'>add(string name, ? value)</a>
+
+see [injectModel](#UnitOfWork.injectModel)
+and [add](#FormState.add)
+
 ### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
 creates a model upon form submission.
@@ -912,6 +919,28 @@ let context = this.formState.createUnitOfWork();
 let value = context.getu('x');
 ```
 
+### <a name='UnitOfWork.injectModel'>injectModel(object model)</a>
+
+before you use this see [injectModel](#FormState.injectModel)
+
+if you need to inject outside your constructor you can use this
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  this.props.getModel().then((model) => {
+    let context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.add('someOtherField', 'someValue');
+    context.updateFormState();
+  });
+}
+```
+
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
 removes form state. analogous to javascript's delete function.
@@ -986,8 +1015,3 @@ there are no plans to remove these functions but they are no longer part of the 
 ### <a name='updateFormStateHandler'>the updateFormState handler</a>
 
 see [handleValueChange](/docs/handleValueChange.md) for why these are deprecated
-
-### <a name='UnitOfWork.injectModel'>UnitOfWork.injectModel</a>
-### <a name='UnitOfWork.add'>UnitOfWork.add</a>
-
-see [refactored injection](/docs/refactoredInjection.md) for why these are deprecated.
