@@ -136,6 +136,7 @@ onSubmit(e) {
     if (model.contacts[0].address.line2 === '') {
       model.contacts[0].address.line2 = null; // undo string coercion
     }
+    // ...
   }
 }
 ```
