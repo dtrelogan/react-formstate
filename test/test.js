@@ -248,7 +248,8 @@ var createMessageOverrideForm = function() {
           React.createElement(NameInput, { formField: 'zip', label: 'Zip', fsValidate: 'hello' }),
           React.createElement(NameInput, { formField: 'zip4', label: 'Zip4', fsv: 'world' }),
           React.createElement(NameInput, { formField: 'country', label: 'Country', fsValidate: 'hello', fsv: 'world' }),
-          React.createElement(NameInput, { formField: 'autowire', label: 'Autowire' })
+          React.createElement(NameInput, { formField: 'autowire', label: 'Autowire' }),
+          React.createElement(ContactEmailInput, { formField: 'noLabel' })
         ),
         React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
         React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
@@ -3503,6 +3504,16 @@ describe('formField', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       assert.equal(true, contactEmailInput.props.formState !== null);
       assert.equal(true, typeof(contactEmailInput.props.formState) === 'object');
+    });
+    it('adds a label prop', function() {
+      ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.equal(true, typeof(contactEmailInput.props.label) === 'string');
+      assert.equal(true, contactEmailInput.props.label === 'Work Email');
+    });
+    it('adds a label prop even if you do not provide one', function() {
+      ReactDOMServer.renderToString(React.createElement(MessageOverrideForm));
+      assert.equal(true, typeof(contactEmailInput.props.label) === 'string');
+      assert.equal(true, contactEmailInput.props.label === '');
     });
   });
   describe('#blurHandler', function() {

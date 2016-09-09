@@ -343,7 +343,7 @@ export class FormObject extends React.Component {
 
     if (!field.initialized) {
       field.initialized = true;
-      field.label = (this.labelPrefix || '') + props.label;
+      field.label = (this.labelPrefix || '') + (props.label || '');
       if (props.required === '-') {
         field.required = false;
       } else {
