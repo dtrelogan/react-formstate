@@ -18,7 +18,7 @@ given a model,
 }
 ```
 
-you can use react-formstate to inject it into your state. (you can alternatively inject in componentDidMount if necessary.)
+you can use react-formstate to inject it into your state. (you can alternatively [inject in componentDidMount](/docs/modelInjection.md#injecting-outside-of-the-constructor) if necessary.)
 
 ```es6
 constructor(props) {
