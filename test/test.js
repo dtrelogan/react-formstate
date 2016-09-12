@@ -148,7 +148,7 @@ var Address = React.createClass({
     if (value === 'autowired') { return 'it worked!'; }
   },
   render: function() {
-    return React.createElement(FormObject, { nestedForm: this },
+    return React.createElement(FormExtension, { nestedForm: this },
       React.createElement(ContactAddressLine1Input, { formField: 'line1', label: 'Line 1' })
     )
   }

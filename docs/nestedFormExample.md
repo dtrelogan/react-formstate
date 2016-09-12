@@ -1,5 +1,10 @@
 # nested form components
 
+```es6
+import React, { Component } from 'react';
+import { Form, FormObject, FormExtension } from 'react-formstate';
+```
+
 ### one way to do it
 
 ```jsx
@@ -38,8 +43,6 @@
 ```
 
 ```jsx
-import React, { Component } from 'react';
-
 export default class Contact extends Component {
 
   validateEmail(email) {
@@ -49,19 +52,17 @@ export default class Contact extends Component {
 
   render() {
     return (
-      <FormObject nestedForm={this}>
+      <FormExtension nestedForm={this}>
         <Input formField='email' label='Email' />
         <Input formField='phone' label='Phone' />
         <Address formObject='address' labelPrefix='Address ' />
-      </FormObject>
+      </FormExtension>
     );
   }
 }
 ```
 
 ```jsx
-import React, { Component } from 'react';
-
 export default class Address extends Component {
 
   validateLine1(line1) {
@@ -70,9 +71,9 @@ export default class Address extends Component {
 
   render() {
     return (
-      <FormObject nestedForm={this}>
+      <FormExtension nestedForm={this}>
         <Input formField='line1' label='Line 1' />
-      </FormObject>
+      </FormExtension>
     );
   }
 }
@@ -100,8 +101,6 @@ export default class Address extends Component {
 ```
 
 ```jsx
-import React, { Component } from 'react';
-
 export default class Contact extends Component {
 
   validateEmail(email) {
@@ -111,11 +110,11 @@ export default class Contact extends Component {
 
   render() {
     return (
-      <FormObject nestedForm={this}>
+      <FormExtension nestedForm={this}>
         <Input formField='email' label='Email' />
         <Input formField='phone' label='Phone' />
         {this.props.children}
-      </FormObject>
+      </FormExtension>
     );
   }
 }

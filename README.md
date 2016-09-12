@@ -11,9 +11,7 @@ react-formstate turned out even better than i expected. if you give it a try i t
 
 if you have any feedback i am glad to hear it. thanks.
 
-### quick overview
-
-[how it works](/docs/howItWorks.md)
+[quick overview](/docs/howItWorks.md)
 
 ### setup
 
@@ -30,9 +28,14 @@ if you have any feedback i am glad to hear it. thanks.
 - [arrays](/docs/arrayExample.md)
 - [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
 - [nonstandard input example: react-datepicker](/docs/datePickerExample.md)
-- [file input example](/docs/fileInputExample.md)
 - [show validation message on blur](/docs/onBlurExample.md)
 - [onUpdate callback](/docs/onUpdateExample.md)
+
+### file input examples
+
+- [newest file input example - iteration 3](/docs/fileInputExample.md)
+- [older file input example - iteration 2](/docs/fileInputExampleIteration2.md)
+- [oldest file input example - iteration 1](/docs/deprecatedFileInputExample.md)
 
 ### recent enhancements
 
@@ -42,6 +45,7 @@ if you have any feedback i am glad to hear it. thanks.
 - [handleValueChange](/docs/handleValueChange.md)
 - [custom FieldState properties](/docs/fieldStateProperties.md)
 - [isUploading](/docs/isUploading.md)
+- [newest file input example](/docs/fileInputExample.md)
 
 ### documentation
 

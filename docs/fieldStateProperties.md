@@ -2,26 +2,7 @@
 
 sometimes things don't fit in the box and a little flexibility is required
 
-### file upload progress example
-
-```es6
-onprogress = (percent) => {
-  let context = this.props.formState.createUnitOfWork(),
-    fi = context.getFieldState(this.props.fieldState.getName());
-
-  fi.set('progress', percent);
-  context.updateFormState();
-};
-```
-
-```es6
-render() {
-  let percent = this.props.fieldState.get('progress');
-  return (
-    <ProgressBar percentComplete={percent}/>
-  );
-}
-```
+the [file input example](/docs/fileInputExample.md) makes heavy use of custom field state properties.
 
 ### react bootstrap example
 

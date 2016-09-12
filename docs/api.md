@@ -445,42 +445,62 @@ FormObjects and FormArrays require different props in different situations.
 always pass a 'formState' prop to the root FormObject
 
 ```jsx
-<FormObject formState={this.formState}>
-</FormObject>
+<form>
+  <FormObject formState={this.formState}>
+  </FormObject>
+</form>
+```
+
+though most of the time you will use the shorthand
+
+```
+<Form formState={this.formState}>
+</Form>
 ```
 
 pass a 'name' prop to a FormObject or FormArray nested within the same render function
 
 ```jsx
-<FormObject formState={this.formState}>
+<Form formState={this.formState}>
   <FormArray name='contacts'>
     <FormObject name='0'>
     </FormObject>
   </FormArray>
-</FormObject>
+</Form>
 ```
 
 a 'formObject' attribute allows a "hop" from one component to another
 
 ```jsx
-<FormObject formState={this.formState}>
+<Form formState={this.formState}>
   <FormArray name='contacts'>
     <Contact formObject='0' />
   </FormArray>
-</FormObject>
+</Form>
 ```
 
-to complete the "hop", within the nested form component, place a FormObject at the root of its jsx. pass the FormObject the nested form component using a 'nestedForm' prop
+to complete the "hop", within the nested form component, place a FormExtension at the root of its jsx. pass the FormExtension the nested form component using a 'nestedForm' prop
 
 ```es6
 import React, { Component } from 'react';
+import { FormExtension } from 'react-formstate';
 
 export default class Contact extends Component {
   render() {
     return (
-      <FormObject nestedForm={this}>
-      </FormObject>
+      <FormExtension nestedForm={this}>
+      </FormExtension>
 ```
+
+you can also use the formExtension prop to enable reuse.
+
+```jsx
+<Form formState={this.formState}>
+  <Contact formExtension />
+</Form>
+```
+
+to better understand the difference between formObject and formExtension see a more complete example [here](/docs/formExtension.md).
 
 ### <a name='FormObject.optionalProps'>optional props</a>
 

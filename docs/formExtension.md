@@ -61,3 +61,18 @@ using FormExtension as below does exactly that:
     );
   }
 ```
+an added benefit of FormExtension is that you can leave the contact component as is and instead use a form object in the parent
+
+```jsx
+render() {
+  return (
+    <Form formState={this.formState} onSubmit={this.handleSubmit}>
+      <Input formField='name' label='Name' />
+      <Contact formObject='homeContact' labelPrefix='Home '/>
+      <input type='submit' value='Submit'/>
+    </Form>
+  );
+}
+```
+
+that way the nested component can remain oblivious to how it is used.
