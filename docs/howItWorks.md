@@ -62,7 +62,7 @@ import { Form, FormState, FormObject, FormArray } from 'react-formstate';
   <input type='submit' value='Submit'/>
 </Form>
 ```
-react-formstate will generate an appropriate "fieldState" prop and change handler for each input.
+react-formstate will generate an appropriate "fieldState" prop and a change handler for each input.
 
 (you can choose whether you want react-formstate to coerce your values to strings upon initial retrieval.)
 
@@ -155,7 +155,7 @@ constructor(props) {
 }
 ```
 
-null and undefined values from your form state are coerced to empty strings when provided to inputs. defaultValue is then a useful feature.
+null and undefined values from your form state are coerced to empty strings when provided to inputs (and when generating a model on submit). defaultValue is then a useful feature.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
@@ -167,4 +167,4 @@ and that's the heart of it, really.
 
 of the things that aren't covered here, [validation](/docs/validationWiring.md) is probably the most important topic.
 
-hope you enjoy react-formstate!
+thanks for your interest. i hope you enjoy react-formstate!
