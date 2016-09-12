@@ -143,7 +143,7 @@ onSubmit(e) {
 }
 ```
 
-now that you've got that down, of course you don't have to inject a model...
+of course you don't have to inject a model...
 
 ```es6
 constructor(props) {
