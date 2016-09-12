@@ -59,6 +59,7 @@ import { Form, FormState, FormObject, FormArray } from 'react-formstate';
       <Input formField='address.line2' label='Contact Address Line 2' preferNull/>
     </FormObject>
   </FormArray>
+  <input type='submit' value='Submit'/>
 </Form>
 ```
 react-formstate will generate an appropriate "fieldState" prop and change handler for each input.
