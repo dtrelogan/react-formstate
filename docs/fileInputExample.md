@@ -443,6 +443,7 @@ export default class DocumentInput extends Component {
 //   crop: React.PropTypes.bool,
 //   fileReferenceName: React.PropTypes.string.isRequired
 // };
+```
 
 ### usage example
 
