@@ -11,6 +11,10 @@ react-formstate turned out even better than i expected. if you give it a try i t
 
 if you have any feedback i am glad to hear it. thanks.
 
+### quick overview
+
+[how it works](/docs/howItWorks.md)
+
 ### setup
 
     $ npm install react-formstate --save

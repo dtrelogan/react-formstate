@@ -218,6 +218,10 @@ export class FormObject extends React.Component {
       this.validationComponent = this.props.nestedForm;
       this.labelPrefix = nestedProps.labelPrefix;
 
+      if (nestedProps.formExtension) {
+        this.formExtension = true;
+      }
+
       if (exists(this.props.nestedForm.state)) {
         console.log('warning: nested react-formstate components should not manage their own state.');
       }
@@ -235,7 +239,7 @@ export class FormObject extends React.Component {
 
   render() {
     // to support dynamic removal, upon render, rebuild the field definitions
-    if (this.constructor !== FormExtension) {
+    if (!this.formExtension) {
       this.formState.clearFields();
     }
 
@@ -655,6 +659,7 @@ export class FormState {
     this.path = null;
     this.rootFormState = this;
     this.fields = [];
+    this.anyFieldState = (f) => anyFieldState(this.form.state, f);
   }
 
 
@@ -688,17 +693,17 @@ export class FormState {
 
 
   isInvalid(visibleMessagesOnly) {
-    return anyFieldState(this.form.state, x => x.isInvalid() && (!visibleMessagesOnly || x.isMessageVisible()));
+    return this.anyFieldState(fi => fi.isInvalid() && (!visibleMessagesOnly || fi.isMessageVisible()));
   }
 
 
   isValidating() {
-    return anyFieldState(this.form.state, fieldState => fieldState.isValidating());
+    return this.anyFieldState(fi => fi.isValidating());
   }
 
 
   isUploading() {
-    return anyFieldState(this.form.state, fieldState => fieldState.isUploading());
+    return this.anyFieldState(fi => fi.isUploading());
   }
 
 

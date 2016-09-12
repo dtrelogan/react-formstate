@@ -298,6 +298,10 @@ var FormObject = exports.FormObject = function (_React$Component2) {
       _this2.validationComponent = _this2.props.nestedForm;
       _this2.labelPrefix = nestedProps.labelPrefix;
 
+      if (nestedProps.formExtension) {
+        _this2.formExtension = true;
+      }
+
       if (exists(_this2.props.nestedForm.state)) {
         console.log('warning: nested react-formstate components should not manage their own state.');
       }
@@ -317,7 +321,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
     key: 'render',
     value: function render() {
       // to support dynamic removal, upon render, rebuild the field definitions
-      if (this.constructor !== FormExtension) {
+      if (!this.formExtension) {
         this.formState.clearFields();
       }
 
@@ -875,12 +879,17 @@ var FormState = exports.FormState = function () {
   }]);
 
   function FormState(form) {
+    var _this5 = this;
+
     _classCallCheck(this, FormState);
 
     this.form = form;
     this.path = null;
     this.rootFormState = this;
     this.fields = [];
+    this.anyFieldState = function (f) {
+      return anyFieldState(_this5.form.state, f);
+    };
   }
 
   _createClass(FormState, [{
@@ -915,22 +924,22 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'isInvalid',
     value: function isInvalid(visibleMessagesOnly) {
-      return anyFieldState(this.form.state, function (x) {
-        return x.isInvalid() && (!visibleMessagesOnly || x.isMessageVisible());
+      return this.anyFieldState(function (fi) {
+        return fi.isInvalid() && (!visibleMessagesOnly || fi.isMessageVisible());
       });
     }
   }, {
     key: 'isValidating',
     value: function isValidating() {
-      return anyFieldState(this.form.state, function (fieldState) {
-        return fieldState.isValidating();
+      return this.anyFieldState(function (fi) {
+        return fi.isValidating();
       });
     }
   }, {
     key: 'isUploading',
     value: function isUploading() {
-      return anyFieldState(this.form.state, function (fieldState) {
-        return fieldState.isUploading();
+      return this.anyFieldState(function (fi) {
+        return fi.isUploading();
       });
     }
   }, {
@@ -1209,7 +1218,7 @@ var UnitOfWork = function () {
   }, {
     key: 'remove',
     value: function remove(name) {
-      var _this5 = this;
+      var _this6 = this;
 
       var key = this.formState.buildKey(name);
 
@@ -1221,7 +1230,7 @@ var UnitOfWork = function () {
 
       iterateKeys(this.formState.form.state, function (key) {
         if (key.startsWith(keyDot)) {
-          _setFieldState(_this5.stateUpdates, key, { isDeleted: true });
+          _setFieldState(_this6.stateUpdates, key, { isDeleted: true });
         }
       });
     }

@@ -47,6 +47,7 @@
   - [setRequired](#FormState.setRequired)
   - [constructor](#FormState.constructor)
   - [add](#FormState.add)
+  - [anyFieldState](#FormState.anyFieldState)
   - [createUnitOfWork](#FormState.createUnitOfWork)
   - [inject](#FormState.inject)
   - [injectModel](#FormState.injectModel)
@@ -627,6 +628,16 @@ you can add object, array, and primitive values:
   this.formState.add(this.state, 'arrayValue', [1]);
   // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.arrayValue': [1], 'formState.arrayValue.0' : 1 }
 }
+```
+
+### <a name="FormState.anyFieldState">boolean anyFieldState(function givenAFieldStateReturnABoolean)</a>
+
+primarily used to determine whether you can submit the form. for example:
+
+```es6
+// are we waiting on any of the field states?
+let isTheFormWaitingOnSomething = this.formState.anyFieldState(fi => Boolean(fi.get('isProcessing')));
+// ... might need to disable submit and provide an explanatory message
 ```
 
 ### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
