@@ -1,6 +1,6 @@
 # how it works
 
-if you have a model
+given a model,
 
 ```es6
 {
@@ -18,7 +18,7 @@ if you have a model
 }
 ```
 
-and if you inject it
+you can use react-formstate to inject it into your state.
 
 ```es6
 constructor(props) {
@@ -30,7 +30,7 @@ constructor(props) {
 }
 ```
 
-react-formstate flattens it into your component state
+react-formstate flattens the data which simplifies immutable state.
 
 ```es6
 this.state = {
@@ -42,7 +42,7 @@ this.state = {
 };
 ```
 
-react-formstate generates an appropriate "fieldState" prop for each input component according to your jsx
+next you describe the model and its inputs with your jsx.
 
 ```es6
 import { Form, FormState, FormObject, FormArray } from 'react-formstate';
@@ -61,8 +61,9 @@ import { Form, FormState, FormObject, FormArray } from 'react-formstate';
   </FormArray>
 </Form>
 ```
+react-formstate will generate an appropriate "fieldState" prop and change handler for each input.
 
-you can choose whether you want react-formstate to coerce your values to strings upon initial retrieval:
+(you can choose whether you want react-formstate to coerce your values to strings upon initial retrieval.)
 
 ```es6
 import React, { Component } from 'react';
@@ -94,7 +95,13 @@ export default class Input extends Component {
 }
 ```
 
-using the 'name' field as an example the standard react-formstate change handler looks like
+upon a call to handleValueChange, the change handler prepares the backing fieldState data for a call to this.setState. for instance, if the value of the name field is updated to an empty string, the following state update occurs:
+
+```es6
+this.setState({ 'formState.name': { value: '', validity: 2, message: 'Name is required', isCoerced: true } });
+```
+
+you can override the change handler using a simple api to manipulate the fieldState data, honoring immutable state.
 
 ```es6
 handleNameChange(newValue) {
@@ -106,13 +113,7 @@ handleNameChange(newValue) {
 }
 ```
 
-have no fear, that's just a simple api to prepare the fieldState data for an underlying call to this.setState
-
-```es6
-this.setState({ 'formState.name': { value: '', validity: 2, message: 'Name is required', isCoerced: true } });
-```
-
-upon form submission, react-formstate unflattens your form state *based on how the inputs are structured in the jsx*
+upon form submission, **based on how the inputs are structured in the jsx,** react-formstate builds a model from your form state. (note that you can change the structure of your inputs dynamically. react-formstate will honor the representation from the most recent render.)
 
 ```es6
 onSubmit(e) {
@@ -125,7 +126,7 @@ onSubmit(e) {
 }
 ```
 
-the intConvert and preferNull props save you from having to do something like
+the intConvert and preferNull props save you from having to manually transform your model upon submit:
 
 ```es6
 onSubmit(e) {
@@ -141,7 +142,7 @@ onSubmit(e) {
 }
 ```
 
-of course you don't have to inject a model
+now that you've got that down, of course you don't have to inject a model...
 
 ```es6
 constructor(props) {
@@ -153,11 +154,13 @@ constructor(props) {
 }
 ```
 
-defaultValue is then a useful feature
+null and undefined values from your form state are coerced to empty strings when provided to inputs. defaultValue is then a useful feature.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
 ```
+
+you can build [nested form components](/docs/nestedFormExample.md) but the entire form state is held in the root form component.
 
 and that's the heart of it, really.
 
