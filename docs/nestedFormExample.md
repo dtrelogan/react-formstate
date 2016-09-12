@@ -156,3 +156,7 @@ export default class Contact extends Component {
     );
   }
 ```
+
+## formExtension alternative
+
+see explanation [here](/docs/formExtension.md)
