@@ -482,7 +482,7 @@ export default class AccountForm extends Component {
             <Col xs={12} sm={6} lg={4}>
               <DocumentInput
                 className = 'avatar-input'
-                formField='imageId'
+                formField='imageUrl'
                 label='Image'
                 image
                 crop
