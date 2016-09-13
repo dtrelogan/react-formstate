@@ -1,4 +1,4 @@
-# File Input Example
+# file input example
 
 these examples make use of [react bootstrap](https://react-bootstrap.github.io/components.html) components
 

@@ -1,4 +1,4 @@
-# File Input Example
+# file input example
 
 file inputs have security restrictions that prevent them from being used like other controlled components in react.
 

@@ -1,4 +1,4 @@
-# File Input Example
+# file input example
 
 file inputs have security restrictions that prevent them from being used like other controlled components in react.
 
@@ -117,7 +117,7 @@ export default class DocumentInput extends Component {
   removeDocument() {
     this.updateDocumentState({});
   }
-  
+
   // documentState is an object that may contain:
   //  documentUrl: only on successful upload
   //  isUploading: set to true only while uploading
@@ -137,7 +137,7 @@ export default class DocumentInput extends Component {
     else if (documentState.message) {
       fi.setInvalid(documentState.message); // message overrides required message
     }
-    
+
     if (documentState.warn) { fi.set('warn', true); }
     if (typeof(documentState.progress) === 'number') { fi.set('progress', documentState.progress); }
 
