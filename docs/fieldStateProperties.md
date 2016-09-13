@@ -72,7 +72,7 @@ updateDocumentState(documentState) {
   let context = this.props.formState.createUnitOfWork(),
     fi = context.getFieldState(this.props.fieldState.getName());
 
-  fi.setValue(documentUrl.documentUrl).validate(); // document might be required
+  fi.setValue(documentState.documentUrl).validate(); // document might be required
 
   //
   //
