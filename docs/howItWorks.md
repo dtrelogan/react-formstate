@@ -18,7 +18,7 @@ given a model,
 }
 ```
 
-you can inject it into your state. (alternatively, [inject in componentDidMount](/docs/modelInjection.md#injecting-outside-of-the-constructor).)
+you can inject it into your state.
 
 ```es6
 constructor(props) {
@@ -27,6 +27,23 @@ constructor(props) {
   this.state = this.formState.injectModel(props.model);
 
   this.onSubmit = this.onSubmit.bind(this);
+}
+```
+
+(alternatively, you can inject in componentDidMount.)
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  getModel().then((model) => {
+    let context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.updateFormState();
+  });
 }
 ```
 
@@ -42,7 +59,7 @@ this.state = {
 };
 ```
 
-next you describe the model and its inputs with jsx.
+next describe the model in your jsx.
 
 ```es6
 import { Form, FormState, FormObject, FormArray } from 'react-formstate';
@@ -63,7 +80,7 @@ import { Form, FormState, FormObject, FormArray } from 'react-formstate';
 </Form>
 ```
 
-react-formstate generates an appropriate "fieldState" prop and a change handler for each input.
+for each input, react-formstate generates an appropriate "fieldState" prop and a change handler.
 
 (typically you'll want to coerce values to strings, but not always.)
 
@@ -100,13 +117,23 @@ export default class Input extends Component {
 }
 ```
 
-the change handler makes an appropriate call to setState. suppose the value of the name field is updated to an empty string:
+the change handler updates form state by making an appropriate call to setState. suppose name is updated to an empty string:
 
 ```es6
-this.setState({ 'formState.name': { value: '', validity: 2, message: 'Name is required', isCoerced: true } });
+this.setState(
+  {
+    'formState.name':
+    {
+      value: '',
+      validity: 2, // invalid
+      message: 'Name is required',
+      isCoerced: true
+    }
+  }
+);
 ```
 
-you can override the change handler using a simple api to update (immutable) form state.
+you can override the change handler using a simple api to update immutable form state.
 
 ```es6
 handleNameChange(newValue) {
@@ -136,14 +163,14 @@ onSubmit(e) {
 }
 ```
 
-the intConvert and preferNull props save effort upon submit:
+the intConvert and preferNull props save you some code upon submit:
 
 ```es6
 onSubmit(e) {
   e.preventDefault();
   let model = this.formState.createUnitOfWork().createModel();
   if (model) {
-    // you don't have to code the following transformations
+    // intConvert and preferNull do this for you
     model.age = Number(model.age); // undo string coercion
     if (model.contacts[0].address.line2 === '') {
       model.contacts[0].address.line2 = null; // undo string coercion
@@ -153,7 +180,7 @@ onSubmit(e) {
 }
 ```
 
-of course you don't have to inject a model. null and undefined values are coerced to empty strings.
+of course, you don't have to inject a model. null and undefined values are coerced to empty strings.
 
 ```es6
 constructor(props) {
