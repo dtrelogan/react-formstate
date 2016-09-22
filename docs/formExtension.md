@@ -61,7 +61,18 @@ using FormExtension as below does exactly that:
     );
   }
 ```
-an added benefit of FormExtension is that you can leave the contact component as is and instead use a form object in the parent
+an added benefit of FormExtension is that if you DO want the nesting
+
+```es6
+{
+  name: 'buster',
+  contact: {
+    email: 'buster@dogs.org'
+  }
+}
+```
+
+you can leave the contact component as is and instead use a form object in the parent
 
 ```jsx
 render() {
