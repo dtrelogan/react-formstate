@@ -180,7 +180,7 @@ onSubmit(e) {
 }
 ```
 
-of course, you don't have to inject a model. null and undefined values are coerced to empty strings.
+of course, you don't have to inject a model. null and undefined values can be coerced to empty strings.
 
 ```es6
 constructor(props) {

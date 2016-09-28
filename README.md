@@ -11,8 +11,6 @@ react-formstate turned out even better than i expected. if you give it a try i t
 
 if you have any feedback i am glad to hear it. thanks.
 
-[quick overview](/docs/howItWorks.md)
-
 ### setup
 
     $ npm install react-formstate --save
@@ -33,9 +31,9 @@ if you have any feedback i am glad to hear it. thanks.
 
 ### file input examples
 
-- [newest file input example - iteration 3](/docs/fileInputExample.md)
-- [older file input example - iteration 2](/docs/fileInputExampleIteration2.md)
-- [oldest file input example - iteration 1](/docs/deprecatedFileInputExample.md)
+- [file input example - iteration 1](/docs/deprecatedFileInputExample.md)
+- [file input example - iteration 2](/docs/fileInputExampleIteration2.md)
+- [file input example - iteration 3](/docs/fileInputExample.md)
 
 ### recent enhancements
 
@@ -49,6 +47,7 @@ if you have any feedback i am glad to hear it. thanks.
 
 ### documentation
 
+- [how it works](/docs/howItWorks.md)
 - [api](/docs/api.md)
 - [react forms](https://facebook.github.io/react/docs/forms.html)
 - [design contrast](/docs/designContrast.md)
