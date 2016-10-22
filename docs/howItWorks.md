@@ -190,7 +190,7 @@ onSubmit(e) {
 }
 ```
 
-of course, you don't have to inject a model. null and undefined values can be coerced to empty strings.
+of course, you don't have to inject a model.
 
 ```es6
 constructor(props) {
@@ -202,7 +202,7 @@ constructor(props) {
 }
 ```
 
-defaultValue is then a useful feature.
+when supplying a value to an input during a render, an unspecified formstate value is typically coerced to an empty string. if the user does not use the input to change the value, the unspecified form state value is also used to create a model upon form submission. in either case, if an empty string is inappropriate, the defaultValue prop is a convenient way to specify an alternative initial value, used only in the absence of form state.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
