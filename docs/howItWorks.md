@@ -202,13 +202,13 @@ constructor(props) {
 }
 ```
 
-if an empty string is inappropriate, the defaultValue prop should be used to specify an alternative default value, one used only in the absence of form state.
+if an empty string is inappropriate, the defaultValue prop should be used to specify an alternative default value, one used only in the absence of injected form state.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
 ```
 
-applying all of the above, you can build [nested form components](/docs/nestedFormExample.md) but the entire form state is held in the root form component.
+putting it all together, you can build [nested form components](/docs/nestedFormExample.md) consistent with one-way binding, as the entire form state is held in the root form component.
 
 and that's the heart of it, really.
 
