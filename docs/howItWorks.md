@@ -117,7 +117,7 @@ export default class Input extends Component {
 }
 ```
 
-the change handler updates form state by making an appropriate call to setState. suppose name is updated to an empty string:
+the change handler updates form state by making an appropriate call to setState. suppose name, a required field, is updated to an empty string:
 
 ```es6
 this.setState(
@@ -135,8 +135,18 @@ this.setState(
 
 you can override the change handler using a simple api to update immutable form state.
 
+```jsx
+<Input
+  formField='name'
+  label='Name'
+  required
+  handleValueChange={this.handleNameChange}
+  />
+```
+
 ```es6
 handleNameChange(newValue) {
+  // this is essentially the standard change handler
   let context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState('name');
 
