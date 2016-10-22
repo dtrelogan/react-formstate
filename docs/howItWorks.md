@@ -173,7 +173,7 @@ onSubmit(e) {
 }
 ```
 
-the intConvert and preferNull props save you some code upon submit:
+the intConvert and preferNull props save you some code upon submit.
 
 ```es6
 onSubmit(e) {
@@ -190,7 +190,7 @@ onSubmit(e) {
 }
 ```
 
-of course, you don't have to inject a model.
+of course, you don't have to inject a model. when rendering an input or submitting a form, unspecified form state is typically coerced to an empty string.
 
 ```es6
 constructor(props) {
@@ -202,13 +202,13 @@ constructor(props) {
 }
 ```
 
-when supplying a value to an input during a render, an unspecified formstate value is typically coerced to an empty string. if the user does not use the input to change the value, the unspecified form state value is also used to create a model upon form submission. in either case, if an empty string is inappropriate, the defaultValue prop is a convenient way to specify an alternative initial value, used only in the absence of form state.
+if an empty string is inappropriate, the defaultValue prop should be used to specify an alternative default value, one used only in the absence of form state.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
 ```
 
-you can build [nested form components](/docs/nestedFormExample.md) but the entire form state is held in the root form component.
+applying all of the above, you can build [nested form components](/docs/nestedFormExample.md) but the entire form state is held in the root form component.
 
 and that's the heart of it, really.
 
