@@ -190,7 +190,7 @@ onSubmit(e) {
 }
 ```
 
-of course, you don't have to inject a model. when rendering an input or submitting a form, unspecified form state is typically coerced to an empty string.
+of course, you don't have to inject a model. when rendering an input or submitting a form, undefined form state is typically coerced to an empty string.
 
 ```es6
 constructor(props) {
@@ -202,13 +202,13 @@ constructor(props) {
 }
 ```
 
-if an empty string is inappropriate, the defaultValue prop should be used to specify an alternative default value, one used only in the absence of injected form state.
+if an empty string is inappropriate, the defaultValue prop should be used to specify an alternative default value, to be used only in the absence of injected form state.
 
 ```jsx
 <HiddenInput formField='id' defaultValue='0' intConvert/>
 ```
 
-putting it all together, you can build [nested form components](/docs/nestedFormExample.md) consistent with one-way binding, as the entire form state is held in the root form component.
+going further, you can build [nested form components](/docs/nestedFormExample.md) that are consistent with one-way binding, as the entire form state is held in the root form component.
 
 and that's the heart of it, really.
 
