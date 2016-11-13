@@ -11,10 +11,6 @@ react-formstate turned out even better than i expected. if you give it a try i t
 
 if you have any feedback i am glad to hear it. thanks.
 
-### a request
-
-more users leads to better maintenance. to the best of my knowledge the only way to discover this package is via a search on npm, where it's easy for this package to get buried amongst dozens of others. i could attempt to promote the package on stack overflow and the like, but i think it would be more meaningful coming from satisfied users. so, if you think react-formstate is a good thing, i could use your help spreading the word in any way you think would help. thanks for your time and consideration.
-
 ### setup
 
     $ npm install react-formstate --save
