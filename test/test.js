@@ -3002,6 +3002,15 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal('override', fieldState.getMessage());
     });
+    it('returns a field state if no field', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('someInputThatDoesNotExist');
+      var newFieldState = fieldState.setValue('someValueIWantToStore').validate();
+      assert.equal(false, fieldState.isValid());
+      assert.equal('FieldState', newFieldState.constructor.name);
+      assert.equal(fieldState, newFieldState);
+    });
   });
   describe('#setValid', function() {
     it('sets message and validity, keeps value, and clears the other props', function() {

@@ -523,6 +523,12 @@ class FieldState {
   setCoercedValue(value) { return this.setValueImp(value, true); }
 
   validate() {
+    // if there is no input for this fieldstate don't bother validating
+    // you might be managing form state such that the inputs are dynamically shown or hidden based on that form state
+    if (!this.field) {
+      return this;
+    }
+
     this.assertCanUpdate();
 
     if (this.field.validate && this.field.fsValidate) {
