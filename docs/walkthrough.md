@@ -120,7 +120,7 @@ export default class SimpleRfsForm extends Component {
 
 We could add validation and other form features in raw react but unless you stay in a very limited box it gets tricky, fast. Worse, as you write new forms, the pattern you come up with won't be very DRY.
 
-So don't bother, use react-formstate instead. It will serve you well, **even as your forms grow in complexity**.
+So don't bother, use react-formstate instead:
 
 ```diff
 import React, { Component } from 'react';
@@ -181,3 +181,9 @@ export default class RawReactForm extends Component {
   }
 }
 ```
+
+&nbsp;
+
+react-formstate will serve you well, **even as your forms grow in complexity**.
+
+See the other examples for other ways you can write simple, elegant forms with react-formstate.
