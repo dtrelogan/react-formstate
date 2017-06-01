@@ -216,7 +216,7 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add a state object to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone. Moreover, it doesn't allow for more complex use cases like asynchronous validation.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add a state object to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone, particularly as you transfer it to other forms. Moreover, without significant alteration, it simply doesn't allow for complex use cases like asynchronous validation.
 
 Let's instead add validation using react-formstate:
 
