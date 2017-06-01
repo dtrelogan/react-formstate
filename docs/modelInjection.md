@@ -1,6 +1,6 @@
 # Model Injection
 
-there are different ways to edit a model:
+There are different ways to edit a model:
 
 ```jsx
 {
@@ -9,7 +9,9 @@ there are different ways to edit a model:
 }
 ```
 
-### longhand
+### Longhand
+
+Supply default values explicitly:
 
 ```jsx
 render() {
@@ -24,7 +26,9 @@ render() {
 }
 ```
 
-### shorthand
+### Shorthand
+
+Supply a set of default values with a single statement:
 
 ```jsx
 render() {
@@ -38,15 +42,19 @@ render() {
 }
 ```
 
-### true injection
+### True injection
 
-a more flexible approach that facilitates dynamic forms:
+Default values are only used if there is no corresponding value in your form's state object. They are most useful when you are in 'create' mode rather than 'edit' or 'update' mode.
+
+You can alternatively load a provided model directly into your state. This is generally a better approach that facilitates dynamic forms:
 
 ```jsx
 constructor(props) {
   super(props);
   this.formState = new FormState(this);
+  
   this.state = this.formState.injectModel(props.model);
+  this.formState.add(this.state, 'someOtherField', 'someValue');
 
   this.handleSubmit = this.handleSubmit.bind(this);
 }
@@ -68,11 +76,11 @@ render() {
 
 #### Note
 
-do not read too much into the use of defaultValue as a property name. react-formstate uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
+Do not read too much into the use of defaultValue as a property name, react-formstate uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
 
-#### injecting outside of the constructor
+#### Injecting outside of the constructor
 
-if necessary you can alternatively use a unit of work for injection
+If necessary you can alternatively use a unit of work for injection (a unit of work in react-formstate is a wrapper around a call to this.setState):
 
 ```es6
 constructor(props) {
