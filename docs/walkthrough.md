@@ -1,4 +1,6 @@
-To gain an understanding of what react-formstate does, let's first examine a simple react form built without react-formstate:
+Let's contrast a simple form built in raw react:
+
+&nbsp;
 
 ```jsx
 import React, { Component } from 'react';
@@ -17,24 +19,24 @@ export default class RawReactForm extends Component {
   constructor(props) {
     super(props);
     
-    this.state = {model: props.model};
-    
-    if (!props.model) {
-      // set default values
-      this.state.model = {
+    // initialize default values for all the fields
+    this.state = {
+      model: {
         name: '',
         address: {
-          city: ''
+          city: 'Busytown'
         }
-      };
-    }
+      }
+    };
+    
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
   
   render() {
     const model = this.state.model;
     
     return (
-      <form onSubmit={e => this.handleSubmit(e)}>
+      <form onSubmit={this.handleSubmit}>
         <Input
           label='Name'
           value={model.name}
@@ -62,7 +64,9 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-Here is the equivalent form built with react-formstate:
+with an equivalent form built using react-formstate:
+
+&nbsp;
 
 ```jsx
 import React, { Component } from 'react';
@@ -92,17 +96,19 @@ export default class SimpleRfsForm extends Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    this.state = this.formState.injectModel(props.model);
-    // note that this.state = {} works just fine too
+    
+    // you only need to initialize values for non-empty fields
+    // and you can do it in the jsx
+    this.state = {};
+    
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
   
   render() {
-    // skipping a default value for address.city,
-    // since you don't need to set empty default values...
     return (
-      <Form formState={this.formState} onSubmit={e => this.handleSubmit(e)}>
-        <RfsInput formField='name' label='Name' defaultValue=''/>
-        <RfsInput formField='address.city' label='Address City'/>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
+        <RfsInput formField='name' label='Name'/>
+        <RfsInput formField='address.city' label='Address City' defaultValue='Busytown'/>
         <input type='submit' value='Submit'/>
       </Form>
     );
@@ -111,7 +117,7 @@ export default class SimpleRfsForm extends Component {
   handleSubmit(e) {
     e.preventDefault();
     // persist the model instance here...
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
     alert(JSON.stringify(model));
   }
 }
@@ -121,7 +127,7 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-Contrasting the forms thus far, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but using advanced javascript features makes it kind of a wash in terms of which approach is better.
+Comparing the examples, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but using advanced javascript features makes it kind of a wash in terms of which approach is better.
 
 Now let's try to add simple validation:
 
@@ -143,17 +149,16 @@ export default class RawReactForm extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {model: props.model};
-
-    if (!props.model) {
-      // set default values
-      this.state.model = {
+    this.state = {
+      model: {
         name: '',
         address: {
-          city: ''
+          city: 'Busytown'
         }
-      };
-    }
+      }
+    };
+    
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
 + validate() {
@@ -181,7 +186,7 @@ export default class RawReactForm extends Component {
 +   const {errors, isInvalid} = this.validate();
 
     return (
-      <form onSubmit={e => this.handleSubmit(e)}>
+      <form onSubmit={this.handleSubmit}>
         <Input
           label='Name'
           value={model.name}
@@ -211,7 +216,7 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add a state object to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach - using raw react for forms - is tedious and error prone.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add a state object to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone. Moreover, it doesn't allow for more complex use cases like asynchronous validation.
 
 Let's instead add validation using react-formstate:
 
@@ -245,15 +250,17 @@ export default class SimpleRfsForm extends Component {
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    this.state = this.formState.injectModel(props.model);
+    this.state = {};
+    
+    this.handleSubmit = this.handleSubmit.bind(this);
 +   this.validateName = this.validateName.bind(this);
   }
   
   render() {
     return (
-      <Form formState={this.formState} onSubmit={e => this.handleSubmit(e)}>
+      <Form formState={this.formState} onSubmit={this.handleSubmit}>
 +       <RfsInput formField='name' label='Name' required validate={this.validateName}/>
-+       <RfsInput formField='address.city' label='Address City' required/>
++       <RfsInput formField='address.city' label='Address City' required defaultValue='Busytown'/>
 +       <input type='submit' value='Submit' disabled={this.formState.isInvalid()}/>
       </Form>
     );
@@ -267,7 +274,7 @@ export default class SimpleRfsForm extends Component {
   
   handleSubmit(e) {
     e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
 +   if (model) { // if model is valid
       alert(JSON.stringify(model)); // persist...
 +   }
@@ -279,4 +286,6 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-This is much better. Best of all, as your forms grow in complexity, **react-formstate continues to be an asset**. Unlike many other react form packages, react-formstate handles complex forms gracefully, without getting in your way. There are *many* examples here demonstrating advanced use cases and ways to write elegant, maintainable code using react-formstate.
+This is much better, and this is only a simple form. Where react-formstate **really shines** is when you get to more complex use cases. Unlike many other react form packages, react-formstate handles complex forms gracefully, without getting in your way.
+
+Please reference the other examples here to learn advanced use cases and more ways to write elegant, maintainable code using react-formstate.
