@@ -2,7 +2,7 @@
 
 ## Default values
 
-The introduction made a rough equivalence between this code:
+The introductory walkthrough made a rough equivalence between this code:
 
 ```jsx
 constructor(props) {
@@ -43,7 +43,7 @@ render() {
 }
 ```
 
-This is true only in the sense that you may need to initialize the state of an empty form with default values. (Particularly, in the raw react code, in the initial render you need to provide empty string values to all the text inputs in order to keep the html inputs happy.)
+This is true in the sense that you may need to set appropriate default values in order to initialize an empty form. (Particularly, in the raw react code, in the initial render you need to provide initial string values to all the text inputs in order to keep the html inputs happy.)
 
 However, in a more general sense, this is actually the equivalent code:
 
@@ -113,7 +113,7 @@ render() {
 }
 ```
 
-In react-formstate default values attached to jsx elements are stored as part of the jsx elements, not as part of your form's state. The default value is only used to supply a value if the value for the corresponding field is undefined in your state.
+In react-formstate default values expressed within the jsx elements are stored as part of the jsx elements, not as part of your form's state. The default value is used to supply a value to the input only if the value for the corresponding field is undefined in your state.
 
 Default values are a convenient way within react-formstate to initialize an empty form for a user who is filling out the form for the first time. It's syntactic sugar for that purpose.
 
@@ -165,7 +165,7 @@ this.state = {
 };
 ```
 
-You can use accessor methods to read whatever you want from your "form state". To keep HTML inputs happy, values are typically coerced to strings upon access, but you have a choice in the matter:
+You can use accessor methods to read whatever you want from your "form state". To keep HTML inputs happy, values are typically coerced to strings upon retrieval, but you have a choice in the matter:
 
 ```es6
 render() {
@@ -178,7 +178,7 @@ render() {
 }
 ```
 
-FormState is a simple wrapper for component state. You can, of course use your component's state object directly if you want:
+FormState is a simple wrapper for component state. You can, of course, use your component's state object directly if you want:
 
 ```es6
 constructor(props) {
@@ -247,16 +247,16 @@ export default class SimpleRfsForm extends Component {
 }
 ```
 
-the output in the alert window will be:
+and if you immediately submit the form, the output in the alert window will be:
 
 ```es6
 {name: 'Huckle'}
 ```
 
-The 'city' field is not part of the resulting model.
+The 'city' field is not included in the resulting model.
 
 This is because the nature of the model produced by the submit handler depends on the inputs actually rendered in the JSX.
 
 This means that you can add and remove inputs dynamically to change the structure of your model (which is useful for arrays of objects).
 
-It also means you can pretty much shove whatever you want into your "form state" without impacting the model that will ultimately be produced.
+It also means you can put peripheral data into your "form state" without impacting the model that will be produced.
