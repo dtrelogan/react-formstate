@@ -44,7 +44,7 @@ render() {
 
 ### True injection
 
-Default values are only used if there is no corresponding value in your form's state object. They are most useful when you are in 'create' mode rather than 'edit' or 'update' mode.
+Default values are only used if there is no corresponding value in your form's state object. They are most useful when you are initializing an empty form in 'create' mode rather than loading pre-existing data into a form in 'edit' or 'update' mode.
 
 You can alternatively load a provided model directly into your state. This is generally a better approach that facilitates dynamic forms:
 
