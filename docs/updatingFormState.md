@@ -1,4 +1,4 @@
-# Working with the UnitOfWork and FieldState APIs
+# Updating form state
 
 ## The framework generated change handler
 
@@ -71,7 +71,7 @@ export default class SimpleRfsForm extends Component {
 
 There are a couple new APIs used in the handler: UnitOfWork and FieldState.
 
-Whereas the FormState API provides a simple wrapper around initializing and reading this.state, the UnitOfWork API is a simple wrapper around calls to this.setState. The main focus of both APIs is essentially to transform data written to, and read from, the component state.
+The FormState API is a simple wrapper around initializing and reading this.state. The UnitOfWork API is a simple wrapper around calls to this.setState. The main focus of both APIs is essentially to transform data written to, and read from, component state.
 
 As for the FieldState API, from react-formstate's perspective, the "form state" is essentially a collection of individual "field states." To illustrate, let's look behind the scenes at what the change handler actually does. Suppose name, a required field, is updated to an empty string. The call to context.updateFormState() then makes a call to this.setState like this:
 
@@ -87,8 +87,6 @@ this.setState(
   }
 );
 ```
-
-There is nothing fancy going on here.
 
 ## Introduction to the FieldState API
 
@@ -160,3 +158,76 @@ handlePasswordChange(newPassword) {
   context.updateFormState();
 }
 ```
+
+## Introduction to the UnitOfWork API
+
+We've already seen examples for using the 'getFieldState', 'get', 'getu', and 'set' methods.
+
+There are UnitOfWork methods for 'injectModel' and 'add' that work exactly like the methods of the same name from the FormState API. These methods are useful if you don't receive your model until after the 'componentDidMount' method, such that you need to use a call to this.setState to inject the model data into your state.
+
+Also, remember that both 'add' and 'injectModel' flatten objects and arrays, which makes 'add' more powerful than 'set'.
+
+The 'updateFormState' and 'createModel' methods have a couple noteworthy features.
+
+### updateFormState
+
+The 'updateFormState' method can receive additional updates to provide to the call to setState:
+
+```es6
+context.updateFormState({someFlag: true, someOtherStateValue: 1});
+// ...
+if (this.state.someFlag)
+// ...
+```
+
+### createModel
+
+We've seen 'createModel' used like this:
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const model = this.formState.createUnitOfWork().createModel();
+  if (model) {
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  }
+}
+```
+
+but you can control the call to setState by passing true to 'createModel':
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const context = this.formState.createUnitOfWork();
+  const model = context.createModel(true); // <--- pass true
+  
+  if (model) {
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  } else {
+    // do additional work...
+    context.updateFormState(withAdditionalUpdates); // <--- need to call this yourself now
+  }
+}
+```
+
+To save you effort, the 'createModel' method can perform a few common transforms for you:
+
+```jsx
+<RfsInput formField='age' intConvert/>
+<RfsInput formField='address.line2' preferNull/>
+<RfsInput formField='specialText' noTrim/>
+```
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const model = this.formState.createUnitOfWork().createModel();
+  if (model) {
+    model.age === 8; // rather than '8' due to intConvert prop
+    model.address.line2 === null; // rather than '' due to preferNull prop
+    model.specialText === ' not trimmed '; // rather than 'not trimmed' due to noTrim prop
+  }
+}
+```
+
