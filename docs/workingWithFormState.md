@@ -1,4 +1,4 @@
-# Working with the FormState API
+# Introduction to the FormState API
 
 ## Default values
 
@@ -43,7 +43,7 @@ render() {
 }
 ```
 
-This is true in the sense that you may need to set appropriate default values in order to initialize an empty form. (Particularly, in the raw react code, in the initial render you need to provide initial string values to all the text inputs in order to keep the html inputs happy.)
+This is true in the sense that you may need to set appropriate default values in order to initialize an empty form. (Particularly, in the raw react code, in the initial render you need to provide initial string values to all the text inputs in order to keep the HTML inputs happy.)
 
 However, in a more general sense, this is actually the equivalent code:
 
@@ -113,9 +113,9 @@ render() {
 }
 ```
 
-In react-formstate default values expressed within the jsx elements are stored as part of the jsx elements, not as part of your form's state. The default value is used to supply a value to the input only if the value for the corresponding field is undefined in your state.
+In react-formstate default values expressed as properties of the react elements in the JSX are stored as part of react-formstate's representation of those elements, **not** as part of your form's state. The default value is used to supply a value to the input only if the value for the corresponding field is undefined in your state.
 
-Default values are a convenient way within react-formstate to initialize an empty form for a user who is filling out the form for the first time. It's syntactic sugar for that purpose.
+Default values are a convenient way within react-formstate to initialize an empty form for a user who is filling out the form for the first time. It's syntactic sugar for that limited purpose.
 
 ## Model injection
 
@@ -126,16 +126,10 @@ constructor(props) {
   super(props);
   this.formState = new FormState(this);
   this.state = this.formState.injectModel(props.model);
-  
-  // if we are doing a 'create' CRUD action, and props.model is null, undefined, or an empty object
-  // and if we have to do something dynamic during render based on country, you can add what you need
-  if (!this.formState.get('country')) {
-    this.formState.add(this.state, 'country', 'USA');
-  }
 }
 ```
 
-Injecting a model into your "form state" basically flattens the model and prefixes all the state fields with "formState." For example, injecting this model:
+Injecting this model:
 
 ```es6
 {
@@ -153,7 +147,7 @@ Injecting a model into your "form state" basically flattens the model and prefix
 }
 ```
 
-results in a state object that looks like this:
+flattens the data and returns this state object:
 
 ```es6
 this.state = {
@@ -165,7 +159,26 @@ this.state = {
 };
 ```
 
-You can use accessor methods to read whatever you want from your "form state". To keep HTML inputs happy, values are typically coerced to strings upon retrieval, but you have a choice in the matter:
+The 'add' method can also be used to initialize form state:
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = this.formState.injectModel(props.model);
+  
+  // if we are doing a 'create' CRUD action, and props.model is null or undefined,
+  // and if we have to do something dynamic during render based on country,
+  // you can add what you need to the state here
+  if (!this.formState.get('country')) {
+    this.formState.add(this.state, 'country', 'USA');
+  }
+}
+```
+
+You can use accessor methods to read whatever you want from your "form state".
+
+To keep HTML inputs happy, values are typically coerced to strings upon retrieval, but you have a choice in the matter:
 
 ```es6
 render() {
@@ -178,7 +191,7 @@ render() {
 }
 ```
 
-FormState is a simple wrapper for component state. You can, of course, use your component's state object directly if you want:
+FormState is a simple wrapper around your component state. You can, of course, use your component's state object directly if you want:
 
 ```es6
 constructor(props) {
@@ -259,4 +272,6 @@ This is because the nature of the model produced by the submit handler depends o
 
 This means that you can add and remove inputs dynamically to change the structure of your model (which is useful for arrays of objects).
 
-It also means you can put peripheral data into your "form state" without impacting the model that will be produced.
+It also means you can put peripheral data into your "form state" without necessarily impacting the model that will be produced.
+
+The [next step](updatingFormState.md) in the walkthrough is to learn how to make updates to form state.
