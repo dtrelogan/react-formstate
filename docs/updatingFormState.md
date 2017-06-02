@@ -34,7 +34,7 @@ render() {
 }
 ```
 
-The 'handleValueChange' prop represents the framework generated change handler. Using the standard handler will normally save you time and effort, but you can always override the standard handler if necessary.
+The 'handleValueChange' prop represents the framework generated change handler. Using the standard handler will normally save you time and effort, but you can always override it if necessary.
 
 To demonstrate, let's build a custom handler and pass it to the 'name' input.
 
@@ -71,9 +71,11 @@ export default class SimpleRfsForm extends Component {
 
 There are a couple new APIs used in the handler: UnitOfWork and FieldState.
 
-The FormState API is a simple wrapper around initializing and reading this.state. The UnitOfWork API is a simple wrapper around calls to this.setState. The main focus of both APIs is essentially to transform data written to, and read from, component state.
+The UnitOfWork API is a simple wrapper around calls to this.setState. It is complementary to the FormState API, which is a simple wrapper around initializing and reading this.state. The main focus of both APIs is essentially to transform data written to, and read from, component state.
 
-As for the FieldState API, from react-formstate's perspective, the "form state" is essentially a collection of individual "field states." To illustrate, let's look behind the scenes at what the change handler actually does. Suppose name, a required field, is updated to an empty string. The call to context.updateFormState() then makes a call to this.setState like this:
+As for the FieldState API, from react-formstate's perspective, the "form state" is essentially a collection of individual "field states."
+
+To illustrate, let's look behind the scenes at what the change handler actually does (there is nothing magical happening). Suppose name, a required field, is updated to an empty string. The call to context.updateFormState() then makes a call to this.setState like this:
 
 ```es6
 this.setState(
@@ -87,6 +89,8 @@ this.setState(
   }
 );
 ```
+
+and that's the crux of react-formstate. It's simple, really.
 
 ## Introduction to the FieldState API
 
