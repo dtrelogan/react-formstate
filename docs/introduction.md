@@ -1,3 +1,5 @@
+# An introduction to react-formstate
+
 Let's contrast a simple form built in raw react:
 
 &nbsp;
@@ -127,7 +129,7 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-Comparing the examples, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but using advanced javascript features makes it kind of a wash in terms of which approach is better.
+Comparing the examples, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but at this point the form written with react-formstate isn't necessarily more elegant or more maintainable than the form written in raw react.
 
 Now let's try to add simple validation:
 
@@ -216,7 +218,7 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add a state object to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone, particularly as you transfer it to other forms. Moreover, without significant alteration, it simply doesn't allow for complex use cases like asynchronous validation.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add an object to state to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone, particularly as you transfer it to other forms. Moreover, without significant alteration, it simply doesn't allow for complex use cases like asynchronous validation.
 
 Let's instead add validation using react-formstate:
 
@@ -288,4 +290,4 @@ export default class SimpleRfsForm extends Component {
 
 This is much better, and this is only a simple form. Where react-formstate **really shines** is when you get to more complex use cases. Unlike many other react form packages, react-formstate handles complex forms gracefully, without getting in your way.
 
-Please reference the other examples here to learn advanced use cases and more ways to write elegant, maintainable code using react-formstate.
+Continue the walkthrough [here](workingWithFormState.md) to learn more about react-formstate.
