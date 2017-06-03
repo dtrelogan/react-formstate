@@ -291,3 +291,18 @@ export default class SimpleRfsForm extends Component {
 This is much better, for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases, like asynchronous validation. Unlike the raw react approach, and other react form packages, react-formstate handles complex forms gracefully, without getting in your way.
 
 Continue the walkthrough [here](workingWithFormState.md) to learn more about how to use react-formstate to write elegant and maintainable forms.
+
+## Destructuring assignment
+
+The examples here make use of destructuring assignment:
+
+    $ npm install babel-plugin-transform-object-rest-spread --save
+
+.babelrc:
+
+```es6
+{
+  "presets": ["es2015"],
+  "plugins": ["transform-object-rest-spread"]
+}
+```
