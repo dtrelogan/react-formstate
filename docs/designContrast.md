@@ -1,16 +1,10 @@
 # Design contrast
 
-
 Upstream store
-     |
-     |
-     V
+&nbsp;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;&nbsp;
 Form component
-     |
-     |
-     V
+&nbsp;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;&nbsp;
 Input components
-
 
 Which layer should hold the state of an unsubmitted form?
 
