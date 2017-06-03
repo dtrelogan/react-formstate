@@ -49,15 +49,7 @@ render() {
 }
 ```
 
-A react-formstate default value is used to supply a value to an input only if the value for the corresponding field is undefined in your component state. The default value itself is **not** stored in component state.
-
-Default values are syntactic sugar that serve a limited purpose. They are an expressive way to initialize a form input only when you don't have any conditional logic in the render function based on the value of that input. In fairness, this is often the case.
-
-However, initializing form data directly within your component state is a more powerful approach, and react-formstate encourages that approach.
-
-### Model injection
-
-In a more general sense, this is the equivalent code:
+However, in a more general sense, this is the equivalent code:
 
 ```jsx
 constructor(props) {
@@ -80,31 +72,21 @@ render() {
 }
 ```
 
-If a user is editing or updating a form, it is best to inject the supplied model into your state.
+### Understanding default values
+
+A react-formstate default value is used to supply a value to an input only if the value for the corresponding field is undefined in your component state. The default value itself is **not** stored in component state.
+
+Default values are syntactic sugar that serve a limited purpose. They are an expressive way to initialize a form input only when you don't have any conditional logic in the render function based on the value of that input. In fairness, this is often the case.
+
+### Model injection
+
+Initializing form data directly within your component state is a more powerful approach, and react-formstate encourages that approach. For instance, if a user is editing or updating a form, it is best to inject the supplied model directly into your state:
 
 ```es6
 constructor(props) {
   super(props);
   this.formState = new FormState(this);
   this.state = this.formState.injectModel(props.model);
-}
-```
-
-If necessary, you can initialize form state outside of your constructor:
-
-```es6
-constructor(props) {
-  super(props);
-  this.formState = new FormState(this);
-  this.state = {};
-}
-componentDidMount() {
-  getModel().then((model) => {
-    // the UnitOfWork API is covered later
-    const context = this.formState.createUnitOfWork();
-    context.injectModel(model);
-    context.updateFormState();
-  });
 }
 ```
 
@@ -126,12 +108,31 @@ constructor(props) {
     // The main difference between using add and injectModel
     // is whether you are injecting your root form model,
     // or a specific field within that model.
-    this.formState.add(this.state, 'secondaryAddress', {city: 'Busytown', country: 'USA'});
+    this.formState.add(this.state, 'emergencyContact', {name: 'Richard Scarry', age: 34});
   }
 }
 ```
 
-## The underlying representation of form state
+If necessary, you can initialize form state outside of your constructor:
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  getModel().then((model) => {
+    // the UnitOfWork API is covered later
+    const context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.add('anAdditionalField', 'someValue');
+    context.updateFormState();
+  });
+}
+```
+
+## The underlying representation
 
 Injecting this model:
 
@@ -163,21 +164,6 @@ this.state = {
 };
 ```
 
-You can use accessor methods to read whatever you want from your "form state".
-
-To keep HTML inputs happy, values are typically coerced to strings upon retrieval, but you have a choice in the matter:
-
-```es6
-render() {
-  this.formState.get('age') === '8'; // true
-  this.formState.getu('age') === 8;  // true
-  this.formState.get('contacts.0.address.line2') === '';    // true
-  this.formState.getu('contacts.0.address.line2') === null; // true
-  this.formState.get('notInState') === '';         // true
-  this.formState.getu('notInState') === undefined; // true
-}
-```
-
 FormState is a simple wrapper around your component state. You can, of course, use your component's state object directly if you want:
 
 ```es6
@@ -194,11 +180,28 @@ render() {
 }
 ```
 
-## Model output depends on rendered inputs
+## Retrieving form state
 
-Outside of supplying form state to react-formstate inputs in your JSX (in which case you need to use the FormState API), whether you add data directly to your state object or via the FormState API is more or less arbitrary. It will come down to what is most convenient depending on the scenario.
+You can use accessor methods to read whatever you want from your "form state".
+
+To keep HTML inputs happy, values are typically coerced to strings upon retrieval, but you have a choice in the matter:
+
+```es6
+render() {
+  this.formState.get('age') === '8'; // true
+  this.formState.getu('age') === 8;  // true
+  this.formState.get('contacts.0.address.line2') === '';    // true
+  this.formState.getu('contacts.0.address.line2') === null; // true
+  this.formState.get('notInState') === '';         // true
+  this.formState.getu('notInState') === undefined; // true
+}
+```
+
+Since you can read whatever you want from form state, outside of supplying form state to react-formstate inputs in your JSX (in which case you need to use the FormState API), whether you add data directly to your state object or via the FormState API is more or less arbitrary. It will come down to what is most convenient depending on the scenario.
 
 The reason you can do this is important to understand.
+
+## Model output depends on rendered inputs
 
 If you supply this model:
 
