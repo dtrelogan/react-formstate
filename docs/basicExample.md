@@ -3,11 +3,41 @@
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
-import Input from './Input.jsx';
 
-// using the optional validation library to demonstrate fluent api
+
+// Using the optional validation library to demonstrate fluent api
 import { validationAdapter } from 'react-formstate-validation';
 validationAdapter.plugInto(FormState);
+
+
+// An associated input component manages no state
+// and is essentially a layout of your choosing
+//
+const Input = ({label, type, value, help, onChange}) => {
+  return (
+    <div>
+      <div>{label}</div>
+      <input type={type || 'text'} value={value} onChange={onChange}/>
+      <div>{help}</div>
+    </div>
+  );
+};
+
+
+// A component shim to transform props provided by react-formstate
+// to simple props for the vanilla Input component
+//
+const RfsInput = ({fieldState, handleValueChange, ...other}) => {
+  return (
+    <Input
+      value={fieldState.getValue()}
+      help={fieldState.getMessage()}
+      onChange={e => handleValueChange(e.target.value)}
+      {...other}
+      />
+  );
+};
+
 
 export default class ChangePasswordForm extends Component {
 
@@ -20,24 +50,17 @@ export default class ChangePasswordForm extends Component {
   }
 
   // you can write plain old validation code
-  validateConfirmNewPassword(confirmation, context) {
-    if (confirmation !== context.getFieldState('newPassword').getValue()) {
+  validateConfirmNewPassword(confirmationValue, context) {
+    if (confirmationValue !== context.get('newPassword')) {
       return 'Password confirmation does not match';
     }
   }
 
   // or you can use a fluent validation api as appropriate
   render() {
-    let submitMessage = null,
-      isInvalid = this.formState.isInvalid();
-
-    if (isInvalid) {
-      submitMessage = 'Please fix validation errors';
-    }
-
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
-        <Input
+        <RfsInput
           formField='newPassword'
           type='password'
           label='New Password'
@@ -48,58 +71,26 @@ export default class ChangePasswordForm extends Component {
             .msg('Password must be at least 8 characters')
           }
           />
-        <Input
+        <RfsInput
           formField='confirmNewPassword'
           type='password'
           label='Confirm New Password'
           required
           revalidateOnSubmit
           />
-        <input type='submit' value='Submit' disabled={isInvalid}/>
-        <span>{submitMessage}</span>
+        <input type='submit' value='Submit' disabled={this.formState.isInvalid()}/>
       </Form>
     );
   }
 
+
   handleSubmit(e) {
     e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
     if (model) {
       alert(JSON.stringify(model)); // proceed with valid data
     }
     // else: createModel called setState to set the appropriate validation messages
-  }
-}
-```
-
-an associated input component manages no state and is essentially a layout of your choosing. it might look like:
-
-```es6
-import React, { Component } from 'react';
-
-export default class Input extends Component {
-  constructor(props) {
-    super(props);
-    this.onChange = this.onChange.bind(this);
-  }
-
-  render() {
-    return (
-      <div>
-        <label>{this.props.label}</label>
-        <input
-          type={this.props.type || 'text'}
-          value={this.props.fieldState.getValue()}
-          onChange={this.onChange}
-          />
-        <span>{this.props.fieldState.getMessage()}</span>
-      </div>
-    );
-  }
-
-  onChange(e) {
-    // react-formstate provides a default change handler but you can override it
-    this.props.handleValueChange(e.target.value);
   }
 }
 ```
