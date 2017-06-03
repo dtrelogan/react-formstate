@@ -108,7 +108,7 @@ constructor(props) {
     // The main difference between using add and injectModel
     // is whether you are injecting your root form model,
     // or a specific field within that model.
-    this.formState.add(this.state, 'favoriteFormPackge', {name: 'react-formstate', foundedIn: 2016});
+    this.formState.add(this.state, 'favoriteFormPackage', {name: 'react-formstate', foundedIn: 2016});
   }
 }
 ```
