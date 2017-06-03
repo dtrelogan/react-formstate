@@ -5,9 +5,7 @@
 
 ## A practical approach to React forms
 
-react-formstate is an elegant productivity solution for [React forms](https://facebook.github.io/react/docs/forms.html). It is simple in design, simple to use, and limited in focus. It streamlines form components without buckling under complex use cases. It is feature complete and fully tested.
-
-If you give it a try you'll be happy with the solution.
+react-formstate is a productivity solution for writing elegant and maintainable [React forms](https://facebook.github.io/react/docs/forms.html).
 
 ### Setup
 
