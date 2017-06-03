@@ -165,13 +165,11 @@ handlePasswordChange(newPassword) {
 
 ## Introduction to the UnitOfWork API
 
-We've already seen examples for using the 'getFieldState', 'get', 'getu', and 'set' methods.
+We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'add', 'updateFormState', and 'createModel'.
 
-There are UnitOfWork methods for 'injectModel' and 'add' that work exactly like the methods of the same name from the FormState API. These methods are useful if you don't receive your model until after the 'componentDidMount' method, such that you need to use a call to this.setState to inject the model data into your state.
+It is worth mentioning that the 'add' method can also update data. The main difference between 'add' and 'set' is that 'add' can accept both objects and primitive types. This makes 'add' more powerful, but the 'set' method is used the vast majority of the time.
 
-Also, remember that both 'add' and 'injectModel' flatten objects and arrays, which makes 'add' more powerful than 'set'.
-
-The 'updateFormState' and 'createModel' methods have a couple noteworthy features.
+The 'updateFormState' and 'createModel' methods have a couple additional features of note.
 
 ### updateFormState
 
@@ -235,3 +233,8 @@ handleSubmit(e) {
 }
 ```
 
+## End of walkthrough
+
+There is a lot more to react-formstate, but this concludes the walkthrough. If it was successful, you should now have a fundamental understanding of how to make react-formstate work for you. Remaining features are covered through specific examples and documentation.
+
+Return to the [front page](/README.md)
