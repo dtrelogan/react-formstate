@@ -92,6 +92,14 @@ this.setState(
 
 and that's the crux of react-formstate. It's simple, really.
 
+### Standard change handler callback
+
+Sophisticated user experiences sometimes require updating form state whenever *any* input is updated.
+
+It might be handy, then, to be aware of the existence of the 'onUpdate' callback from the framework generated change handler. (The custom handler above is more or less the implementation of the standard handler, but not entirely.)
+
+An advanced example of using the 'onUpdate' callback is provided [here](onUpdateExample.md).
+
 ## Introduction to the FieldState API
 
 If you retrieve a FieldState instance from the FormState API, the instance is read-only. If you retrieve a FieldState instance from the UnitOfWork API, the instance is read/write.
