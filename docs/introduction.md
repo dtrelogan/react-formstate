@@ -218,7 +218,7 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* try to add an object to state to track which fields have been touched, but the complexity of the code is ratcheting up fast, and this is for an incredibly simple form. Worse, as we solve these problems, the pattern is no longer DRY, which means the approach is tedious and error prone, particularly as you transfer it to other forms. Moreover, without significant alteration, it simply doesn't allow for complex use cases like asynchronous validation.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* add state to track which fields have been touched, but the complexity of the code is ratcheting up fast. Worse, as we solve these problems, the pattern is no longer DRY. The approach is then tedious and error prone, particularly as you transfer it to other forms.
 
 Let's instead add validation using react-formstate:
 
@@ -288,6 +288,6 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-This is much better, and this is only a simple form. Where react-formstate **really shines** is when you get to more complex use cases. Unlike many other react form packages, react-formstate handles complex forms gracefully, without getting in your way.
+This is much better, for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases. Unlike many other react form packages, react-formstate handles complex forms gracefully, without getting in your way.
 
 Continue the walkthrough [here](workingWithFormState.md) to learn more about react-formstate.
