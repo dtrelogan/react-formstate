@@ -1,6 +1,6 @@
 # Basic Example
 
-```es6
+```jsx
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 
