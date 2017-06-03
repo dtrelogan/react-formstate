@@ -89,7 +89,7 @@ constructor(props) {
 }
 ```
 
-The 'add' method can help with initialization.
+The 'add' method can help with initialization. (Although since it both inserts and updates data, a more appropriate name might be 'upsert'.)
 
 ```es6
 constructor(props) {
