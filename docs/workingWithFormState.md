@@ -202,6 +202,20 @@ The 'city' field is not included in the resulting model.
 
 This is because the schema of the model produced by the submit handler depends on the inputs actually rendered in the JSX, **not** on the collection of values stored in your form state.
 
+(This means you should be familiar with HTML hidden inputs)
+
+```jsx
+const HiddenInput = ({fieldState}) => {
+  return (
+    <input type='hidden' value={fieldState.getValue()}/>
+  );
+}
+```
+
+```jsx
+<HiddenInput formField='id' defaultValue='0' intConvert/>
+```
+
 ## The underlying representation
 
 Injecting this model:
