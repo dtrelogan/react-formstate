@@ -1,11 +1,11 @@
 # react-datepicker example
 
-unlike a standard html input, [react-datepicker](https://github.com/Hacker0x01/react-datepicker):
+Unlike a standard html input, [react-datepicker](https://github.com/Hacker0x01/react-datepicker):
 
 1. does not work exclusively with string values
 2. returns a [moment](http://momentjs.com/) rather than an event in its callback.
 
-to work around this, use 'getUncoercedValue' in your input component:
+To work around this, use 'getUncoercedValue' in your input component:
 
 ```es6
 import React, { Component } from 'react';
@@ -37,7 +37,7 @@ export default class DateInput extends Component {
 }
 ```
 
-during initial model injection, react-formstate assumes value are NOT coerced. this is why you have to be explicit and use getUncoercedValue in the input component. otherwise react-formstate would coerce the moment to a string before providing it to react-datepicker.
+During initial model injection, react-formstate assumes value are NOT coerced. This is why you have to be explicit and use getUncoercedValue in the input component. Otherwise react-formstate would coerce the moment to a string before providing it to react-datepicker.
 
 ```es6
 import React, { Component } from 'react';
@@ -75,5 +75,3 @@ export default class FormComponent extends Component {
   }
 }
 ```
-
-note that getUncoercedValue only matters during the initial assignment after a model injection or when using defaultValue. once the onChange handler is called in the input component, react-formstate assumes you are providing a coerced value in the handleValueChange callback.
