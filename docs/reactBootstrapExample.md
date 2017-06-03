@@ -2,7 +2,7 @@
 
 The vanilla [React-Bootstrap](https://react-bootstrap.github.io/) input:
 
-```es6
+```jsx
 import React from 'react';
 import { FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 
@@ -31,7 +31,7 @@ export default (props) => {
 
 The react-formstate component shim:
 
-```es6
+```jsx
 import React from 'react';
 import BootstrapInput from './BootstrapInput.jsx';
 
