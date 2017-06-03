@@ -72,7 +72,7 @@ render() {
 
 ### Understanding default values
 
-A react-formstate default value is used to supply a value to an input only if the value for the corresponding field is undefined in your component state. The default value itself is **not** stored in component state, it is a static property provided to the input element.
+In react-formstate, a default value is used to supply a value to an input only if the value for the corresponding field is undefined in your component state. The default value itself is **not** stored in component state. It is a static property provided to the input element.
 
 Default values are syntactic sugar that serve a limited purpose. They are an expressive way to initialize a form input only when you don't have any conditional logic in the render function based on the value of that input. In fairness, this is often the case.
 
@@ -127,9 +127,9 @@ componentDidMount() {
     // it is properly introduced later
     const context = this.formState.createUnitOfWork();
     context.injectModel(model);
-    context.add('isInitialized', true);
+    context.add('isInitialized1', true);
     // alternatively you can set this flag directly in your state object
-    context.updateFormState({isInitialized: true);
+    context.updateFormState({isInitialized2: true);
   });
 }
 ```
@@ -140,7 +140,7 @@ FormState is a simple wrapper around initializing and reading this.state. It tra
 render() {
   // Continuing the example above, whether these are true depends
   // on whether the promise in ComponentDidMount is fulfilled.
-  if (this.state.isInitialized || this.formState.get('isInitialized')) {
+  if (this.state.isInitialized2 || this.formState.get('isInitialized1')) {
     // ...
   }
 }
@@ -148,7 +148,7 @@ render() {
 
 ## Model output depends on rendered inputs
 
-The above example shows that it is arbitrary whether you want to store certain aspects of form state directly in your component state, or whether you want to work through the FormState API. Which is easiest may depend on the particular situation.
+The above example shows that it is arbitrary whether you want to manipulate certain aspects of form state directly in component state, or whether you want to work through the FormState API. Which is easiest may depend on the particular situation.
 
 The reason why this is arbitrary is important to understand. If you supply this model:
 
@@ -257,4 +257,4 @@ There are several other helper methods to read from form state that will be cove
 <input type='submit' value='Submit' disabled={this.formState.isInvalid()}/>
 ```
 
-We have discussed initializing and accessing form state with the FormState API. The [next step](updatingFormState.md) in the walkthrough is to learn how to *make updates* to form state.
+We have discussed initializing and accessing form state with the FormState API. The [next step](updatingFormState.md) in the walkthrough is to learn how to *update* form state.
