@@ -3,61 +3,57 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-## a practical approach to react forms
+## A practical approach to React forms
 
-react-formstate is an elegant productivity solution for react forms. it is simple in design, simple to use, and limited in focus. it streamlines form components without buckling under complex use cases. it is feature complete and fully tested.
+react-formstate is an elegant productivity solution for [React forms](https://facebook.github.io/react/docs/forms.html). It is simple in design, simple to use, and limited in focus. It streamlines form components without buckling under complex use cases. It is feature complete and fully tested.
 
-react-formstate turned out even better than i expected. if you give it a try i think you'll be happy with the solution too.
+If you give it a try you'll be happy with the solution.
 
-if you have any feedback i am glad to hear it. thanks.
-
-### setup
+### Setup
 
     $ npm install react-formstate --save
 
-### features and examples
+### Walkthrough
 
-- [basic example](/docs/basicExample.md)
-- [react bootstrap example](/docs/reactBootstrapExample.md)
-- [model injection](/docs/modelInjection.md)
-- [validation](/docs/validationWiring.md)
-- [nested form components](/docs/nestedFormExample.md)
-- [asynchronous validation](/docs/asyncExample.md)
-- [arrays](/docs/arrayExample.md)
-- [other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
-- [nonstandard input example: react-datepicker](/docs/datePickerExample.md)
-- [show validation message on blur](/docs/onBlurExample.md)
-- [onUpdate callback](/docs/onUpdateExample.md)
+- [Introduction to react-formstate](/docs/introduction.md)
+- [Initializing and reading from form state](/docs/workingWithFormState.md)
+- [Updating form state](/docs/updatingFormState.md)
 
-### file input examples
+### Features and examples
 
-- [file input example - iteration 1](/docs/deprecatedFileInputExample.md)
-- [file input example - iteration 2](/docs/fileInputExampleIteration2.md)
-- [file input example - iteration 3](/docs/fileInputExample.md)
+- [Basic example](/docs/basicExample.md)
+- [Show validation message on blur](/docs/onBlurExample.md)
+- [Validation](/docs/validationWiring.md)
+- [React-Bootstrap example](/docs/reactBootstrapExample.md)
+- [Nonstandard input example: react-datepicker](/docs/datePickerExample.md)
 
-### recent enhancements
+### Advanced features and examples
 
-- [form extension](/docs/formExtension.md)
-- [refactored injection](/docs/refactoredInjection.md)
-- [get getu set setc](/docs/getSetHelpers.md)
-- [handleValueChange](/docs/handleValueChange.md)
-- [custom FieldState properties](/docs/fieldStateProperties.md)
-- [isUploading](/docs/isUploading.md)
-- [newest file input example](/docs/fileInputExample.md)
+- [Asynchronous validation](/docs/asyncExample.md)
+- [Nested form components](/docs/nestedFormExample.md)
+- [Form extension](/docs/formExtension.md)
+- [Arrays](/docs/arrayExample.md)
+- [Other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
+- [The onUpdate callback](/docs/onUpdateExample.md)
 
-### documentation
+### Documentation
 
-- [how it works](/docs/howItWorks.md)
-- [api](/docs/api.md)
-- [react forms](https://facebook.github.io/react/docs/forms.html)
-- [design contrast](/docs/designContrast.md)
+- [API](/docs/api.md)
+- [React forms](https://facebook.github.io/react/docs/forms.html)
+- [Design contrast](/docs/designContrast.md)
 
-### peer dependencies
+### Peer dependencies
 
-- [react](https://facebook.github.io/react) (!)
-- assumes es5 (for example: Object.keys and Array.isArray)
+- [React](https://facebook.github.io/react) (!)
+- Assumes es5 polyfills (for example: Object.keys and Array.isArray)
 
-### alternate titles
+### Alternate titles
 
-- friendly full featured finely functioning fantastically fun form framework for react
-- another react form package?!
+- Friendly full featured finely functioning fantastically fun form framework for React
+- Another React form package?!
+
+### File input examples
+
+- [File input example - iteration 1](/docs/deprecatedFileInputExample.md)
+- [File input example - iteration 2](/docs/fileInputExampleIteration2.md)
+- [File input example - iteration 3](/docs/fileInputExample.md)
