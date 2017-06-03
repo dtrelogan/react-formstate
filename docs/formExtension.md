@@ -1,6 +1,6 @@
 # FormExtension
 
-using FormObject like so:
+Using FormObject like so:
 
 ```jsx
   render() {
@@ -27,9 +27,9 @@ results in a model like this:
 }
 ```
 
-sometimes you'll want to use a separate component without a level of nesting within your model.
+Sometimes you'll want to use a separate component without a level of nesting within your model.
 
-in other words, you'll want to use a separate component for the contact information but you'll want the resulting model to look like this:
+In other words, you'll want to use a separate component for the contact information but you'll want the resulting model to look like this:
 
 ```es6
 {
@@ -38,7 +38,7 @@ in other words, you'll want to use a separate component for the contact informat
 }
 ```
 
-using FormExtension as below does exactly that:
+Using FormExtension as below does exactly that:
 
 ```jsx
   render() {
@@ -61,7 +61,8 @@ using FormExtension as below does exactly that:
     );
   }
 ```
-an added benefit of FormExtension is that if you DO want the nesting
+
+An added benefit of FormExtension is that if you DO want the nesting:
 
 ```es6
 {
@@ -72,7 +73,7 @@ an added benefit of FormExtension is that if you DO want the nesting
 }
 ```
 
-you can leave the contact component as is and instead use a form object in the parent
+you can leave the contact component as is and instead use a form object in the parent:
 
 ```jsx
 render() {
@@ -86,4 +87,4 @@ render() {
 }
 ```
 
-that way the nested component can remain oblivious to how it is used.
+That way the nested component can remain oblivious to how it is used.
