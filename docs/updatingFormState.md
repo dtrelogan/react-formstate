@@ -163,6 +163,12 @@ handlePasswordChange(newPassword) {
 }
 ```
 
+```es6
+if (fieldState.get('warn')) {
+  // ...
+}
+```
+
 ## Introduction to the UnitOfWork API
 
 We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'add', 'updateFormState', and 'createModel'.
