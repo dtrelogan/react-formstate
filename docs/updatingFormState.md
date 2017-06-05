@@ -269,7 +269,9 @@ This was already covered [here](workingWithFormState.md#model-output-depends-on-
 
 If validation is specified for a form field, and the validation hasn't run, createModel performs the validation before generating the model. However, if the field has already been validated, createModel **does not** bother to revalidate.
 
-If instead you want react-formstate to revalidate a particular field during createModel you can use the 'revalidateOnSubmit' property:
+This might be different from what you are used to, but it is entirely consistent with react-formstate's approach, and it should be able to gracefully handle most anything you throw at it, including [asynchronous validation](asyncExample.md).
+
+If you find a need for react-formstate to revalidate a particular field during createModel you *could* use the 'revalidateOnSubmit' property:
 
 ```jsx
 <RfsInput
@@ -282,9 +284,9 @@ If instead you want react-formstate to revalidate a particular field during crea
   />
 ```
 
-This behavior might seem strange or controversial, but generally if you find yourself wanting to use revalidateOnSubmit, consider that between custom change handlers, the onChange callback from the framework generated handler, and the ability to do whatever additional validation you'd like in the onSubmit callback after createModel, there is likely a better option.
+but consider that between a custom change handler, or the [onUpdate callback](onUpdateExample.md) from the framework generated handler, there is likely a better solution.
 
-For instance, in the case of a password confirmation, this is probably a better solution:
+For instance, in the case of a password confirmation:
 
 ```es6
 handlePasswordChange(newPassword) {
@@ -295,7 +297,7 @@ handlePasswordChange(newPassword) {
 }
 ```
 
-That being said, 'revalidateOnSubmit' is there if you need it.
+If you find yourself wanting to use revalidateOnSubmit, or wanting to perform additional model-wide validation directly in the onSubmit handler, think hard on whether react-formstate doesn't already provide a better way to solve your problem.
 
 ## End of walkthrough
 
