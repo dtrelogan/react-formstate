@@ -47,15 +47,6 @@ export default class UserForm extends Component {
   }
 
 
-  handleSubmit(e) {
-    e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
-    if (model) {
-      alert(JSON.stringify(model));
-    }
-  }
-
-
   handleUsernameChange(username) {
     let context = this.formState.createUnitOfWork(),
       fieldState = context.getFieldState('username');
@@ -97,6 +88,17 @@ export default class UserForm extends Component {
         context.updateFormState();
       }
     }, 2000);
+  }
+  
+  
+  handleSubmit(e) {
+    e.preventDefault();
+    let model = this.formState.createUnitOfWork().createModel();
+    if (model) {
+      // Even if you hit submit, you won't enter this block of code
+      // if the form is waiting for asynchronous validation to finish.
+      alert(JSON.stringify(model));
+    }
   }
 
 }
