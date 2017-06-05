@@ -261,6 +261,20 @@ handleSubmit(e) {
 }
 ```
 
+Of course, you can do your own transforms too:
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const model = this.formState.createUnitOfWork().createModel();
+  if (model) {
+    model.active = !model.disabled;
+    model.someFlag = model.someRadioButtonValue === '1';
+    // ...
+  }
+}
+```
+
 ### Model output depends on rendered inputs
 
 This was already covered [here](workingWithFormState.md#model-output-depends-on-rendered-inputs)
