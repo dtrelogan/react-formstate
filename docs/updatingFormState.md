@@ -195,11 +195,7 @@ We've already seen examples for using the following methods from the UnitOfWork 
 
 It is worth mentioning that the 'add' method can also update data. The main difference between 'add' and 'set' is that 'add' can accept both objects and primitive types. This makes 'add' more powerful, but the 'set' method is used the vast majority of the time.
 
-The 'updateFormState' and 'createModel' methods have a couple additional features of note.
-
-### updateFormState
-
-The 'updateFormState' method can receive additional updates to provide to the call to setState:
+Also important to note is that the 'updateFormState' method can receive additional updates to provide to the call to setState:
 
 ```es6
 context.updateFormState({someFlag: true, someOtherStateValue: 1});
@@ -208,7 +204,11 @@ if (this.state.someFlag)
 // ...
 ```
 
-### createModel
+The 'createModel' method is worthy of its own section.
+
+## UnitOfWork.createModel
+
+### Controlling the call to setState
 
 We've seen 'createModel' used like this:
 
@@ -239,6 +239,8 @@ handleSubmit(e) {
 }
 ```
 
+### Transforms
+
 To save you effort, the 'createModel' method can perform a few common transforms for you:
 
 ```jsx
@@ -258,6 +260,42 @@ handleSubmit(e) {
   }
 }
 ```
+
+### Model output depends on rendered inputs
+
+This was already covered [here](workingWithFormState.md#model-output-depends-on-rendered-inputs)
+
+### revalidateOnSubmit
+
+If validation is specified for a form field, and the validation hasn't run, createModel performs the validation before generating the model. However, if the field has already been validated, createModel **does not** bother to revalidate.
+
+If instead you want react-formstate to revalidate a particular field during createModel you can use the 'revalidateOnSubmit' property:
+
+```jsx
+<RfsInput
+  formField='confirmNewPassword'
+  type='password'
+  label='Confirm New Password'
+  required
+  validate={this.validateConfirmNewPassword}
+  revalidateOnSubmit
+  />
+```
+
+This behavior might seem strange or controversial, but generally if you find yourself wanting to use revalidateOnSubmit, consider that between custom change handlers, the onChange callback from the framework generated handler, and the ability to do whatever additional validation you'd like in the onSubmit callback after createModel, there is likely a better option.
+
+For instance, in the case of a password confirmation, this is probably a better solution:
+
+```es6
+handlePasswordChange(newPassword) {
+  const context = this.formState.createUnitOfWork();
+  context.set('newPassword', newPassword).validate();
+  context.set('confirmNewPassword', ''); // <--- clear the confirmation field
+  context.updateFormState();
+}
+```
+
+That being said, 'revalidateOnSubmit' is there if you need it.
 
 ## End of walkthrough
 
