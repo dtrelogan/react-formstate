@@ -47,6 +47,7 @@ export default class ChangePasswordForm extends Component {
     this.state = {};
 
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handlePasswordChange = this.handlePasswordChange.bind(this);
   }
 
   // you can write plain old validation code
@@ -70,17 +71,26 @@ export default class ChangePasswordForm extends Component {
             .minLength(8)
             .msg('Password must be at least 8 characters')
           }
+          handleValueChange={this.handlePasswordChange}
           />
         <RfsInput
           formField='confirmNewPassword'
           type='password'
           label='Confirm New Password'
           required
-          revalidateOnSubmit
           />
         <input type='submit' value='Submit' disabled={this.formState.isInvalid()}/>
       </Form>
     );
+  }
+  
+  
+  // you can override the framework generated change handler if necessary
+  handlePasswordChange(newPassword) {
+    const context = this.formState.createUnitOfWork();
+    context.set('newPassword', newPassword).validate();
+    context.set('confirmNewPassword', ''); // <--- clear the confirmation field
+    context.updateFormState();
   }
 
 
