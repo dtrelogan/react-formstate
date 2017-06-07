@@ -23,6 +23,18 @@ export default ({label, type, fieldState, handleValueChange, showValidationMessa
 };
 ```
 
+Like 'handleValueChange', 'showValidationMessage' is another framework generated handler prop. You can always override it if necessary:
+
+```es6
+// this is what the standard framework generated blur handler does
+function customBlurHandler() {
+  const context = formState.createUnitOfWork();
+  const fieldState = context.getFieldState('someField');
+  fieldState.showMessage(); // mark the message "visible"
+  context.updateFormState();
+}
+```
+
 In your form component, you can pass 'true' to FormState.isInvalid to factor in "visible" messages only:
 
 ```jsx
