@@ -7,6 +7,10 @@
 
 react-formstate is a productivity solution for writing elegant and maintainable [React forms](https://facebook.github.io/react/docs/forms.html).
 
+It is particularly useful for client-side validation, but it streamlines form components in other ways too.
+
+If you have any feedback, I am happy to hear it. Thanks.
+
 ### Setup
 
     $ npm install react-formstate --save
@@ -14,7 +18,7 @@ react-formstate is a productivity solution for writing elegant and maintainable 
 ### Walkthrough
 
 - [Introduction to react-formstate](/docs/introduction.md)
-- [Initializing and reading from form state](/docs/workingWithFormState.md)
+- [Initializing and reading form state](/docs/workingWithFormState.md)
 - [Updating form state](/docs/updatingFormState.md)
 
 ### Features and examples
