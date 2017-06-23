@@ -5,11 +5,13 @@
 
 ## A practical approach to React forms
 
-react-formstate is a productivity solution for writing elegant and maintainable [React forms](https://facebook.github.io/react/docs/forms.html).
+If you are adding validation to a [React form](https://facebook.github.io/react/docs/forms.html) and you find yourself thinking - *there must be a better way* - that was the impetus behind react-formstate. Since React is all about responding to changes in component state, the key to a React-based solution is to provide an API to easily manage form state, specifically validation status. In doing so, you get productivity gains beyond validation. The end result is you keep your form components DRY.
 
-It is particularly useful for client-side validation, but it streamlines form components in other ways too.
+react-formstate is a productivity solution for [React forms](https://facebook.github.io/react/docs/forms.html) that supports real-world, non-trivial use cases. It eliminates busy work without sacrificing flexibility.
 
-If you have any feedback, I am happy to hear it. Thanks.
+react-formstate turned out even better than I expected. If you give it a try, I think you'll be happy with the solution too.
+
+If you have any feedback I am happy to hear it. Thanks.
 
 ### Setup
 
