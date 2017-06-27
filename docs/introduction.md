@@ -261,9 +261,23 @@ export default class SimpleRfsForm extends Component {
   render() {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
-+       <RfsInput formField='name' label='Name' required validate={this.validateName}/>
-+       <RfsInput formField='address.city' label='Address City' required defaultValue='Busytown'/>
-+       <input type='submit' value='Submit' disabled={this.formState.isInvalid()}/>
+        <RfsInput
+          formField='name'
+          label='Name'
++         required
++         validate={this.validateName}
+          />
+        <RfsInput
+          formField='address.city'
+          label='Address City'
++         required
+          defaultValue='Busytown'
+          />
+        <input
+          type='submit'
+          value='Submit'
++         disabled={this.formState.isInvalid()}
+          />
       </Form>
     );
   }
