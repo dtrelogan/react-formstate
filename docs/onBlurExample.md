@@ -27,7 +27,7 @@ Like 'handleValueChange', 'showValidationMessage' is another framework generated
 
 ```es6
 // this is what the standard framework generated blur handler does
-function customBlurHandler() {
+customBlurHandler() {
   const context = formState.createUnitOfWork();
   const fieldState = context.getFieldState('someField');
   fieldState.showMessage(); // mark the message "visible"
