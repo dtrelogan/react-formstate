@@ -304,7 +304,7 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-This is much better, and for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases. react-formstate's approach uses a consistent pattern to handle complex forms gracefully, without getting in your way.
+This is much better, and for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases, like asynchronous validation. react-formstate's approach handles complex forms gracefully, without getting in your way.
 
 Continue the walkthrough [here](workingWithFormState.md) to learn more about how to use react-formstate.
 
