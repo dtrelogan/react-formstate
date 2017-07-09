@@ -1,4 +1,4 @@
-# asynchronous validation
+# Asynchronous validation
 
 ```es6
 import React, { Component } from 'react';
@@ -79,7 +79,7 @@ export default class UserForm extends Component {
 
       // if the token still matches, the username we are verifying is still relevant
       if (fieldState) {
-        if (username === 'taken') {
+        if (username.trim() === 'taken') {
           fieldState.setInvalid('Username already exists');
         } else {
           fieldState.setValid('Verified');
@@ -89,8 +89,8 @@ export default class UserForm extends Component {
       }
     }, 2000);
   }
-  
-  
+
+
   handleSubmit(e) {
     e.preventDefault();
     let model = this.formState.createUnitOfWork().createModel();
@@ -103,3 +103,10 @@ export default class UserForm extends Component {
 
 }
 ```
+
+
+## Alternative approaches
+
+The onChange approach above is simple and arguably provides the best user experience. It is completely compatible with showing the validation message on blur if that is your preference.
+
+If you are nevertheless compelled to perform asynchronous validation during your onSubmit handler, or during your onBlur handler, you can, but react-formstate intentionally does not streamline support for it. Some cursory examples are provided [here](/docs/asyncAlternatives.md).

@@ -17,10 +17,10 @@ const Input = ({label, value, onChange}) => {
 };
 
 export default class RawReactForm extends Component {
-  
+
   constructor(props) {
     super(props);
-    
+
     // initialize default values for all the fields
     this.state = {
       model: {
@@ -30,13 +30,13 @@ export default class RawReactForm extends Component {
         }
       }
     };
-    
+
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  
+
   render() {
     const model = this.state.model;
-    
+
     return (
       <form onSubmit={this.handleSubmit}>
         <Input
@@ -53,7 +53,7 @@ export default class RawReactForm extends Component {
       </form>
     );
   }
-  
+
   handleSubmit(e) {
     e.preventDefault();
     // persist the model instance here...
@@ -94,18 +94,18 @@ const RfsInput = ({fieldState, handleValueChange, ...other}) => {
 };
 
 export default class SimpleRfsForm extends Component {
-  
+
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
-    
+
     // you only need to initialize values for non-empty fields
     // and you can do it in the jsx
     this.state = {};
-    
+
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  
+
   render() {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
@@ -115,7 +115,7 @@ export default class SimpleRfsForm extends Component {
       </Form>
     );
   }
-  
+
   handleSubmit(e) {
     e.preventDefault();
     // persist the model instance here...
@@ -159,7 +159,7 @@ export default class RawReactForm extends Component {
         }
       }
     };
-    
+
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -218,9 +218,11 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* add state to track which fields have been touched, but the complexity of the code is ratcheting up fast. Worse, as we solve these problems, the pattern is no longer DRY. The approach is then tedious and error prone, particularly as you transfer it to other forms.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we could add state to track which fields have been touched, but the complexity of the code is ratcheting up fast. Worse, as we solve these problems, the pattern is no longer DRY.
 
-Let's instead add validation using react-formstate:
+In making the turn to a better solution, treating validation errors as purely computed values, derived at time of render, won't support asynchronous validation. To handle a wider variety of use cases, we need to move validation status to application state. It is generally more useful, then, to think of a validation error as something computed and stored during a state transition, rather than as something computed on the fly during a render.
+
+Let's now add validation using react-formstate:
 
 ```diff
 import React, { Component } from 'react';
@@ -248,16 +250,16 @@ const RfsInput = ({fieldState, handleValueChange, ...other}) => {
 };
 
 export default class SimpleRfsForm extends Component {
-  
+
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
     this.state = {};
-    
+
     this.handleSubmit = this.handleSubmit.bind(this);
 +   this.validateName = this.validateName.bind(this);
   }
-  
+
   render() {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
@@ -287,7 +289,7 @@ export default class SimpleRfsForm extends Component {
 +     return 'Name should be capitalized';
 +   }
 + }
-  
+
   handleSubmit(e) {
     e.preventDefault();
     const model = this.formState.createUnitOfWork().createModel();
@@ -302,7 +304,7 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-This is much better, and for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases, like asynchronous validation. react-formstate's approach handles complex forms gracefully, without getting in your way.
+This is much better, and for merely the simplest of forms. Where react-formstate **really shines** is when you get to more complex use cases. react-formstate's approach uses a consistent pattern to handle complex forms gracefully, without getting in your way.
 
 Continue the walkthrough [here](workingWithFormState.md) to learn more about how to use react-formstate.
 

@@ -9,7 +9,7 @@ If you are adding validation to a [React form](https://facebook.github.io/react/
 
 react-formstate is a productivity solution for [React forms](https://facebook.github.io/react/docs/forms.html) that supports real-world, non-trivial use cases. It eliminates busy work without sacrificing flexibility.
 
-react-formstate turned out even better than I expected. If you give it a try, I think you'll be happy with the solution too.
+react-formstate turned out even better than I expected. I think it's an awesome, fully formed solution worthy of way more traction than it's gotten from the community, but maybe I'm missing something.
 
 If you have any feedback I am happy to hear it. Thanks.
 
@@ -40,11 +40,15 @@ If you have any feedback I am happy to hear it. Thanks.
 - [Other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
 - [The onUpdate callback](/docs/onUpdateExample.md)
 
+### Arguments for react-formstate
+
+- [Advantages of react-formstate](/docs/advantages.md)
+- [Design contrast](/docs/designContrast.md)
+
 ### Documentation
 
 - [API](/docs/api.md)
 - [React forms](https://facebook.github.io/react/docs/forms.html)
-- [Design contrast](/docs/designContrast.md)
 
 ### Peer dependencies
 
@@ -61,3 +65,15 @@ If you have any feedback I am happy to hear it. Thanks.
 - [File input example - iteration 1](/docs/deprecatedFileInputExample.md)
 - [File input example - iteration 2](/docs/fileInputExampleIteration2.md)
 - [File input example - iteration 3](/docs/fileInputExample.md)
+
+### Enhancements
+
+If you have an idea for improving react-formstate, or a feature request, I am happy to hear it.
+
+Or, feel free to fork the repository and send a pull request.
+
+### Contributions
+
+If you recognize the value of [react-formstate](https://www.npmjs.com/package/react-formstate) and [react-formstate-validation](https://www.npmjs.com/package/react-formstate-validation) please star the NPM packages and the GitHub repositories.
+
+Also, you can help others find the packages by recommending them and linking to them. Thanks!

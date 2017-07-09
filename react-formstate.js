@@ -7,7 +7,7 @@ exports.FormState = exports.FormExtension = exports.FormArray = exports.FormObje
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _react = require('react');
 
@@ -261,17 +261,16 @@ var Form = exports.Form = function (_React$Component) {
   function Form() {
     _classCallCheck(this, Form);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Form).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).apply(this, arguments));
   }
 
   _createClass(Form, [{
     key: 'render',
     value: function render() {
-      var _props = this.props;
-      var formState = _props.formState;
-      var model = _props.model;
-
-      var otherProps = _objectWithoutProperties(_props, ['formState', 'model']);
+      var _props = this.props,
+          formState = _props.formState,
+          model = _props.model,
+          otherProps = _objectWithoutProperties(_props, ['formState', 'model']);
 
       return _react2.default.createElement('form', otherProps, _react2.default.createElement(FormObject, { formState: formState, model: model }, this.props.children));
     }
@@ -290,7 +289,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
   function FormObject(props) {
     _classCallCheck(this, FormObject);
 
-    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(FormObject).call(this, props));
+    var _this2 = _possibleConstructorReturn(this, (FormObject.__proto__ || Object.getPrototypeOf(FormObject)).call(this, props));
 
     if (_this2.props.nestedForm) {
       var nestedProps = _this2.props.nestedForm.props;
@@ -446,9 +445,9 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         field.noCoercion = Boolean(props.noCoercion);
         field.fsValidate = props.fsValidate || props.fsv;
         if (!field.fsValidate) {
-          var f = this.validationComponent['fsValidate' + capitalize(field.name)];
-          if (f) {
-            field.fsValidate = f;
+          var _f = this.validationComponent['fsValidate' + capitalize(field.name)];
+          if (_f) {
+            field.fsValidate = _f;
           }
         }
         field.validationMessages = props.validationMessages || props.msgs;
@@ -466,7 +465,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         fieldState: formState.getFieldState(field), // read-only
         updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
         handleValueChange: props.handleValueChange || simpleChangeHandler.bind(null, formState, field),
-        showValidationMessage: blurHandler.bind(null, formState, field),
+        showValidationMessage: props.showValidationMessage || blurHandler.bind(null, formState, field),
         formState: this.formState
       };
     }
@@ -485,7 +484,7 @@ var FormArray = exports.FormArray = function (_FormObject) {
   function FormArray() {
     _classCallCheck(this, FormArray);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(FormArray).apply(this, arguments));
+    return _possibleConstructorReturn(this, (FormArray.__proto__ || Object.getPrototypeOf(FormArray)).apply(this, arguments));
   }
 
   return FormArray;
@@ -501,7 +500,7 @@ var FormExtension = exports.FormExtension = function (_FormObject2) {
   function FormExtension() {
     _classCallCheck(this, FormExtension);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(FormExtension).apply(this, arguments));
+    return _possibleConstructorReturn(this, (FormExtension.__proto__ || Object.getPrototypeOf(FormExtension)).apply(this, arguments));
   }
 
   return FormExtension;
@@ -723,7 +722,7 @@ var FieldState = function () {
         console.log('warning: both validate and fsValidate defined on ' + this.field.key + '. fsValidate will be used.');
       }
 
-      var message = undefined;
+      var message = void 0;
       if (this.field.required) {
         message = this.callRegisteredValidationFunction(FormState.required, []);
         if (message && this.field.requiredMessage) {
@@ -810,9 +809,9 @@ var FieldState = function () {
     }
   }, {
     key: 'setValidating',
-    value: function setValidating(message) {
+    value: function setValidating(message, visible) {
       var asyncToken = generateQuickGuid();
-      this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, true);
+      this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, exists(visible) ? visible : true);
       return asyncToken; // thinking this is more valuable than chaining
     }
   }, {
@@ -936,9 +935,9 @@ var FormState = exports.FormState = function () {
     }
   }, {
     key: 'isValidating',
-    value: function isValidating() {
+    value: function isValidating(visibleMessagesOnly) {
       return this.anyFieldState(function (fi) {
-        return fi.isValidating();
+        return fi.isValidating() && (!visibleMessagesOnly || fi.isMessageVisible());
       });
     }
   }, {
@@ -1079,7 +1078,7 @@ var UnitOfWork = function () {
       var isModelValid = true;
 
       for (var i = 0, len = fields.length; i < len; i++) {
-        var value = undefined,
+        var value = void 0,
             field = fields[i];
 
         if (field.fields || field.array) {
@@ -1259,8 +1258,8 @@ var UnitOfWork = function () {
       } else {
         var names = Object.keys(model);
 
-        for (var i = 0, len = names.length; i < len; i++) {
-          var name = names[i];
+        for (var _i = 0, _len = names.length; _i < _len; _i++) {
+          var name = names[_i];
           this.add(name, model[name]);
         }
       }

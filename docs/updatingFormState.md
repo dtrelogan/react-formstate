@@ -46,7 +46,7 @@ export default class SimpleRfsForm extends Component {
     //...
     this.handleNameChange = this.handleNameChange.bind(this);
   }
-  
+
   render() {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
@@ -56,7 +56,7 @@ export default class SimpleRfsForm extends Component {
       </Form>
     );
   }
-  
+
   // override the standard change handler with essentially the standard change handler
   handleNameChange(newName) {
     const context = this.formState.createUnitOfWork();
@@ -64,7 +64,7 @@ export default class SimpleRfsForm extends Component {
     fieldState.setValue(newName).validate();
     context.updateFormState();
   }
-  
+
   // ...
 }
 ```
@@ -138,7 +138,7 @@ Rather than call a separate validation method, you can always do the validation 
 handleNameChange(newName) {
   const context = this.formState.createUnitOfWork();
   const fieldState = context.set('name', newName);
-  
+
   // You should not perform required field validation in change handlers!
   // The change handler may never be called.
   fieldState.validate(); // call required field validation
@@ -146,13 +146,13 @@ handleNameChange(newName) {
     context.updateFormState();
     return;
   } // else
-  
+
   if (newName.substring(0,1) === newName.substring(0,1).toLowerCase()) {
     fieldState.setInvalid('Name must be capitalized');
   } else {
     fieldState.setValid();
   }
-  
+
   context.updateFormState();
 }
 ```
@@ -163,7 +163,7 @@ It is sometimes useful to store miscellaneous data with a field state. A generic
 handlePasswordChange(newPassword) {
   const context = this.formState.createUnitOfWork();
   const fieldState = context.set('password', newPassword);
-  
+
   fieldState.validate(); // call required field validation
   if (fieldState.isInvalid()) {
     context.updateFormState();
@@ -178,7 +178,7 @@ handlePasswordChange(newPassword) {
   } else {
     fieldState.setValid();
   }
-  
+
   context.updateFormState();
 }
 ```
@@ -229,7 +229,7 @@ handleSubmit(e) {
   e.preventDefault();
   const context = this.formState.createUnitOfWork();
   const model = context.createModel(true); // <--- pass true
-  
+
   if (model) {
     alert(JSON.stringify(model)); // submit to your api or store or whatever
   } else {
@@ -317,4 +317,6 @@ If you find yourself wanting to use revalidateOnSubmit, or wanting to perform ad
 
 There is a lot more to react-formstate, but this concludes the walkthrough. If it was successful, you should now have a basic understanding of how to make react-formstate work for your purposes. Remaining features are covered through specific examples and documentation.
 
-Return to the [front page](/README.md)
+- Put it all together with a [basic example](/docs/basicExample.md)
+- Review the [advantages](/docs/advantages.md) of react-formstate.
+- Return to the [front page](https://www.npmjs.com/package/react-formstate)

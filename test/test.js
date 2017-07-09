@@ -4,6 +4,7 @@ var assert = require('assert');
 
 var React = require('react');
 var ReactDOMServer = require('react-dom/server');
+var createReactClass = require('create-react-class');
 
 var rf = require('../react-formstate.js');
 var Form = rf.Form;
@@ -47,7 +48,7 @@ var testForm,
   ContactAddressLine1Input, contactAddressLine1Input;
 
 var createInput = function(saveRef) {
-  return React.createClass({
+  return createReactClass({
     render: function() {
       saveRef(this);
       return React.createElement('div', null,
@@ -78,7 +79,7 @@ function createTestModel() {
 
 
 var createUserFormFixture = function(inject, doThrow) {
-  return React.createClass({
+  return createReactClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
@@ -124,7 +125,7 @@ var UserFormThrow = createUserFormFixture(false, true);
 
 var contactForm;
 
-var Contact = React.createClass({
+var Contact = createReactClass({
   getInitialState: function() {
     contactForm = this;
     return null;
@@ -139,7 +140,7 @@ var Contact = React.createClass({
 
 var addressForm;
 
-var Address = React.createClass({
+var Address = createReactClass({
   getInitialState: function() {
     addressForm = this;
     return null;
@@ -173,7 +174,7 @@ function createTestContactsModel() {
 
 
 var createUserContactsFormFixture = function(inject, backwards) {
-  return React.createClass({
+  return createReactClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
@@ -226,7 +227,7 @@ var UserContactsFormBackwardsModelProp = createUserContactsFormFixture(false, tr
 
 
 var createMessageOverrideForm = function() {
-  return React.createClass({
+  return createReactClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
@@ -272,7 +273,7 @@ var MessageOverrideForm = createMessageOverrideForm();
 
 var addressExtensionForm;
 
-var AddressExtension = React.createClass({
+var AddressExtension = createReactClass({
   getInitialState: function() {
     addressExtensionForm = this;
     return null;
@@ -287,7 +288,7 @@ var AddressExtension = React.createClass({
   }
 });
 
-var ShouldNotManageState = React.createClass({
+var ShouldNotManageState = createReactClass({
   getInitialState: function() {
     return {};
   },
@@ -300,7 +301,7 @@ var ShouldNotManageState = React.createClass({
 
 
 var createExtendedUserFormFixture = function(throwFormExtensionError, stateWarning) {
-  return React.createClass({
+  return createReactClass({
     getInitialState: function() {
       testForm = this;
       this.formState = new FormState(this);
@@ -334,6 +335,87 @@ var createExtendedUserFormFixture = function(throwFormExtensionError, stateWarni
 };
 
 var ExtendedUserForm = createExtendedUserFormFixture();
+
+
+
+
+var OnBlurNameInput, onBlurNameInput;
+
+var createInput = function(saveRef) {
+  return createReactClass({
+    render: function() {
+      saveRef(this);
+      return React.createElement('div', null,
+        React.createElement('label', null, this.props.label),
+        React.createElement('input', { type: 'text', value: this.props.fieldState.getValue(), onChange: this.props.updateFormState, onBlur: this.props.showValidationMessage }),
+        React.createElement('span', null, this.props.fieldState.isMessageVisible() ? this.props.fieldState.getMessage() : null)
+      );
+    },
+    onChange(e) {
+      this.props.handleValueChange(e.target.value);
+    }
+  });
+};
+
+OnBlurNameInput = createInput(function(input) { onBlurNameInput = input; });
+
+
+var createOverrideHandlerForm = function(inject, doThrow) {
+  return createReactClass({
+    getInitialState: function() {
+      testForm = this;
+      this.formState = new FormState(this);
+
+      if (inject) {
+        return this.formState.createUnitOfWork().injectModel(createTestModel());
+      } else {
+        return {};
+      }
+    },
+    render: function() {
+      return React.createElement('form', null,
+        React.createElement(FormObject, { formState: this.formState, model: this.props.model },
+          React.createElement(OnBlurNameInput, { formField: 'name', label: 'Name', defaultValue: 'hpt', handleValueChange: this.handleNameChange, showValidationMessage: this.onNameBlur}),
+          React.createElement(FormObject, { name: 'contact', labelPrefix: 'Work ' },
+            React.createElement(ContactEmailInput, { formField: 'email', label: 'Email' }),
+            React.createElement(FormObject, { name: 'address', labelPrefix: 'Address ' },
+              React.createElement(ContactAddressLine1Input, { formField: 'line1', label: 'Line 1', required: true, validate: [['minLength', 3]] })
+            )
+          ),
+          'test no child',
+          null,
+          doThrow ? React.createElement(FormObject) : null
+        ),
+        React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
+        React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
+      );
+    },
+    handleNameChange: function(newName) {
+      var context = this.formState.createUnitOfWork();
+      var fsName = context.getFieldState('name');
+      fsName.setValue(newName);
+      fsName.set('customHandlerCalled', true);
+      context.updateFormState();
+    },
+    onNameBlur: function() {
+      var context = this.formState.createUnitOfWork();
+      var fsName = context.getFieldState('name');
+      fsName.showMessage();
+      fsName.set('customBlurHandlerCalled', true);
+      context.updateFormState();
+    },
+    handleSubmit: function(e) {
+      e.preventDefault();
+      var model = this.formState.createUnitOfWork().createModel();
+      if (model) {
+        alert(JSON.stringify(model));
+      }
+    }
+  });
+};
+
+
+var OverrideHandlerForm = createOverrideHandlerForm();
 
 
 
@@ -543,6 +625,17 @@ describe('FormState', function() {
       assert.equal(false, fs.isValidating());
       state['formState.address.line1'] = { validity: 3 };
       assert.equal(true, fs.isValidating());
+    });
+    it('optionally ignores invalid messages', function() {
+      var state = {
+        'formState.email': { validity: 3 }
+      };
+      var fs = new FormState({ state: state });
+      assert.equal(true, fs.isValidating());
+      assert.equal(false, fs.isValidating(true));
+      state['formState.address.line1'] = { validity: 3, isMessageVisible: true };
+      assert.equal(true, fs.isValidating());
+      assert.equal(true, fs.isValidating(true));
     });
   });
   describe('#isUploading', function() {
@@ -3090,9 +3183,29 @@ describe('FieldState', function() {
       assert.equal('old', fieldState.fieldState.value);
       assert.equal(3, fieldState.fieldState.validity);
       assert.equal('new', fieldState.fieldState.message);
-      assert.notEqual('old, asyncToken');
+      assert.notEqual('old', asyncToken);
       assert.equal(asyncToken, fieldState.fieldState.asyncToken);
       assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
+    });
+    it('takes an optional second parameter to control message visibility', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.validity = 2;
+      fieldState.fieldState.message = 'old';
+      fieldState.fieldState.asyncToken = 'old';
+      fieldState.fieldState.isMessageVisible = true;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
+      var asyncToken = fieldState.setValidating('new', false);
+      assert.equal('string', typeof(asyncToken));
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(3, fieldState.fieldState.validity);
+      assert.equal('new', fieldState.fieldState.message);
+      assert.notEqual('old', asyncToken);
+      assert.equal(asyncToken, fieldState.fieldState.asyncToken);
+      assert.equal(false, fieldState.fieldState.isMessageVisible);
       assert.equal(undefined, fieldState.fieldState.formerProp);
     });
   });
@@ -3505,9 +3618,41 @@ describe('formField', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       assert.equal(true, typeof(contactEmailInput.props.handleValueChange) === 'function');
     });
+    it('adds an overridable handleValueChange prop', function() {
+      ReactDOMServer.renderToString(React.createElement(OverrideHandlerForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal('hpt', fieldState.getValue());
+      assert.equal(undefined, fieldState.get('customHandlerCalled'));
+      onBlurNameInput.props.handleValueChange('a');
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('name');
+      assert.equal('a', fieldState.getValue());
+      assert.equal(true, fieldState.get('customHandlerCalled'));
+    });
     it('adds a showValidationMessage prop', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       assert.equal(true, typeof(contactEmailInput.props.showValidationMessage) === 'function');
+    });
+    it('adds an overridable showValidationMessage prop', function() {
+      ReactDOMServer.renderToString(React.createElement(OverrideHandlerForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal(false, fieldState.isMessageVisible());
+      assert.equal(undefined, fieldState.get('customBlurHandlerCalled'));
+      onBlurNameInput.props.showValidationMessage();
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('name');
+      assert.equal(false, fieldState.isMessageVisible()); // no message so it doesn't bother
+      assert.equal(true, fieldState.get('customBlurHandlerCalled'));
     });
     it('adds a formState prop', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));

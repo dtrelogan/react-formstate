@@ -5,7 +5,7 @@ The introductory walkthrough made a rough equivalence between this code:
 ```jsx
 constructor(props) {
   super(props);
-  
+
   // initialize default values
   this.state = {model: {name: '', country: 'USA'}};
 }
@@ -166,13 +166,13 @@ import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
 
 export default class SimpleRfsForm extends Component {
-  
+
   constructor(props) {
     super(props);
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
   }
-  
+
   render() {
     return (
       <Form formState={this.formState} onSubmit={e => this.handleSubmit(e)}>
@@ -181,7 +181,7 @@ export default class SimpleRfsForm extends Component {
       </Form>
     );
   }
-  
+
   handleSubmit(e) {
     e.preventDefault();
     const model = this.formState.createUnitOfWork().createModel();
@@ -228,11 +228,12 @@ Injecting this model:
     {
       email: 'huckle@busy.town',
       address: {
-        city: 'Busytown'
+        city: 'Busytown',
         line2: null
       }
     }
-  ]
+  ],
+  roleIds: [1,2,3]
 }
 ```
 
@@ -244,8 +245,19 @@ this.state = {
   'formState.age': { value: 8 }, // <--- can be coerced to '8'
   'formState.contacts.0.email': { value: 'huckle@busy.town' },
   'formState.contacts.0.address.city': { value: 'Busytown' },
-  'formState.contacts.0.address.line2': { value: null } // <--- can be coerced to ''
+  'formState.contacts.0.address.line2': { value: null }, // <--- can be coerced to ''
+  'formState.roleIds': { value: [1,2,3] } // for providing to a multi-select
 };
+```
+
+Note that, since react-formstate cannot know how your model will be used, it may inject extra fields:
+
+```es6
+  // These fields, for example, will go unused.
+  // Remember, model output depends on the inputs actually rendered.
+  'formState.roleIds.0': { value: 1 },
+  'formState.roleIds.1': { value: 2 },
+  'formState.roleIds.2': { value: 3 }
 ```
 
 ## Querying form state
@@ -262,6 +274,8 @@ render() {
   this.formState.getu('contacts.0.address.line2') === null; // true
   this.formState.get('notInState') === '';         // true
   this.formState.getu('notInState') === undefined; // true
+  this.formState.get('formState.roleIds'); // returns ['1','2','3']
+  this.formState.getu('formState.roleIds'); // returns [1,2,3]
 }
 ```
 

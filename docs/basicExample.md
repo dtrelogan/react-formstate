@@ -50,16 +50,16 @@ export default class ChangePasswordForm extends Component {
     this.validateConfirmNewPassword = this.validateConfirmNewPassword.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
   }
-  
-  
+
+
   // you can write plain old validation code
   validateConfirmNewPassword(confirmationValue, context) {
     if (confirmationValue !== context.get('newPassword')) {
       return 'Password confirmation does not match';
     }
   }
-  
-  
+
+
   // or you can use a fluent validation api as appropriate
   render() {
     return (
@@ -87,14 +87,14 @@ export default class ChangePasswordForm extends Component {
       </Form>
     );
   }
-  
-  
+
+
   // you can override the framework generated change handler if necessary
   handlePasswordChange(newPassword) {
     const context = this.formState.createUnitOfWork();
     context.set('newPassword', newPassword).validate();
     context.set('confirmNewPassword', ''); // clear the confirmation field
-    context.updateFormState();
+    context.updateFormState(); // make a call to setState
   }
 
 

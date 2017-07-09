@@ -387,7 +387,7 @@ export class FormObject extends React.Component {
       fieldState: formState.getFieldState(field), // read-only
       updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
       handleValueChange: props.handleValueChange || simpleChangeHandler.bind(null, formState, field),
-      showValidationMessage: blurHandler.bind(null, formState, field),
+      showValidationMessage: props.showValidationMessage || blurHandler.bind(null, formState, field),
       formState: this.formState
     };
   }
@@ -605,9 +605,9 @@ class FieldState {
 
   setValid(message) { return this.setProps(this.getValue(), this.isCoerced(), 1, message); }
   setInvalid(message) { return this.setProps(this.getValue(), this.isCoerced(), 2, message); }
-  setValidating(message) {
-    let asyncToken = generateQuickGuid();
-    this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, true);
+  setValidating(message, visible) {
+    const asyncToken = generateQuickGuid();
+    this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, exists(visible) ? visible : true);
     return asyncToken; // thinking this is more valuable than chaining
   }
   setUploading(message) { return this.setProps(this.getValue(), this.isCoerced(), 4, message, null, true); }
@@ -703,8 +703,8 @@ export class FormState {
   }
 
 
-  isValidating() {
-    return this.anyFieldState(fi => fi.isValidating());
+  isValidating(visibleMessagesOnly) {
+    return this.anyFieldState(fi => fi.isValidating() && (!visibleMessagesOnly || fi.isMessageVisible()));
   }
 
 
