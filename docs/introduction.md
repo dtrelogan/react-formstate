@@ -296,6 +296,7 @@ export default class SimpleRfsForm extends Component {
 +   if (model) { // if model is valid
       alert(JSON.stringify(model)); // persist...
 +   }
++   // else createModel called setState to set validation messages
   }
 }
 ```
