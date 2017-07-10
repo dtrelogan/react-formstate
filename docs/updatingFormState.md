@@ -139,8 +139,15 @@ handleNameChange(newName) {
   const context = this.formState.createUnitOfWork();
   const fieldState = context.set('name', newName);
 
-  // You should not perform required field validation in change handlers!
-  // The change handler may never be called.
+  // DO NOT perform required field validation in change handlers,
+  // as the handler might not run before a form submission.
+  // That is, if your input element is tagged with 'required', for example
+  // <Input formField='name' required/>, then required
+  // field validation can run during a call to createModel upon submit,
+  // which calls validation blocks associated with inputs, but which DOES NOT
+  // call your change handler. Required field validation is the only
+  // type of validation that might be missed in this way if you code it into
+  // your change handler rather than into your input element.
   fieldState.validate(); // call required field validation
   if (fieldState.isInvalid()) {
     context.updateFormState();
