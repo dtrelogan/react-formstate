@@ -218,9 +218,9 @@ export default class RawReactForm extends Component {
 
 &nbsp;
 
-This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we could add state to track which fields have been touched, but the complexity of the code is ratcheting up fast. Worse, as we solve these problems, the pattern is no longer DRY.
+This is a decent pattern, but there are problems. For starters, ALL the validation messages display before the user has a chance to input anything. To fix this, we *could* add state to track which fields have been touched, but the complexity of the code is ratcheting up fast. If we solve these problems without a supporting API, the pattern is no longer DRY.
 
-In making the turn to a better solution, treating validation errors as purely computed values, derived at time of render, won't support asynchronous validation. To handle a wider variety of use cases, we need to move validation status to application state. It is generally more useful, then, to think of a validation error as something computed and stored during a state transition, rather than as something computed on the fly during a render.
+In making the turn to a better solution, treating validation errors as purely computed values, derived at time of render, won't support asynchronous validation. To handle a wider variety of use cases, we need to move validation status into application state. It is generally more useful, then, to think of a validation error as something computed and stored during a state transition, rather than as something computed on the fly during a render. react-formstate consistently employs this more powerful approach.
 
 Let's now add validation using react-formstate:
 

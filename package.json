@@ -1,10 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.4.16",
+  "version": "0.4.17",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "A minimal API for React form components",
+  "description": "A productivity API for React forms based on setState",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",

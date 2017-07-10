@@ -45,6 +45,10 @@ validateConfirmNewPassword(confirmationValue, context) {
 
 and you can override the framework generated change handler using a simple API:
 
+```jsx
+<Input formField='password' ... handleValueChange={this.handlePasswordChange}/>
+```
+
 ```es6
 handlePasswordChange(newPassword) {
   const context = this.formState.createUnitOfWork();
