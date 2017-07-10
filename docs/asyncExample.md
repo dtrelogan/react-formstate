@@ -11,10 +11,13 @@ export default class UserForm extends Component {
     super(props);
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
-    this.originalUsername = props.model && props.model.username;
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  originalUsername() {
+    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -38,6 +41,7 @@ export default class UserForm extends Component {
           formField='username'
           label='Username'
           required
+          fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
           handleValueChange={this.handleUsernameChange}
         />
         <input type='submit' value='Submit'/>
@@ -48,22 +52,17 @@ export default class UserForm extends Component {
 
 
   handleUsernameChange(username) {
-    let context = this.formState.createUnitOfWork(),
-      fieldState = context.getFieldState('username');
+    const context = this.formState.createUnitOfWork(),
+      fieldState = context.set('username', username);
 
-    fieldState.setCoercedValue(username);
-
-    // alternatively you could use the set or setc function, see the api documentation.
-    // let fieldState = context.setc('username', username);
-
-    if (username === this.originalUsername) {
-      fieldState.setValid();
+    fieldState.validate();
+    if (fieldState.isInvalid()) {
       context.updateFormState();
       return;
     } // else
 
-    fieldState.validate();
-    if (fieldState.isInvalid()) {
+    if (username === this.originalUsername()) {
+      fieldState.setValid('Verified');
       context.updateFormState();
       return;
     } // else
@@ -74,12 +73,12 @@ export default class UserForm extends Component {
 
     // simulate calling your api
     window.setTimeout(() => {
-      let context = this.formState.createUnitOfWork(),
+      const context = this.formState.createUnitOfWork(),
         fieldState = context.getFieldState('username', asyncToken);
 
       // if the token still matches, the username we are verifying is still relevant
       if (fieldState) {
-        if (username.trim() === 'taken') {
+        if (username === 'taken') {
           fieldState.setInvalid('Username already exists');
         } else {
           fieldState.setValid('Verified');
@@ -93,7 +92,7 @@ export default class UserForm extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
     if (model) {
       // Even if you hit submit, you won't enter this block of code
       // if the form is waiting for asynchronous validation to finish.

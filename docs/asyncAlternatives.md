@@ -14,9 +14,12 @@ class UserForm extends Component {
     super(props);
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
-    this.originalUsername = props.model && props.model.username;
 
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  originalUsername() {
+    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -33,7 +36,12 @@ class UserForm extends Component {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
         <fieldset disabled={this.state.validatingUsername ? 'disabled' : null}>
-          <Input formField='username' label='Username' required/>
+          <Input
+            formField='username'
+            label='Username'
+            required
+            fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
+            />
         </fieldset>
         <input type='submit' value='Submit' disabled={submitDisabled}/>
         <span>{submitMessage}</span>
@@ -44,9 +52,9 @@ class UserForm extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
     if (model) {
-      if (model.username === this.originalUsername) {
+      if (model.username === this.originalUsername()) {
         this.submitToApi(model);
         return;
       } // else
@@ -89,7 +97,7 @@ There are LOTS of different ways to improve this scenario, but IMHO the best sol
 One approach to making asynchronous validation during onBlur work better is presented as a second example following this "unpatched onBlur" example.
 
 ```jsx
-const TestInput = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
+const Input = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
   return (
     <div>
       <label>{label}</label>
@@ -113,11 +121,14 @@ class Test extends Component {
     super(props);
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
-    this.originalUsername = props.model && props.model.username;
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.usernameOnBlur = this.usernameOnBlur.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  originalUsername() {
+    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -142,10 +153,11 @@ class Test extends Component {
 
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
-        <TestInput
+        <Input
           formField='username'
           label='Username'
           required
+          fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
           handleValueChange={this.handleUsernameChange}
           showValidationMessage={this.usernameOnBlur}
           />
@@ -157,19 +169,17 @@ class Test extends Component {
 
 
   handleUsernameChange(username) {
-    let context = this.formState.createUnitOfWork(),
-      fieldState = context.getFieldState('username');
+    const context = this.formState.createUnitOfWork(),
+      fieldState = context.set('username', username);
 
-    fieldState.setCoercedValue(username);
-
-    if (username === this.originalUsername) {
-      fieldState.setValid();
+    fieldState.validate();
+    if (fieldState.isInvalid()) {
       context.updateFormState();
       return;
     } // else
 
-    fieldState.validate();
-    if (fieldState.isInvalid()) {
+    if (username === this.originalUsername()) {
+      fieldState.setValid('Verified');
       context.updateFormState();
       return;
     } // else
@@ -207,7 +217,7 @@ class Test extends Component {
 
       // if the token still matches, the username we are verifying is still relevant
       if (fieldState) {
-        if (fieldState.getValue().trim() === 'taken') {
+        if (fieldState.getValue() === 'taken') {
           fieldState.setInvalid('Username already exists');
         } else {
           fieldState.setValid('Verified');
@@ -221,7 +231,7 @@ class Test extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    let model = this.formState.createUnitOfWork().createModel();
+    const model = this.formState.createUnitOfWork().createModel();
     if (model) {
       alert(JSON.stringify(model));
     }
@@ -241,11 +251,14 @@ class Test extends Component {
     super(props);
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
-    this.originalUsername = props.model && props.model.username;
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.usernameOnBlur = this.usernameOnBlur.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  originalUsername() {
+    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -269,10 +282,11 @@ class Test extends Component {
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
 +       <fieldset disabled={this.state.submitting ? 'disabled' : null}>
-          <TestInput
+          <Input
             formField='username'
             label='Username'
             required
+            fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
             handleValueChange={this.handleUsernameChange}
             showValidationMessage={this.usernameOnBlur}
             />
@@ -285,19 +299,17 @@ class Test extends Component {
 
 
   handleUsernameChange(username) {
-    let context = this.formState.createUnitOfWork(),
-      fieldState = context.getFieldState('username');
+    const context = this.formState.createUnitOfWork(),
+      fieldState = context.set('username', username);
 
-    fieldState.setCoercedValue(username);
-
-    if (username === this.originalUsername) {
-      fieldState.setValid();
+    fieldState.validate();
+    if (fieldState.isInvalid()) {
       context.updateFormState();
       return;
     } // else
 
-    fieldState.validate();
-    if (fieldState.isInvalid()) {
+    if (username === this.originalUsername()) {
+      fieldState.setValid('Verified');
       context.updateFormState();
       return;
     } // else
@@ -335,7 +347,7 @@ class Test extends Component {
 
       // if the token still matches, the username we are verifying is still relevant
       if (fieldState) {
-        if (fieldState.getValue().trim() === 'taken') {
+        if (fieldState.getValue() === 'taken') {
           fieldState.setInvalid('Username already exists');
         } else {
           fieldState.setValid('Verified');
@@ -368,7 +380,7 @@ class Test extends Component {
   }
 
 + submit(context) {
-+   let model = context.createModel(true);
++   const model = context.createModel(true);
 +   if (model) {
 +     alert(JSON.stringify(model));
 +     context.updateFormState({submitting: false}); // reset form for further testing
@@ -384,7 +396,7 @@ class Test extends Component {
 If you aren't put off by the complexity of the onBlur example, and if you want normal validation messages to display immediately upon onChange, but you want to postpone asynchronous validation until onBlur (to save API calls), you could take the asynchronous onBlur example more or less as is, and substitute an input like this:
 
 ```jsx
-const TestInput = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
+const Input = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
 
   let msg = fieldState.getMessage();
 

@@ -42,9 +42,9 @@ export default class UserForm extends Component {
     //   disabled: true
     // };
 
-    this.originalUsername = model.username;
-
     this.state = this.formState.injectModel(model);
+
+    this.state.originalUsername = model.username;
 
     // transform model state for the UI
     this.formState.add(this.state, 'active', !model.disabled);
@@ -123,6 +123,7 @@ export default class UserForm extends Component {
           formField='username'
           label='Username'
           required
+          fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
           handleValueChange={this.handleUsernameChange}
           />
         <Input formField='password' type='password' label='Password' required />
@@ -209,16 +210,16 @@ export default class UserForm extends Component {
 
   handleUsernameChange(username) {
     let context = this.formState.createUnitOfWork(),
-      fieldState = context.setc('username', username);
+      fieldState = context.set('username', username);
 
-    if (username === this.originalUsername) {
-      fieldState.setValid();
+    fieldState.validate();
+    if (fieldState.isInvalid()) {
       context.updateFormState();
       return;
     } // else
 
-    fieldState.validate();
-    if (fieldState.isInvalid()) {
+    if (username === this.state.originalUsername) {
+      fieldState.setValid('Verified');
       context.updateFormState();
       return;
     } // else
