@@ -1,6 +1,8 @@
 # Advantages of react-formstate
 
-Uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components), not [uncontrolled components](https://facebook.github.io/react/docs/uncontrolled-components.html).
+## [Controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components)
+
+Not [uncontrolled components](https://facebook.github.io/react/docs/uncontrolled-components.html).
 
 ## No dependencies
 
