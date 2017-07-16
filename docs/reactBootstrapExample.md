@@ -1,6 +1,6 @@
 # [React-Bootstrap](https://react-bootstrap.github.io/) example
 
-The [demo](https://dtrelogan.github.io/react-formstate-demo/) uses React-Bootstrap components. Here is an example.
+(Note that the [demo](https://dtrelogan.github.io/react-formstate-demo/) uses React-Bootstrap components.)
 
 The vanilla [React-Bootstrap](https://react-bootstrap.github.io/) input:
 
