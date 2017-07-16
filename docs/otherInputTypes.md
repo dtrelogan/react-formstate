@@ -2,9 +2,9 @@
 
 Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=otherinputs) using react-bootstrap components.
 
-**Note this is to demonstrate that react-formstate can handle state values to drive these input types. react-formstate is NOT intended to be an input component library, nor should it be. Use something like react-bootstrap for that.**
+This is only meant to demonstrate that react-formstate can work with these input types. react-formstate is NOT intended to be an input component library. That's what something like react-bootstrap is for.
 
-That being said, these templates should help beginners out a lot, and understanding how the onChange code works for the Select input and for the CheckboxGroup input is very useful.
+That being said, these templates should help beginners out a lot, and understanding how the onChange code works for the Select input and for the CheckboxGroup input is especially useful.
 
 ```es6
 import React, { Component } from 'react';
@@ -14,6 +14,9 @@ import Checkbox from './Checkbox.jsx';
 import CheckboxGroup from './CheckboxGroup.jsx';
 import RadioGroup from './RadioGroup.jsx';
 import Select from './Select.jsx';
+
+import { validationAdapter } from 'react-formstate-validation';
+validationAdapter.plugInto(FormState);
 
 export default class UserForm extends Component {
 
@@ -59,12 +62,6 @@ export default class UserForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-
-  validateRoleIds(roleIds) {
-    if (!roleIds.length) { return 'Please select at least one role'; }
-  }
-
-
   render() {
     let submitMessage = null;
 
@@ -90,6 +87,8 @@ export default class UserForm extends Component {
           label='Roles'
           defaultValue={[]}
           intConvert
+          required='-'
+          fsv={v => v.minLength(1).msg('Please select at least one role')}
           />
         <Select
           formField='siteIds'
