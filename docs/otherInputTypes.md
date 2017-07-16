@@ -1,8 +1,8 @@
 # Checkbox, CheckboxGroup, RadioGroup, and Select
 
-Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=otherinputs) using react-bootstrap components.
+Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=otherinputs) using [React-Bootstrap](https://react-bootstrap.github.io/) components.
 
-This is only meant to demonstrate that react-formstate can work with these input types. react-formstate is NOT intended to be an input component library. That's what something like react-bootstrap is for.
+This is only meant to demonstrate that react-formstate can work with these input types. react-formstate is NOT intended to be an input component library. That's what something like [React-Bootstrap](https://react-bootstrap.github.io/) is for.
 
 That being said, these templates should help beginners out a lot, and understanding how the onChange code works for the Select input and for the CheckboxGroup input is especially useful.
 
