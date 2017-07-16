@@ -94,7 +94,7 @@ export default ({formState, fieldState, handleValueChange, showValidationMessage
 
   return (
     <Input
-      validationState{validationState}
+      validationState={validationState}
       value={fieldState.getValue()}
       help={help}
       onChange={e => handleValueChange(e.target.value)}
