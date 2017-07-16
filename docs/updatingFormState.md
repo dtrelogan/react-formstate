@@ -166,7 +166,7 @@ handleNameChange(newName) {
 
 &nbsp;
 
-You can argue it's best practice, however, to always put synchronous validation logic into a code block referenced from your input elements (or using the fluent validation API). That way you can make sure *all* your validation runs at least once, regardless of whether or not an input is ever changed prior to hitting submit. That protects you against the nasty edge case of injecting an invalid model into your form state.
+You can argue it's best practice, however, to always put synchronous validation logic into a code block referenced from your input elements (or using the fluent validation API). That way you can make sure *all* your validation runs at least once, regardless of whether an input is ever changed prior to hitting submit. That protects you against the nasty edge case of injecting an invalid model into your form state.
 
 ```jsx
 <Input
