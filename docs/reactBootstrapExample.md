@@ -1,35 +1,40 @@
 # [React-Bootstrap](https://react-bootstrap.github.io/) example
 
+The [demo](https://dtrelogan.github.io/react-formstate-demo/) uses React-Bootstrap components. Here is an example.
+
 The vanilla [React-Bootstrap](https://react-bootstrap.github.io/) input:
 
 ```jsx
 import React from 'react';
 import { FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 
-export default (props) => {
+export default ({className, controlId, validationState, type, label, value, help, onChange, onBlur, placeholder, disabled, autoFocus, autoComplete, showFeedback}) => {
+
   return (
     <FormGroup
-      className={props.className}
-      controlId={props.controlId}
-      validationState={props.validationState}
+      className={className}
+      controlId={controlId}
+      validationState={validationState}
       >
-      <ControlLabel>{props.label}</ControlLabel>
+      <ControlLabel>{label}</ControlLabel>
       <FormControl
-        type={props.type || 'text'}
-        value={props.value}
-        placeholder={props.placeholder}
-        onChange={e => props.handleValueChange(e.target.value)}
-        disabled={props.disabled}
-        autoFocus={props.autoFocus}
+        type={type || 'text'}
+        value={value}
+        placeholder={placeholder}
+        onChange={onChange}
+        onBlur={onBlur}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        autoComplete={autoComplete}
         />
-      <FormControl.Feedback />
-      <HelpBlock>{props.help}</HelpBlock>
+      {showFeedback === false ? null : <FormControl.Feedback />}
+      <HelpBlock>{help}</HelpBlock>
     </FormGroup>
   );
 };
 ```
 
-The react-formstate component shim:
+The react-formstate component shim (shows messages onChange):
 
 ```jsx
 import React from 'react';
@@ -51,7 +56,7 @@ export default ({className, required, fieldState, handleValueChange, ...other}) 
       controlId={fieldState.getKey()}
       validationState={validationState}
       value={fieldState.getValue()}
-      handleValueChange={handleValueChange}
+      onChange={e => handleValueChange(e.target.value)}
       help={fieldState.getMessage()}
       {...other}
       />

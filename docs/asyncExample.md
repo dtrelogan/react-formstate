@@ -1,5 +1,7 @@
 # Asynchronous validation
 
+Working example [here](https://dtrelogan.github.io/react-formstate-demo/).
+
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
@@ -63,6 +65,7 @@ export default class UserForm extends Component {
 
     if (username === this.originalUsername()) {
       fieldState.setValid('Verified');
+      fieldState.showMessage(); // if normally waiting until onBlur
       context.updateFormState();
       return;
     } // else

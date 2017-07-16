@@ -126,6 +126,25 @@ validateUsername(username, context, field) {
 
 See [Field](https://github.com/dtrelogan/react-formstate/blob/master/docs/api.md#Field) for more information
 
+### using the FieldState API in a validation block
+
+```es6
+validatePassword(newPassword, context) {
+
+  if (newPassword.length < 8) {
+    return 'Password must contain at least 8 characters';
+  }
+  if (newPassword.length < 12) {
+    const fieldState = context.getFieldState('password');
+    // value has already been set to newPassword here.
+    fieldState.setValid('Passwords ideally contain at least 12 characters');
+    fieldState.set('warn', true); // <------ set a nonstandard property
+    // no need to call updateFormState here.
+    return;
+  }
+}
+```
+
 ### <a name='register'>registering validation functions</a>
 
 In your application, you can register reusable validation functions with messaging of your choice.

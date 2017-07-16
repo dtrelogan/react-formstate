@@ -1,11 +1,15 @@
-# templates for other input types
+# Checkbox, CheckboxGroup, RadioGroup, and Select
+
+Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=otherinputs) using react-bootstrap components.
+
+**Note this is to demonstrate that react-formstate can handle state values to drive these input types. react-formstate is NOT intended to be an input component library, nor should it be. Use something like react-bootstrap for that.**
+
+That being said, these templates should help beginners out a lot, and understanding how the onChange code works for the Select input and for the CheckboxGroup input is very useful.
 
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';
 import Input from './Input.jsx';
-import Contact from './Contact.jsx';
-import Address from './Address.jsx';
 import Checkbox from './Checkbox.jsx';
 import CheckboxGroup from './CheckboxGroup.jsx';
 import RadioGroup from './RadioGroup.jsx';
@@ -22,20 +26,7 @@ export default class UserForm extends Component {
     // or edit:
     // model = {
     //   name: 'buster brown',
-    //   username: 'buster',
     //   contactPreferenceId: 2,
-    //   contacts: [
-    //     {
-    //       email: 'buster@dogmail.com',
-    //       phone: '999-999-9999',
-    //       address: { line1: '123 home st' }
-    //     },
-    //     {
-    //       email: 'buster@dogs.org',
-    //       phone: '888-888-8888',
-    //       address: { line1: '456 work st' }
-    //     }
-    //   ],
     //   roleIds: [2,3],
     //   siteIds: [4],
     //   defaultSiteId: 4,
@@ -44,12 +35,8 @@ export default class UserForm extends Component {
 
     this.state = this.formState.injectModel(model);
 
-    this.state.originalUsername = model.username;
-
     // transform model state for the UI
     this.formState.add(this.state, 'active', !model.disabled);
-
-    this.state.numContacts = model.contacts ? model.contacts.length : 0;
 
     this.contactChoices = [
       { id: 1, name: 'Contact Me' },
@@ -69,22 +56,9 @@ export default class UserForm extends Component {
       { id: 4, name: 'Site 4' }
     ];
 
-    this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.addContact = this.addContact.bind(this);
   }
 
-
-  validatePassword(password, context) {
-    context.setc('passwordConfirmation', '');
-    if (password.length < 8) { return 'Must be at least 8 characters'; }
-  }
-
-  validatePasswordConfirmation(confirmation, context) {
-    if (confirmation !== context.get('password')) {
-      return 'Passwords do not match';
-    }
-  }
 
   validateRoleIds(roleIds) {
     if (!roleIds.length) { return 'Please select at least one role'; }
@@ -94,40 +68,13 @@ export default class UserForm extends Component {
   render() {
     let submitMessage = null;
 
-    if (this.formState.isValidating()) {
-      submitMessage = 'Waiting for validation to finish...';
-    } else if (this.formState.isInvalid()) {
+    if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
-    }
-
-    let contacts = [];
-
-    for (let i = 0; i < this.state.numContacts; i++) {
-      if (!this.formState.isDeleted(`contacts.${i}`)) {
-        contacts.push(
-          <div key={i} >
-            <h4>{i}</h4>
-            <Contact formObject={i} >
-              <Address formObject={'address'} labelPrefix='Address '/>
-            </Contact>
-            <a href='#' onClick={this.removeContact(i)}>remove</a>
-          </div>
-        );
-      }
     }
 
     return (
       <Form formState={this.formState} onSubmit={this.handleSubmit}>
         <Input formField='name' label='Name' required />
-        <Input
-          formField='username'
-          label='Username'
-          required
-          fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
-          handleValueChange={this.handleUsernameChange}
-          />
-        <Input formField='password' type='password' label='Password' required />
-        <Input formField='passwordConfirmation' type='password' label='Confirm Password'/>
         <br/>
         <RadioGroup
           buttonValues={this.contactChoices}
@@ -136,11 +83,6 @@ export default class UserForm extends Component {
           defaultValue={1}
           intConvert
           />
-        <h3>Contacts</h3>
-        <a href='#' onClick={this.addContact}>add contact</a><br/>
-        <FormArray name='contacts'>
-          {contacts}
-        </FormArray>
         <h3>Account Settings</h3>
         <CheckboxGroup
           formField='roleIds'
@@ -189,59 +131,6 @@ export default class UserForm extends Component {
       delete model.active;
       alert(JSON.stringify(model));
     }
-  }
-
-
-  addContact(e) {
-    e.preventDefault();
-    this.setState({ numContacts: this.state.numContacts + 1 });
-  }
-
-
-  removeContact(i) {
-    return (e) => {
-      e.preventDefault();
-      let context = this.formState.createUnitOfWork();
-      context.remove(`contacts.${i}`);
-      context.updateFormState();
-    };
-  }
-
-
-  handleUsernameChange(username) {
-    let context = this.formState.createUnitOfWork(),
-      fieldState = context.set('username', username);
-
-    fieldState.validate();
-    if (fieldState.isInvalid()) {
-      context.updateFormState();
-      return;
-    } // else
-
-    if (username === this.state.originalUsername) {
-      fieldState.setValid('Verified');
-      context.updateFormState();
-      return;
-    } // else
-
-    let field = fieldState.getField(),
-      asyncToken = fieldState.setValidating(`Verifying ${field.label.toLowerCase()}...`);
-
-    context.updateFormState();
-
-    window.setTimeout(() => {
-      let context = this.formState.createUnitOfWork();
-      let fieldState = context.getFieldState(field.name, asyncToken);
-      if (fieldState) { // if it hasn't changed in the meantime
-        if (username === 'taken') {
-          fieldState.setInvalid(`${field.label} already exists`);
-        } else {
-          fieldState.setValid('Verified');
-        }
-        fieldState.showMessage(); // in case you are showing on blur
-        context.updateFormState();
-      }
-    }, 2000);
   }
 
 }

@@ -372,6 +372,16 @@ var createOverrideHandlerForm = function(inject, doThrow) {
         return {};
       }
     },
+    validateName: function(name, context) {
+      var fi = context.getFieldState('name');
+      if (name === 'valid') {
+        fi.setValid('This valid message should not get wiped');
+        fi.set('noWipeValid', true);
+      } else if (name === 'invalid') {
+        fi.setInvalid('This invalid message should not get wiped');
+        fi.set('noWipeInvalid', true);
+      }
+    },
     render: function() {
       return React.createElement('form', null,
         React.createElement(FormObject, { formState: this.formState, model: this.props.model },
@@ -393,7 +403,7 @@ var createOverrideHandlerForm = function(inject, doThrow) {
     handleNameChange: function(newName) {
       var context = this.formState.createUnitOfWork();
       var fsName = context.getFieldState('name');
-      fsName.setValue(newName);
+      fsName.setValue(newName).validate();
       fsName.set('customHandlerCalled', true);
       context.updateFormState();
     },
@@ -420,8 +430,125 @@ var OverrideHandlerForm = createOverrideHandlerForm();
 
 
 
+var NoCoercionInput1, noCoercionInput1, NoCoercionInput2, noCoercionInput2;
+
+NoCoercionInput1 = createInput(function(input) { noCoercionInput1 = input; });
+NoCoercionInput1.rfsNoCoercion = true;
+NoCoercionInput2 = createInput(function(input) { noCoercionInput2 = input; });
+NoCoercionInput2.rfsNoCoercion = true;
+
+var createNoCoercionForm = function(inject, doThrow) {
+  return createReactClass({
+    getInitialState: function() {
+      testForm = this;
+      this.formState = new FormState(this);
+      return {};
+    },
+    render: function() {
+      return React.createElement('form', null,
+        React.createElement(FormObject, { formState: this.formState, model: this.props.model },
+          React.createElement(NoCoercionInput1, { formField: 'noCoercion', label: 'Name'}),
+          React.createElement(NoCoercionInput2, { formField: 'noCoercionOverride', label: 'Name', noCoercion: false}),
+          React.createElement(OnBlurNameInput, { formField: 'name', label: 'Name'}),
+          React.createElement(NameInput, { formField: 'nameNoCoercion', label: 'Name', noCoercion: true}),
+          'test no child',
+          null,
+          doThrow ? React.createElement(FormObject) : null
+        ),
+        React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
+        React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
+      );
+    },
+    handleSubmit: function(e) {
+      e.preventDefault();
+      var model = this.formState.createUnitOfWork().createModel();
+      if (model) {
+        alert(JSON.stringify(model));
+      }
+    }
+  });
+};
+
+
+var NoCoercionForm = createNoCoercionForm();
+
+
+
+
 
 describe('FormState', function() {
+  describe('#showMessageOnBlur', function() {
+    it('you can get and set the value', function() {
+      assert.equal(true, FormState.showMessageOnBlur() === false); // false by default
+      FormState.setShowMessageOnBlur(true);
+      assert.equal(true, FormState.showMessageOnBlur() === true);
+      FormState.setShowMessageOnBlur(false);
+      assert.equal(true, FormState.showMessageOnBlur() === false);
+      FormState.setShowMessageOnBlur();
+      assert.equal(true, FormState.showMessageOnBlur() === true);
+      FormState.showOnBlur = undefined;
+      var fs = new FormState();
+      assert.equal(true, fs.showMessageOnBlur() === false);
+      FormState.setShowMessageOnBlur();
+      assert.equal(true, fs.showMessageOnBlur() === true);
+      FormState.setShowMessageOnBlur(false);
+      assert.equal(true, fs.showMessageOnBlur() === false);
+      fs.setShowMessageOnBlur(true);
+      assert.equal(true, fs.showMessageOnBlur() === true);
+      fs.setShowMessageOnBlur(false);
+      assert.equal(true, fs.showMessageOnBlur() === false);
+      fs.setShowMessageOnBlur();
+      assert.equal(true, fs.showMessageOnBlur() === true);
+    });
+  });
+  describe('#showMessageOnSubmit', function() {
+    it('you can get and set the value', function() {
+      assert.equal(true, FormState.showMessageOnSubmit() === false); // false by default
+      FormState.setShowMessageOnSubmit(true);
+      assert.equal(true, FormState.showMessageOnSubmit() === true);
+      FormState.setShowMessageOnSubmit(false);
+      assert.equal(true, FormState.showMessageOnSubmit() === false);
+      FormState.setShowMessageOnSubmit();
+      assert.equal(true, FormState.showMessageOnSubmit() === true);
+      FormState.showOnSubmit = undefined;
+      var fs = new FormState();
+      assert.equal(true, fs.showMessageOnSubmit() === false);
+      FormState.setShowMessageOnSubmit();
+      assert.equal(true, fs.showMessageOnSubmit() === true);
+      FormState.setShowMessageOnSubmit(false);
+      assert.equal(true, fs.showMessageOnSubmit() === false);
+      fs.setShowMessageOnSubmit(true);
+      assert.equal(true, fs.showMessageOnSubmit() === true);
+      fs.setShowMessageOnSubmit(false);
+      assert.equal(true, fs.showMessageOnSubmit() === false);
+      fs.setShowMessageOnSubmit();
+      assert.equal(true, fs.showMessageOnSubmit() === true);
+    });
+  });
+  describe('#ensureValidationOnBlur', function() {
+    it('you can get and set the value', function() {
+      assert.equal(true, FormState.ensureValidationOnBlur() === false); // false by default
+      FormState.setEnsureValidationOnBlur(true);
+      assert.equal(true, FormState.ensureValidationOnBlur() === true);
+      FormState.setEnsureValidationOnBlur(false);
+      assert.equal(true, FormState.ensureValidationOnBlur() === false);
+      FormState.setEnsureValidationOnBlur();
+      assert.equal(true, FormState.ensureValidationOnBlur() === true);
+      FormState.validateOnBlur = undefined;
+      var fs = new FormState();
+      assert.equal(true, fs.ensureValidationOnBlur() === false);
+      FormState.setEnsureValidationOnBlur();
+      assert.equal(true, fs.ensureValidationOnBlur() === true);
+      FormState.setEnsureValidationOnBlur(false);
+      assert.equal(true, fs.ensureValidationOnBlur() === false);
+      fs.setEnsureValidationOnBlur(true);
+      assert.equal(true, fs.ensureValidationOnBlur() === true);
+      fs.setEnsureValidationOnBlur(false);
+      assert.equal(true, fs.ensureValidationOnBlur() === false);
+      fs.setEnsureValidationOnBlur();
+      assert.equal(true, fs.ensureValidationOnBlur() === true);
+    });
+  });
   describe('#setRequired', function() {
     it('is set to something by default', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
@@ -597,20 +724,56 @@ describe('FormState', function() {
         'formState.phone': { validity: 3 }
       };
       var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(false);
+      fs.setShowMessageOnSubmit(false);
       assert.equal(false, fs.isInvalid());
       state['formState.address.line1'] = { validity: 2 };
       assert.equal(true, fs.isInvalid());
+    });
+    it('optionally ignores invalid messages if formState.showMessageOnBlur', function() {
+      var state = {
+        'formState.email': { validity: 2 }
+      };
+      var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(true);
+      fs.setShowMessageOnSubmit(false);
+      assert.equal(false, fs.isInvalid());
+      assert.equal(false, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
+      state['formState.address.line1'] = { validity: 2, isMessageVisible: true };
+      assert.equal(true, fs.isInvalid());
+      assert.equal(true, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
+    });
+    it('optionally ignores invalid messages if formState.showMessageOnSubmit', function() {
+      var state = {
+        'formState.email': { validity: 2 }
+      };
+      var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(false);
+      fs.setShowMessageOnSubmit(true);
+      assert.equal(false, fs.isInvalid());
+      assert.equal(false, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
+      state['formState.address.line1'] = { validity: 2, isMessageVisible: true };
+      assert.equal(true, fs.isInvalid());
+      assert.equal(true, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
     });
     it('optionally ignores invalid messages', function() {
       var state = {
         'formState.email': { validity: 2 }
       };
       var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(false);
+      fs.setShowMessageOnSubmit(false);
       assert.equal(true, fs.isInvalid());
       assert.equal(false, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
       state['formState.address.line1'] = { validity: 2, isMessageVisible: true };
       assert.equal(true, fs.isInvalid());
       assert.equal(true, fs.isInvalid(true));
+      assert.equal(true, fs.isInvalid(false));
     });
   });
   describe('#isValidating', function() {
@@ -631,6 +794,32 @@ describe('FormState', function() {
         'formState.email': { validity: 3 }
       };
       var fs = new FormState({ state: state });
+      assert.equal(true, fs.isValidating());
+      assert.equal(false, fs.isValidating(true));
+      state['formState.address.line1'] = { validity: 3, isMessageVisible: true };
+      assert.equal(true, fs.isValidating());
+      assert.equal(true, fs.isValidating(true));
+    });
+    it('ignores formState.showMessageOnBlur', function() {
+      var state = {
+        'formState.email': { validity: 3 }
+      };
+      var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(true);
+      fs.setShowMessageOnSubmit(false);
+      assert.equal(true, fs.isValidating());
+      assert.equal(false, fs.isValidating(true));
+      state['formState.address.line1'] = { validity: 3, isMessageVisible: true };
+      assert.equal(true, fs.isValidating());
+      assert.equal(true, fs.isValidating(true));
+    });
+    it('ignores formState.showMessageOnSubmit', function() {
+      var state = {
+        'formState.email': { validity: 3 }
+      };
+      var fs = new FormState({ state: state });
+      fs.setShowMessageOnBlur(false);
+      fs.setShowMessageOnSubmit(true);
       assert.equal(true, fs.isValidating());
       assert.equal(false, fs.isValidating(true));
       state['formState.address.line1'] = { validity: 3, isMessageVisible: true };
@@ -1045,6 +1234,22 @@ describe('FormState', function() {
       var state = new FormState({}).injectModel({ x: 3 });
       assert.equal(state['formState.x'].value, 3);
     });
+    it('normally flattens objects', function() {
+      var fs = new FormState();
+      const model = { a: 1, b: 2};
+      var state = fs.injectModel(model);
+      assert.equal(true, state['formState.'].value === model);
+      assert.equal(true, state['formState.a'].value === 1);
+      assert.equal(true, state['formState.b'].value === 2);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState();
+      const model = { a: 1, b: 2};
+      var state = fs.injectModel(model, true);
+      assert.equal(true, state['formState.'].value === model);
+      assert.equal(true, state['formState.a'] === undefined);
+      assert.equal(true, state['formState.b'] === undefined);
+    });
   });
   describe('#inject', function() {
     it('injects into provided state', function() {
@@ -1052,6 +1257,24 @@ describe('FormState', function() {
       new FormState({}).inject(state, { x: 3 });
       assert.equal(state.a, 1);
       assert.equal(state['formState.x'].value, 3);
+    });
+    it('normally flattens objects', function() {
+      var fs = new FormState();
+      var state = {};
+      const model = { a: 1, b: 2};
+      fs.inject(state, model);
+      assert.equal(true, state['formState.'].value === model);
+      assert.equal(true, state['formState.a'].value === 1);
+      assert.equal(true, state['formState.b'].value === 2);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState();
+      var state = {};
+      const model = { a: 1, b: 2};
+      fs.inject(state, model, true);
+      assert.equal(true, state['formState.'].value === model);
+      assert.equal(true, state['formState.a'] === undefined);
+      assert.equal(true, state['formState.b'] === undefined);
     });
   });
   describe('#add', function() {
@@ -1061,6 +1284,24 @@ describe('FormState', function() {
       fs.add(state, 'y', 4);
       assert.equal(state['formState.x'].value, 3);
       assert.equal(state['formState.y'].value, 4);
+    });
+    it('normally flattens objects', function() {
+      var fs = new FormState();
+      var state = {};
+      const model = { a: 1, b: 2};
+      fs.add(state, 'x', model);
+      assert.equal(true, state['formState.x'].value === model);
+      assert.equal(true, state['formState.x.a'].value === 1);
+      assert.equal(true, state['formState.x.b'].value === 2);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState();
+      var state = {};
+      const model = { a: 1, b: 2};
+      fs.add(state, 'x', model, true);
+      assert.equal(true, state['formState.x'].value === model);
+      assert.equal(true, state['formState.x.a'] === undefined);
+      assert.equal(true, state['formState.x.b'] === undefined);
     });
   });
   describe('#remove', function() {
@@ -1194,6 +1435,18 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#getFieldState', function() {
+    it('TODO needs to be fixed', function() {
+      var state = { 'formState.name': { value: 'Henry' } },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var fieldState1 = context.getFieldState('name');
+      var fieldState2 = context.getFieldState('name');
+      assert.equal('Henry', fieldState1.getValue());
+      assert.equal('Henry', fieldState2.getValue());
+      fieldState1.setValue('Henry Paul');
+      assert.equal('Henry Paul', fieldState1.getValue());
+      assert.equal('Henry', fieldState2.getValue());
+    });
     it('looks up a possibly updated field state by name', function() {
       var state = { 'formState.name': { value: 'Henry' } },
         fs = new FormState({ state: state }),
@@ -1340,6 +1593,22 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#add', function() {
+    it('normally flattens objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.add('x', model);
+      assert.equal(true, context.stateUpdates['formState.x'].value === model);
+      assert.equal(true, context.stateUpdates['formState.x.a'].value === 1);
+      assert.equal(true, context.stateUpdates['formState.x.b'].value === 2);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.add('x', model, true);
+      assert.equal(true, context.stateUpdates['formState.x'].value === model);
+      assert.equal(true, context.stateUpdates['formState.x.a'] === undefined);
+      assert.equal(true, context.stateUpdates['formState.x.b'] === undefined);
+    });
     it('adds a value to the unit of work state updates', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
       context.add('x', 1);
@@ -1511,6 +1780,22 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#injectModel', function() {
+    it('normally flattens objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.injectModel(model);
+      assert.equal(true, context.stateUpdates['formState.'].value === model);
+      assert.equal(true, context.stateUpdates['formState.a'].value === 1);
+      assert.equal(true, context.stateUpdates['formState.b'].value === 2);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.injectModel(model, true);
+      assert.equal(true, context.stateUpdates['formState.'].value === model);
+      assert.equal(true, context.stateUpdates['formState.a'] === undefined);
+      assert.equal(true, context.stateUpdates['formState.b'] === undefined);
+    });
     it('throws an error if not an object/array', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
 
@@ -1550,15 +1835,19 @@ describe('UnitOfWork', function() {
       context.add = function(name, value) {
         names.push({ name: name, value: value });
       };
-      context.injectModel({ a: 1, b: 2 });
+      var model = { a: 1, b: 2 };
+      context.injectModel(model);
       var fieldState = context.stateUpdates['formState.'];
       assert.equal('object', typeof(fieldState));
-      assert.equal(0, Object.keys(fieldState).length);
+      assert.equal(1, Object.keys(fieldState).length);
+      assert.equal(fieldState.value, model);
       context = fs.createFormState('contacts').createUnitOfWork();
-      context.injectModel([1,2]);
+      model = [1,2];
+      context.injectModel(model);
       fieldState = context.stateUpdates['formState.contacts'];
       assert.equal('object', typeof(fieldState));
-      assert.equal(0, Object.keys(fieldState).length);
+      assert.equal(1, Object.keys(fieldState).length);
+      assert.equal(fieldState.value, model);
     });
     it('returns state updates', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
@@ -1579,7 +1868,7 @@ describe('UnitOfWork', function() {
       };
       var result = context.injectModel();
       assert.equal(1, Object.keys(context.stateUpdates).length);
-      assert.equal(0, Object.keys(context.stateUpdates['formState.']).length);
+      assert.equal(1, Object.keys(context.stateUpdates['formState.']).length);
     });
     it('does not crash if passed null', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
@@ -1590,7 +1879,7 @@ describe('UnitOfWork', function() {
       };
       var result = context.injectModel(null);
       assert.equal(1, Object.keys(context.stateUpdates).length);
-      assert.equal(0, Object.keys(context.stateUpdates['formState.']).length);
+      assert.equal(1, Object.keys(context.stateUpdates['formState.']).length);
     });
   });
   describe('#createModel', function() {
@@ -2600,6 +2889,28 @@ describe('FieldState', function() {
     });
   });
   describe('#validate', function() {
+    it('allows you to work directly with the field state in the validation block', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState1 = context.getFieldState('name');
+      var validate = (v, c) => {
+        var fieldState2 = c.getFieldState('name');
+        fieldState2.setInvalid();
+      };
+      fieldState1.getField().validate = validate;
+      fieldState1.validate();
+      assert.equal(false, fieldState1.isValid());
+    });
+    it('TODO forcibly sets the value in the validation block as a hacky fix for the above', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fi = context.getFieldState('name');
+      fi.fieldState.value = 3;
+      fi.fieldState.isCoerced = true;
+      fi.validate();
+      assert.equal(true, fi.fieldState.value === '3');
+      assert.equal(true, fi.isCoerced() === false);
+    });
     it('sets to valid if no validation specified', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -2869,10 +3180,8 @@ describe('FieldState', function() {
       var fieldState = context.getFieldState('name');
       var field = fieldState.getField();
       field.validate = [['lengthBetween',4,6]];
-      fieldState.setValue('willwarn').validate();
-      assert.equal(true, fieldState.isInvalid());
       field.fsValidate = (fsv) => fsv.noSpaces();
-      fieldState.validate();
+      fieldState.setValue('longerThan6').validate();
       assert.equal(true, fieldState.isValid());
     });
     it('passes fsv, context, and field to a called fsValidate function', function() {
@@ -3104,6 +3413,42 @@ describe('FieldState', function() {
       assert.equal('FieldState', newFieldState.constructor.name);
       assert.equal(fieldState, newFieldState);
     });
+    it('allows using fieldState API to call setValid in validation block', function() {
+      ReactDOMServer.renderToString(React.createElement(OverrideHandlerForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal('hpt', fieldState.getValue());
+      assert.notEqual('This valid message should not get wiped', fieldState.getMessage());
+      assert.notEqual(true, fieldState.get('noWipeValid'));
+      onBlurNameInput.props.handleValueChange('valid');
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('name');
+      assert.equal('valid', fieldState.getValue());
+      assert.equal('This valid message should not get wiped', fieldState.getMessage());
+      assert.equal(true, fieldState.get('noWipeValid'));
+    });
+    it('allows using fieldState API to call setInvalid in validation block', function() {
+      ReactDOMServer.renderToString(React.createElement(OverrideHandlerForm));
+      var wasCalled = false;
+      testForm.setState = function(updates) {
+        wasCalled = true;
+        Object.assign(this.state, updates);
+      };
+      var fieldState = testForm.formState.getFieldState('name');
+      assert.equal('hpt', fieldState.getValue());
+      assert.notEqual('This invalid message should not get wiped', fieldState.getMessage());
+      assert.notEqual(true, fieldState.get('noWipeInvalid'));
+      onBlurNameInput.props.handleValueChange('invalid');
+      assert.equal(true, wasCalled);
+      fieldState = testForm.formState.getFieldState('name');
+      assert.equal('invalid', fieldState.getValue());
+      assert.equal('This invalid message should not get wiped', fieldState.getMessage());
+      assert.equal(true, fieldState.get('noWipeInvalid'));
+    });
   });
   describe('#setValid', function() {
     it('sets message and validity, keeps value, and clears the other props', function() {
@@ -3185,7 +3530,7 @@ describe('FieldState', function() {
       assert.equal('new', fieldState.fieldState.message);
       assert.notEqual('old', asyncToken);
       assert.equal(asyncToken, fieldState.fieldState.asyncToken);
-      assert.equal(true, fieldState.fieldState.isMessageVisible);
+      assert.equal(false, fieldState.fieldState.isMessageVisible);
       assert.equal(undefined, fieldState.fieldState.formerProp);
     });
     it('takes an optional second parameter to control message visibility', function() {
@@ -3198,14 +3543,14 @@ describe('FieldState', function() {
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = true;
       fieldState.fieldState.formerProp = 'willBeRemoved';
-      var asyncToken = fieldState.setValidating('new', false);
+      var asyncToken = fieldState.setValidating('new', true);
       assert.equal('string', typeof(asyncToken));
       assert.equal('old', fieldState.fieldState.value);
       assert.equal(3, fieldState.fieldState.validity);
       assert.equal('new', fieldState.fieldState.message);
       assert.notEqual('old', asyncToken);
       assert.equal(asyncToken, fieldState.fieldState.asyncToken);
-      assert.equal(false, fieldState.fieldState.isMessageVisible);
+      assert.equal(true, fieldState.fieldState.isMessageVisible);
       assert.equal(undefined, fieldState.fieldState.formerProp);
     });
   });
@@ -3242,7 +3587,7 @@ describe('FieldState', function() {
     });
   });
   describe('#showMessage', function() {
-    it('shows the message and copies all the other core props', function() {
+    it('shows the message and copies all the other props', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
@@ -3251,7 +3596,7 @@ describe('FieldState', function() {
       fieldState.fieldState.message = 'old';
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = false;
-      fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.fieldState.formerProp = 'willNotBeRemoved';
       var _fieldState = fieldState.fieldState;
       fieldState.showMessage();
       assert.notEqual(_fieldState, fieldState.fieldState);
@@ -3261,7 +3606,7 @@ describe('FieldState', function() {
       assert.equal('old', fieldState.fieldState.message);
       assert.equal('old', fieldState.fieldState.asyncToken);
       assert.equal(true, fieldState.fieldState.isMessageVisible);
-      assert.equal(undefined, fieldState.fieldState.formerProp);
+      assert.equal('willNotBeRemoved', fieldState.fieldState.formerProp);
     });
     it('returns nothing', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -3269,7 +3614,7 @@ describe('FieldState', function() {
       var fieldState = context.getFieldState('contact.address.line1');
       assert.equal(undefined, fieldState.showMessage());
     });
-    it('does nothing if no message to show', function() {
+    it('updates to visible even if no message to show', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
@@ -3278,15 +3623,9 @@ describe('FieldState', function() {
       fieldState.fieldState.message = undefined;
       var _fieldState = fieldState.fieldState;
       fieldState.showMessage();
-      assert.equal(_fieldState, fieldState.fieldState);
-      assert.equal(false, fieldState.isModified);
-      assert.equal(false, fieldState.isMessageVisible());
-      fieldState.fieldState.message = null;
-      _fieldState = fieldState.fieldState;
-      fieldState.showMessage();
-      assert.equal(_fieldState, fieldState.fieldState);
-      assert.equal(false, fieldState.isModified);
-      assert.equal(false, fieldState.isMessageVisible());
+      assert.notEqual(_fieldState, fieldState.fieldState);
+      assert.equal(true, fieldState.isModified);
+      assert.equal(true, fieldState.isMessageVisible());
     });
     it('does nothing if message already visible', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -3325,37 +3664,50 @@ describe('FieldState', function() {
       assert.equal(true, fieldState.fieldState.isMessageVisible);
       assert.equal(true, 3 === fieldState.fieldState.test);
     });
-    it('clears other props upon initial modification and returns the FieldState object', function() {
+    it('does not clear other props upon initial modification and returns the FieldState object', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
       fieldState.fieldState.value = 'old';
-      fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.fieldState.formerProp = 'willNotBeRemoved';
       var _fieldState = fieldState.fieldState;
       var fi = fieldState.set('test', 3);
       assert.notEqual(_fieldState, fieldState.fieldState);
       assert.equal(true, fieldState.isModified);
       assert.equal('old', fieldState.fieldState.value);
-      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal('willNotBeRemoved', fieldState.fieldState.formerProp);
       assert.equal(true, 3 === fieldState.fieldState.test);
       fi.set('anotherProp', 4);
       assert.equal('old', fieldState.fieldState.value);
-      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal('willNotBeRemoved', fieldState.fieldState.formerProp);
       assert.equal(true, 3 === fieldState.fieldState.test);
       assert.equal(true, 4 === fieldState.fieldState.anotherProp);
+    });
+    it('can update a prop upon initial modification and returns the FieldState object', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.formerProp = 'willNotBeRemoved';
+      var _fieldState = fieldState.fieldState;
+      var fi = fieldState.set('formerProp', 3);
+      assert.notEqual(_fieldState, fieldState.fieldState);
+      assert.equal(true, fieldState.isModified);
+      assert.equal('old', fieldState.fieldState.value);
+      assert.equal(3, fieldState.fieldState.formerProp);
     });
     it('additional props not wiped by other set functions after modification', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
       var fieldState = context.getFieldState('contact.address.line1');
       fieldState.fieldState.value = 'old';
-      fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.fieldState.formerProp = 'willNotBeRemoved';
       var _fieldState = fieldState.fieldState;
       var fi = fieldState.set('test', 3);
       assert.notEqual(_fieldState, fieldState.fieldState);
       assert.equal(true, fieldState.isModified);
       assert.equal('old', fieldState.fieldState.value);
-      assert.equal(true, undefined === fieldState.fieldState.formerProp);
+      assert.equal('willNotBeRemoved', fieldState.fieldState.formerProp);
       assert.equal(true, 3 === fieldState.fieldState.test);
       fi.setValid();
       fi.setInvalid();
@@ -3364,6 +3716,7 @@ describe('FieldState', function() {
       fi.showMessage();
       assert.equal(true, 3 === fieldState.fieldState.test);
       assert.equal(true, 3 === fi.get('test'));
+      assert.equal('willNotBeRemoved', fieldState.fieldState.formerProp);
     });
   });
   describe('#get', function() {
@@ -3497,6 +3850,19 @@ describe('Field', function() {
       assert.equal(false, field.revalidateOnSubmit);
       field = testForm.formState.fields.find(x => x.name === 'email');
       assert.equal(true, field.revalidateOnSubmit);
+    });
+  });
+  describe('#noCoercion', function() {
+    it('Can be configured...', function() {
+      ReactDOMServer.renderToString(React.createElement(NoCoercionForm));
+      var field = testForm.formState.fields.find(x => x.name === 'noCoercion');
+      assert.equal(true, field.noCoercion);
+      field = testForm.formState.fields.find(x => x.name === 'noCoercionOverride');
+      assert.equal(false, field.noCoercion);
+      field = testForm.formState.fields.find(x => x.name === 'nameNoCoercion');
+      assert.equal(true, field.noCoercion);
+      field = testForm.formState.fields.find(x => x.name === 'name');
+      assert.equal(false, field.noCoercion);
     });
   });
 });
@@ -3651,7 +4017,7 @@ describe('formField', function() {
       onBlurNameInput.props.showValidationMessage();
       assert.equal(true, wasCalled);
       fieldState = testForm.formState.getFieldState('name');
-      assert.equal(false, fieldState.isMessageVisible()); // no message so it doesn't bother
+      assert.equal(true, fieldState.isMessageVisible()); // marks visible even if no message to show
       assert.equal(true, fieldState.get('customBlurHandlerCalled'));
     });
     it('adds a formState prop', function() {
@@ -3691,6 +4057,40 @@ describe('formField', function() {
       assert.equal(true, fieldState.isInvalid());
       assert.equal(true, fieldState.isMessageVisible());
       assert.equal(true, wasCalled);
+    });
+    it('normally does not ensure validation on blur', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      assert.equal(true, false === fieldState.isValidated());
+      assert.equal(true, false === fieldState.isMessageVisible());
+      testForm.formState.setEnsureValidationOnBlur(false);
+      var wasCalled = false;
+      testForm.setState = function(x) {
+        wasCalled = true;
+        Object.assign(this.state, x);
+      };
+      nameInput.props.showValidationMessage();
+      var fieldState2 = testForm.formState.getFieldState('name');
+      assert.equal(true, false === fieldState2.isValidated());
+      assert.equal(true, true === fieldState2.isMessageVisible());
+    });
+    it('optionally ensures validation on blur', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('name');
+      assert.equal(true, false === fieldState.isValidated());
+      assert.equal(true, false === fieldState.isMessageVisible());
+      testForm.formState.setEnsureValidationOnBlur(true);
+      var wasCalled = false;
+      testForm.setState = function(x) {
+        wasCalled = true;
+        Object.assign(this.state, x);
+      };
+      nameInput.props.showValidationMessage();
+      var fieldState2 = testForm.formState.getFieldState('name');
+      assert.equal(true, true === fieldState2.isValidated());
+      assert.equal(true, true === fieldState2.isMessageVisible());
     });
   });
   describe('#simpleChangeHandler', function() {

@@ -247,6 +247,16 @@ function blurHandler(formState, field) {
   var context = formState.createUnitOfWork(),
       fieldState = context.getFieldState(field);
 
+  if (formState.ensureValidationOnBlur() && !fieldState.isValidated()) {
+    fieldState.validate();
+  }
+
+  // TODO: possibly show messages on anything in formState where isValidated && !isMessageVisible
+  // for validation that validates multiple fields when one field changes.
+  // usually you can get away with resetting validation status on the other fields.
+  // but a use case might come up where you might want this proposed behavior.
+  // context.showMessages()?
+
   fieldState.showMessage();
   context.updateFormState();
 }
@@ -255,8 +265,8 @@ function blurHandler(formState, field) {
 // Form
 //
 
-var Form = exports.Form = function (_React$Component) {
-  _inherits(Form, _React$Component);
+var Form = exports.Form = function (_Component) {
+  _inherits(Form, _Component);
 
   function Form() {
     _classCallCheck(this, Form);
@@ -277,14 +287,14 @@ var Form = exports.Form = function (_React$Component) {
   }]);
 
   return Form;
-}(_react2.default.Component);
+}(_react.Component);
 
 //
 // FormObject
 //
 
-var FormObject = exports.FormObject = function (_React$Component2) {
-  _inherits(FormObject, _React$Component2);
+var FormObject = exports.FormObject = function (_Component2) {
+  _inherits(FormObject, _Component2);
 
   function FormObject(props) {
     _classCallCheck(this, FormObject);
@@ -337,7 +347,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
           formState = this.formState;
 
       if (exists(child.props.formField)) {
-        props = this.createFieldProps(child.props);
+        props = this.createFieldProps(child);
       } else if (exists(child.props.formObject) || exists(child.props.formArray)) {
         props = this.createObjectProps(exists(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, exists(child.props.formArray));
         this.formState = props.formState;
@@ -407,7 +417,9 @@ var FormObject = exports.FormObject = function (_React$Component2) {
     }
   }, {
     key: 'createFieldProps',
-    value: function createFieldProps(props) {
+    value: function createFieldProps(child) {
+
+      var props = child.props;
 
       // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
       // let {formField,label,required,validate,etc,...newProps} = props;
@@ -442,7 +454,12 @@ var FormObject = exports.FormObject = function (_React$Component2) {
         if (exists(props.defaultValue)) {
           field.defaultValue = props.defaultValue;
         }
-        field.noCoercion = Boolean(props.noCoercion);
+        if (exists(props.noCoercion)) {
+          field.noCoercion = Boolean(props.noCoercion);
+        } else {
+          // you can add noCoercion to the component so you don't have to specify every time it's used.
+          field.noCoercion = Boolean(child.type && child.type.rfsNoCoercion);
+        }
         field.fsValidate = props.fsValidate || props.fsv;
         if (!field.fsValidate) {
           var _f = this.validationComponent['fsValidate' + capitalize(field.name)];
@@ -472,7 +489,7 @@ var FormObject = exports.FormObject = function (_React$Component2) {
   }]);
 
   return FormObject;
-}(_react2.default.Component);
+}(_react.Component);
 
 //
 // FormArray
@@ -555,6 +572,20 @@ var FieldState = function () {
       return this.setProps(value, Boolean(isCoerced));
     }
   }, {
+    key: 'getCustomProps',
+    value: function getCustomProps() {
+      var _fieldState2 = this.fieldState,
+          value = _fieldState2.value,
+          isCoerced = _fieldState2.isCoerced,
+          validity = _fieldState2.validity,
+          message = _fieldState2.message,
+          asyncToken = _fieldState2.asyncToken,
+          isMessageVisible = _fieldState2.isMessageVisible,
+          other = _objectWithoutProperties(_fieldState2, ['value', 'isCoerced', 'validity', 'message', 'asyncToken', 'isMessageVisible']);
+
+      return other;
+    }
+  }, {
     key: 'setProps',
     value: function setProps(value, isCoerced, validity, message, asyncToken, isMessageVisible) {
       this.assertCanUpdate();
@@ -565,6 +596,7 @@ var FieldState = function () {
         _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
       }
 
+      // if the list of fields changes, need to update getCustomProps too
       this.fieldState.value = value;
       this.fieldState.isCoerced = isCoerced;
       this.fieldState.validity = validity;
@@ -722,6 +754,20 @@ var FieldState = function () {
         console.log('warning: both validate and fsValidate defined on ' + this.field.key + '. fsValidate will be used.');
       }
 
+      // Bigger fix is in UnitOfWork.getFieldState, if fieldState is not aleady in the context, then
+      // ALWAYS make a copy the "form state" fieldState right away and add it into the context.
+      // Then further calls to getFieldState on that context will return the context's version of the fieldState,
+      // so they will all point to the same fieldState that is under construction. 'isModified' should be moved
+      // into the fieldState, and the updateFormState method will need tweaking. Make sure not to store
+      // 'isModified' === true into the root "form state", and try to avoid unnecessary setState calls.
+      //
+      // Note that this also suggests that the 'setCoercedValue' method is useless, as is the 'isCoerced'
+      // fieldState value. 'noCoercion' however IS important! very important!
+
+      if (!this.isModified) {
+        this.setValue(this.getValue()); // TODO: temporary quick hacky fix until I clean things up
+      }
+
       var message = void 0;
       if (this.field.required) {
         message = this.callRegisteredValidationFunction(FormState.required, []);
@@ -781,7 +827,12 @@ var FieldState = function () {
 
       if (message) {
         return this.setInvalid(message);
-      } // else
+      }
+      // else
+      if (this.isValid() || this.isInvalid()) {
+        return this;
+      } // user used fieldState API in validation block, do not wipe what they did.
+      // else
       return this.setValid();
     }
 
@@ -792,7 +843,9 @@ var FieldState = function () {
     key: 'set',
     value: function set(name, value) {
       if (!this.isModified) {
+        var customProps = this.getCustomProps();
         this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), this.isMessageVisible());
+        Object.assign(this.fieldState, customProps);
       }
       this.fieldState[name] = value;
       return this;
@@ -810,8 +863,10 @@ var FieldState = function () {
   }, {
     key: 'setValidating',
     value: function setValidating(message, visible) {
+      // actually, the visible parameter is pointless since you could just make a subsequent call to showMessage.
+      // it's a holdover from previous implementation that automatically set message to visible here.
       var asyncToken = generateQuickGuid();
-      this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, exists(visible) ? visible : true);
+      this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, exists(visible) ? visible : false);
       return asyncToken; // thinking this is more valuable than chaining
     }
   }, {
@@ -823,9 +878,11 @@ var FieldState = function () {
     key: 'showMessage',
     value: function showMessage() {
       // i don't think chaining adds any value to this method. can always change it later.
-      if (exists(this.getMessage()) && !this.isMessageVisible()) {
-        // prevents unnecessary rendering
+      if (!this.isMessageVisible()) {
+        // prevents unnecessary calls to setState
+        var customProps = this.getCustomProps();
         this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
+        Object.assign(this.fieldState, customProps);
       }
     }
   }]);
@@ -839,6 +896,36 @@ var FieldState = function () {
 
 var FormState = exports.FormState = function () {
   _createClass(FormState, null, [{
+    key: 'setShowMessageOnBlur',
+    value: function setShowMessageOnBlur(value) {
+      this.showOnBlur = exists(value) ? value : true;
+    }
+  }, {
+    key: 'showMessageOnBlur',
+    value: function showMessageOnBlur() {
+      return Boolean(this.showOnBlur);
+    }
+  }, {
+    key: 'setEnsureValidationOnBlur',
+    value: function setEnsureValidationOnBlur(value) {
+      this.validateOnBlur = exists(value) ? value : true;
+    }
+  }, {
+    key: 'ensureValidationOnBlur',
+    value: function ensureValidationOnBlur() {
+      return Boolean(this.validateOnBlur);
+    }
+  }, {
+    key: 'setShowMessageOnSubmit',
+    value: function setShowMessageOnSubmit(value) {
+      this.showOnSubmit = exists(value) ? value : true;
+    }
+  }, {
+    key: 'showMessageOnSubmit',
+    value: function showMessageOnSubmit() {
+      return Boolean(this.showOnSubmit);
+    }
+  }, {
     key: 'setRequired',
     value: function setRequired(f) {
       if (typeof f !== 'function') {
@@ -907,19 +994,52 @@ var FormState = exports.FormState = function () {
       return formState;
     }
   }, {
+    key: 'setShowMessageOnBlur',
+    value: function setShowMessageOnBlur(value) {
+      this.showOnBlur = exists(value) ? value : true;
+    }
+  }, {
+    key: 'showMessageOnBlur',
+    value: function showMessageOnBlur() {
+      var root = this.rootFormState;
+      return exists(root.showOnBlur) ? root.showOnBlur : root.constructor.showMessageOnBlur();
+    }
+  }, {
+    key: 'setShowMessageOnSubmit',
+    value: function setShowMessageOnSubmit(value) {
+      this.showOnSubmit = exists(value) ? value : true;
+    }
+  }, {
+    key: 'showMessageOnSubmit',
+    value: function showMessageOnSubmit() {
+      var root = this.rootFormState;
+      return exists(root.showOnSubmit) ? root.showOnSubmit : root.constructor.showMessageOnSubmit();
+    }
+  }, {
+    key: 'setEnsureValidationOnBlur',
+    value: function setEnsureValidationOnBlur(value) {
+      this.validateOnBlur = exists(value) ? value : true;
+    }
+  }, {
+    key: 'ensureValidationOnBlur',
+    value: function ensureValidationOnBlur() {
+      var root = this.rootFormState;
+      return exists(root.validateOnBlur) ? root.validateOnBlur : root.constructor.ensureValidationOnBlur();
+    }
+  }, {
     key: 'injectModel',
-    value: function injectModel(model) {
-      return this.createUnitOfWork().injectModel(model);
+    value: function injectModel(model, doNotFlatten) {
+      return this.createUnitOfWork().injectModel(model, doNotFlatten);
     }
   }, {
     key: 'inject',
-    value: function inject(state, model) {
-      new UnitOfWork(this, state).injectModel(model);
+    value: function inject(state, model, doNotFlatten) {
+      new UnitOfWork(this, state).injectModel(model, doNotFlatten);
     }
   }, {
     key: 'add',
-    value: function add(state, name, value) {
-      new UnitOfWork(this, state).add(name, value);
+    value: function add(state, name, value, doNotFlatten) {
+      new UnitOfWork(this, state).add(name, value, doNotFlatten);
     }
   }, {
     key: 'remove',
@@ -929,8 +1049,12 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'isInvalid',
     value: function isInvalid(visibleMessagesOnly) {
+      var visibleOnly = this.showMessageOnBlur() || this.showMessageOnSubmit();
+      if (exists(visibleMessagesOnly)) {
+        visibleOnly = visibleMessagesOnly;
+      }
       return this.anyFieldState(function (fi) {
-        return fi.isInvalid() && (!visibleMessagesOnly || fi.isMessageVisible());
+        return fi.isInvalid() && (!visibleOnly || fi.isMessageVisible());
       });
     }
   }, {
@@ -1197,11 +1321,11 @@ var UnitOfWork = function () {
     }
   }, {
     key: 'add',
-    value: function add(name, value) {
+    value: function add(name, value, doNotFlatten) {
       if (isObject(value)) {
         var formState = this.formState;
         this.formState = formState.createFormState(name);
-        this.injectModel(value);
+        this.injectModel(value, doNotFlatten);
         this.formState = formState;
       }
 
@@ -1214,8 +1338,7 @@ var UnitOfWork = function () {
       // if formState.isValid() becomes necessary this could be problematic.
 
       if (!isObject(value) || Array.isArray(value)) {
-        var _fieldState = { value: value };
-        _setFieldState(this.stateUpdates, this.formState.buildKey(name), _fieldState);
+        _setFieldState(this.stateUpdates, this.formState.buildKey(name), { value: value });
       }
 
       return this.stateUpdates; // for transforming form state in form component constructor
@@ -1241,7 +1364,7 @@ var UnitOfWork = function () {
     }
   }, {
     key: 'injectModel',
-    value: function injectModel(model) {
+    value: function injectModel(model, doNotFlatten) {
       model = model || {};
 
       if ((typeof model === 'undefined' ? 'undefined' : _typeof(model)) !== 'object') {
@@ -1249,7 +1372,14 @@ var UnitOfWork = function () {
       }
 
       // a place to hold deleted status and validation messages
-      _setFieldState(this.stateUpdates, this.formState.path || '', {});
+      // actually for react-datepicker, which uses moments, you have to store the object value
+      _setFieldState(this.stateUpdates, this.formState.path || '', { value: model });
+
+      if (doNotFlatten) {
+        return this.stateUpdates;
+      }
+
+      // else
 
       if (Array.isArray(model)) {
         for (var i = 0, len = model.length; i < len; i++) {

@@ -1,6 +1,8 @@
 # FormArray
 ### adding and removing inputs in response to state changes
 
+Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=dependents).
+
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';

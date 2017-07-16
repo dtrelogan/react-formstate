@@ -1,5 +1,7 @@
 # Advantages of react-formstate
 
+Uses [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components), not [uncontrolled components](https://facebook.github.io/react/docs/uncontrolled-components.html).
+
 ## No dependencies
 
 react-formstate should be compatible with most architectures. The only dependency is React.

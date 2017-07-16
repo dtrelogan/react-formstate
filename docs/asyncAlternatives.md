@@ -180,18 +180,12 @@ class Test extends Component {
 
     if (username === this.originalUsername()) {
       fieldState.setValid('Verified');
+      fieldState.showMessage();
       context.updateFormState();
       return;
     } // else
 
-    //
-    //
-    // you have to override the default behavior of setValidating
-    // to prevent it from immediately setting isMessageVisible to true.
-    //
-    //
-
-    fieldState.setValidating('Waiting for onBlur...', false); // <----------- SPECIAL OVERRIDE
+    fieldState.setValidating('Waiting for onBlur...');
     context.updateFormState();
   }
 
@@ -310,18 +304,12 @@ class Test extends Component {
 
     if (username === this.originalUsername()) {
       fieldState.setValid('Verified');
+      fieldState.showMessage();
       context.updateFormState();
       return;
     } // else
 
-    //
-    //
-    // you have to override the default behavior of setValidating
-    // to prevent it from immediately setting isMessageVisible to true.
-    //
-    //
-
-    fieldState.setValidating('Waiting for onBlur...', false); // <----------- SPECIAL OVERRIDE
+    fieldState.setValidating('Waiting for onBlur...');
     context.updateFormState();
   }
 

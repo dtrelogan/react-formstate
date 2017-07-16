@@ -247,6 +247,7 @@ this.state = {
   'formState.contacts.0.address.city': { value: 'Busytown' },
   'formState.contacts.0.address.line2': { value: null }, // <--- can be coerced to ''
   'formState.roleIds': { value: [1,2,3] } // for providing to a multi-select
+  // some extraneous fields omitted
 };
 ```
 
@@ -270,14 +271,19 @@ To keep HTML inputs happy, values are typically coerced to strings upon retrieva
 render() {
   this.formState.get('age') === '8'; // true
   this.formState.getu('age') === 8;  // true
+
   this.formState.get('contacts.0.address.line2') === '';    // true
   this.formState.getu('contacts.0.address.line2') === null; // true
+
   this.formState.get('notInState') === '';         // true
   this.formState.getu('notInState') === undefined; // true
+
   this.formState.get('formState.roleIds'); // returns ['1','2','3']
   this.formState.getu('formState.roleIds'); // returns [1,2,3]
 }
 ```
+
+(If you want to jump ahead and learn more about string coercion in react-formstate, this [example](/docs/datePickerExample.md) is informative.)
 
 There are several other helper methods to read from form state that will be covered later. We have already seen at least one in the course of the examples:
 

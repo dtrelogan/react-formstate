@@ -17,6 +17,10 @@ react-formstate turned out even better than I expected so I decided to share it 
 
 If you have any feedback I am happy to hear it. Thanks.
 
+### Demo
+
+<a href='https://dtrelogan.github.io/react-formstate-demo/'>react-formstate-demo</a>
+
 ### Setup
 
     $ npm install react-formstate --save
@@ -30,9 +34,10 @@ If you have any feedback I am happy to hear it. Thanks.
 ### Features and examples
 
 - [Basic example](/docs/basicExample.md)
-- [Show validation message on blur](/docs/onBlurExample.md)
+- [Show messages onChange, onBlur, or onSubmit](/docs/onBlurExample.md)
 - [Validation](/docs/validationWiring.md)
 - [React-Bootstrap example](/docs/reactBootstrapExample.md)
+- [Checkbox, CheckboxGroup, RadioGroup, Select](/docs/otherInputTypes.md)
 - [Nonstandard input example: react-datepicker](/docs/datePickerExample.md)
 
 ### Advanced features and examples
@@ -41,7 +46,6 @@ If you have any feedback I am happy to hear it. Thanks.
 - [Nested form components](/docs/nestedFormExample.md)
 - [Form extension](/docs/formExtension.md)
 - [Arrays](/docs/arrayExample.md)
-- [Other input types: checkbox, checkbox group, radio group, select, and multi-select](/docs/otherInputTypes.md)
 - [The onUpdate callback](/docs/onUpdateExample.md)
 
 ### Arguments for react-formstate

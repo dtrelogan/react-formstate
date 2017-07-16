@@ -6,6 +6,7 @@
   - [label](#Field.label)
   - [required](#Field.required)
   - [validate](#Field.validate)
+  - [noCoercion](#Field.noCoercion)
   - [noTrim](#Field.noTrim)
   - [preferNull](#Field.preferNull)
   - [intConvert](#Field.intConvert)
@@ -45,6 +46,12 @@
 - [FormState](#FormState)
   - [registerValidation](#FormState.registerValidation)
   - [setRequired](#FormState.setRequired)
+  - [setEnsureValidationOnBlur](#FormState.setEnsureValidationOnBlur)
+  - [setShowMessageOnBlur](#FormState.setShowMessageOnBlur)
+  - [setShowMessageOnSubmit](#FormState.setShowMessageOnSubmit)
+  - [ensureValidationOnBlur](#FormState.ensureValidationOnBlur)
+  - [showMessageOnBlur](#FormState.showMessageOnBlur)
+  - [showMessageOnSubmit](#FormState.showMessageOnSubmit)
   - [constructor](#FormState.constructor)
   - [add](#FormState.add)
   - [anyFieldState](#FormState.anyFieldState)
@@ -71,7 +78,6 @@
   - [setc](#UnitOfWork.setc)
   - [updateFormState](#UnitOfWork.updateFormState)
 - [Deprecated](#Deprecated)
-  - [Field.noCoercion](#Field.noCoercion)
   - [Field.handlerBindFunction](#Field.handlerBindFunction)
   - [the updateFormState handler](#updateFormStateHandler)
 
@@ -137,6 +143,19 @@ see [validation](/docs/validationWiring.md)
 
 see [validation](/docs/validationWiring.md)
 
+### <a name='Field.noCoercion'>Field.noCoercion</a>
+
+see the [date picker example](/docs/datePickerExample.md)
+
+it's preferable to set an rfsNoCoercion property on your input component class (again see the date picker example). then you don't have to specify noCoercion every time the input is used
+
+```jsx
+<Input formField='startDate' noCoercion/>
+<Input formField='endDate' noCoercion/>
+<Input formField='anotherDate' noCoercion/>
+...
+```
+
 ### <a name='Field.noTrim'>noTrim</a>
 
 string values are trimmed by default. noTrim overrides this behavior. see [UnitOfWork.createModel](#UnitOfWork.createModel)
@@ -180,16 +199,6 @@ a field state is essentially a collection of the following properties:
 - message
 - asyncToken
 - isMessageVisible (for showing messages [on blur](/docs/onBlurExample.md))
-
-### <a name='FieldState.equals'>boolean equals(FieldState fieldState)</a>
-
-use this to determine whether to render an input component. (it's a form of logical equivalence meant solely for this purpose.)
-
-```es6
-shouldComponentUpdate(nextProps, nextState) {
-  return !nextProps.fieldState.equals(this.props.fieldState);
-}
-```
 
 ### <a name='FieldState.get'>string get(string propertyName)</a>
 
@@ -603,6 +612,17 @@ FormState.setRequired(function(value, label) {
 });
 ```
 
+### <a name="FormState.setEnsureValidationOnBlur">static void setEnsureValidationOnBlur(boolean)</a>
+### <a name="FormState.setShowMessageOnBlur">static void setShowMessageOnBlur(boolean)</a>
+### <a name="FormState.setShowMessageOnSubmit">static void setShowMessageOnSubmit(boolean)</a>
+### <a name="FormState.ensureValidationOnBlur">static boolean ensureValidationOnBlur()</a>
+### <a name="FormState.showMessageOnBlur">static boolean showMessageOnBlur()</a>
+### <a name="FormState.showMessageOnSubmit">static boolean showMessageOnSubmit()</a>
+
+and non-static versions...
+
+see the [onCreate, onBlur, onSubmit documentation](/docs/onBlurExample.md)
+
 ### <a name="FormState.constructor">constructor(React.Component formComponent)</a>
 
 creates a root form state instance.
@@ -624,7 +644,7 @@ export default class UserForm extends Component {
 }
 ```
 
-### <a name="FormState.add">object add(object state, string name, ? value)</a>
+### <a name="FormState.add">object add(object state, string name, ? value, boolean doNotFlatten)</a>
 
 adds a value directly to your form state, OR UPDATES an existing value. 'upsert' might have been a better name.
 
@@ -648,6 +668,14 @@ you can add object, array, and primitive values:
   this.formState.add(this.state, 'arrayValue', [1]);
   // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.arrayValue': [1], 'formState.arrayValue.0' : 1 }
 }
+```
+
+you can avoiding flattening an object into form state. for instance, if you are adding a [moment](https://momentjs.com/):
+
+```es6
+this.formState.add(this.state, 'someDate', moment(), true);
+// { 'formState.someDate': { an object with LOTS of fields } }
+// NOT added: 'formState.someDate.field1' (and field2 and so on...)
 ```
 
 ### <a name="FormState.anyFieldState">boolean anyFieldState(function givenAFieldStateReturnABoolean)</a>
@@ -675,7 +703,7 @@ handleUsernameChange(e) {
 }
 ```
 
-### <a name="FormState.inject">void inject(object state, object model)</a>
+### <a name="FormState.inject">void inject(object state, object model, boolean doNotFlatten)</a>
 
 alternate syntax for [injectModel](#FormState.injectModel)
 
@@ -697,10 +725,14 @@ export default class UserForm extends Component {
 
 if necessary, during injection, you can transform the injected form state using the [add](#FormState.add) method.
 
+also see [add](#FormState.add) for an explanation of the doNotFlatten parameter.
 
-### <a name="FormState.injectModel">object injectModel(object model)</a>
+
+### <a name="FormState.injectModel">object injectModel(object model, boolean doNotFlatten)</a>
 
 initializes form state. values will be [coerced](#FieldState.getValue) to strings by default.
+
+see [add](#FormState.add) for an explanation of the doNotFlatten parameter.
 
 ```es6
 import React, { Component } from 'react';
@@ -739,7 +771,9 @@ render() {
 
 determines whether to show a form-level validation message, or disable the submit button, etc.
 
-if you are showing validation messages on blur pass 'true' to this function
+if you are showing validation messages on blur or on submit pass 'true' to this function.
+
+if you use [setShowMessageOnBlur](#FormState.setShowMessageOnBlur) or [setShowMessageOnSubmit](#FormState.setShowMessageOnSubmit), it will automatically check only for visible messages.
 
 ```jsx
 <input type='submit' value='Submit' disabled={this.formState.isInvalid()} />
@@ -755,9 +789,11 @@ returns true if the form is waiting for an upload to finish.
 <span>{this.formState.isUploading() ? 'Uploading...' : null}</span>
 ```
 
-### <a name="FormState.isValidating">boolean isValidating()</a>
+### <a name="FormState.isValidating">boolean isValidating(boolean visibleMessagesOnly)</a>
 
 returns true if the form is waiting for asynchronous validation to finish.
+
+if you are performing asynchronous validation on blur you can pass 'true' to this function.
 
 ```jsx
 <input type='submit' value='Submit' disabled={this.formState.isValidating()} />
@@ -830,7 +866,7 @@ this.formState.onUpdate((context, key) => {
 
 ## <a name='UnitOfWork'>UnitOfWork</a>
 
-### <a name='UnitOfWork.add'>void add(string name, ? value)</a>
+### <a name='UnitOfWork.add'>void add(string name, ? value, boolean doNotFlatten)</a>
 
 see [injectModel](#UnitOfWork.injectModel)
 and [add](#FormState.add)
@@ -948,9 +984,11 @@ let context = this.formState.createUnitOfWork();
 let value = context.getu('x');
 ```
 
-### <a name='UnitOfWork.injectModel'>void injectModel(object model)</a>
+### <a name='UnitOfWork.injectModel'>void injectModel(object model, boolean doNotFlatten)</a>
 
 before you use this see [injectModel](#FormState.injectModel)
+
+see [FormState.add](#FormState.add) for an explanation of the doNotFlatten parameter.
 
 if you need to inject outside your constructor you can use this
 
@@ -1039,7 +1077,6 @@ handleUsernameChange(e) {
 
 there are no plans to remove these functions but they are no longer part of the examples.
 
-### <a name='Field.noCoercion'>Field.noCoercion</a>
 ### <a name='Field.handlerBindFunction'>Field.handlerBindFunction</a>
 ### <a name='updateFormStateHandler'>the updateFormState handler</a>
 
