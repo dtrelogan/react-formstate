@@ -276,7 +276,7 @@ render() {
   this.formState.getu('contacts.0.address.line2') === null; // true
 
   this.formState.get('notInState') === '';         // true
-  this.formState.getu('notInState') === undefined; // true
+  this.formState.getu('notInState') === null;      // true
 
   this.formState.get('formState.roleIds'); // returns ['1','2','3']
   this.formState.getu('formState.roleIds'); // returns [1,2,3]

@@ -644,7 +644,7 @@ export default class UserForm extends Component {
 }
 ```
 
-### <a name="FormState.add">object add(object state, string name, ? value, boolean doNotFlatten)</a>
+### <a name="FormState.add">void add(object state, string name, ? value, boolean doNotFlatten)</a>
 
 adds a value directly to your form state, OR UPDATES an existing value. 'upsert' might have been a better name.
 

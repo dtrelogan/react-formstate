@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.FormState = exports.FormExtension = exports.FormArray = exports.FormObject = exports.Form = undefined;
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -37,9 +39,11 @@ var FORM_STATE_PREFIX = 'formState.';
 function prefix(path, name) {
   if (name === undefined) {
     return FORM_STATE_PREFIX + path;
-  } else {
-    return path ? path + '.' + name : name;
   }
+  if (name === '') {
+    return path || '';
+  }
+  return path ? path + '.' + name : name;
 }
 
 function _getFieldState(state, key) {
@@ -217,7 +221,7 @@ function changeHandler(formState, field, e) {
     }
   }
 
-  fieldState.setCoercedValue(value).validate();
+  fieldState.setValue(value).validate();
 
   if (formState.rootFormState.updateCallback) {
     // accessing internals... clean this up?
@@ -232,7 +236,7 @@ function simpleChangeHandler(formState, field, value) {
   var context = formState.createUnitOfWork(),
       fieldState = context.getFieldState(field);
 
-  fieldState.setCoercedValue(value).validate();
+  fieldState.setValue(value).validate();
 
   if (formState.rootFormState.updateCallback) {
     // accessing internals... clean this up?
@@ -530,16 +534,17 @@ var FormExtension = exports.FormExtension = function (_FormObject2) {
 var FieldState = function () {
 
   //
+  //
   // "private"
   //
+  //
 
-  function FieldState(_fieldState, key, field, isModified, stateContext) {
+  function FieldState(_fieldState, key, field, stateContext) {
     _classCallCheck(this, FieldState);
 
     this.fieldState = _fieldState;
     this.key = key;
     this.field = field;
-    this.isModified = isModified;
     this.stateContext = stateContext;
   }
 
@@ -549,6 +554,7 @@ var FieldState = function () {
       if (!this.stateContext) {
         throw new Error('Cannot update a read-only field state');
       }
+      // should have gotten this through getFieldState, and if the persisted fieldState was deleted, it would have returned a new, empty fieldState instead.
       if (this.isDeleted()) {
         throw new Error('Cannot update a deleted field state.');
       }
@@ -564,49 +570,6 @@ var FieldState = function () {
       return this.fieldState.asyncToken;
     }
   }, {
-    key: 'setValueImp',
-    value: function setValueImp(value, isCoerced) {
-      if (this.isModified) {
-        throw new Error('setting value on a modified field state? if you are changing the value do that first');
-      }
-      return this.setProps(value, Boolean(isCoerced));
-    }
-  }, {
-    key: 'getCustomProps',
-    value: function getCustomProps() {
-      var _fieldState2 = this.fieldState,
-          value = _fieldState2.value,
-          isCoerced = _fieldState2.isCoerced,
-          validity = _fieldState2.validity,
-          message = _fieldState2.message,
-          asyncToken = _fieldState2.asyncToken,
-          isMessageVisible = _fieldState2.isMessageVisible,
-          other = _objectWithoutProperties(_fieldState2, ['value', 'isCoerced', 'validity', 'message', 'asyncToken', 'isMessageVisible']);
-
-      return other;
-    }
-  }, {
-    key: 'setProps',
-    value: function setProps(value, isCoerced, validity, message, asyncToken, isMessageVisible) {
-      this.assertCanUpdate();
-
-      if (!this.isModified) {
-        this.fieldState = {};
-        this.isModified = true;
-        _setFieldState(this.stateContext.stateUpdates, this.key, this.fieldState);
-      }
-
-      // if the list of fields changes, need to update getCustomProps too
-      this.fieldState.value = value;
-      this.fieldState.isCoerced = isCoerced;
-      this.fieldState.validity = validity;
-      this.fieldState.message = message;
-      this.fieldState.asyncToken = asyncToken;
-      this.fieldState.isMessageVisible = isMessageVisible;
-
-      return this;
-    }
-  }, {
     key: 'callValidationFunction',
     value: function callValidationFunction(f) {
       if (typeof f === 'function') {
@@ -619,126 +582,47 @@ var FieldState = function () {
     value: function callRegisteredValidationFunction(f, params) {
       return f.apply(undefined, [this.getValue(), this.field.label].concat(_toConsumableArray(params)));
     }
+  }, {
+    key: 'setValueImp',
+    value: function setValueImp(value) {
+      var _this5 = this;
 
+      this.assertCanUpdate();
+      Object.keys(this.fieldState).forEach(function (k) {
+        return delete _this5.fieldState[k];
+      });
+      this.fieldState.isModified = true;
+      this.fieldState.value = value;
+      return this;
+    }
+  }, {
+    key: 'setValidity',
+    value: function setValidity(validity, message) {
+      this.assertCanUpdate();
+      this.fieldState.isModified = true;
+      this.fieldState.validity = validity;
+      this.fieldState.message = message;
+      return this;
+    }
+  }, {
+    key: 'delete',
+    value: function _delete() {
+      var _this6 = this;
+
+      this.assertCanUpdate();
+      Object.keys(this.fieldState).forEach(function (k) {
+        return delete _this6.fieldState[k];
+      });
+      this.fieldState.isModified = true;
+      this.fieldState.isDeleted = true;
+    }
+
+    //
     //
     // public
     //
+    //
 
-  }, {
-    key: 'equals',
-    value: function equals(fieldState) {
-      if (fieldState.getMessage() !== this.getMessage()) {
-        return false;
-      } // else
-      if (fieldState.isMessageVisible() !== this.isMessageVisible()) {
-        return false;
-      } // else
-      var a = fieldState.getValue(),
-          b = this.getValue();
-      if (!Array.isArray(a)) {
-        return a === b;
-      } // else
-      return a.length === b.length && a.every(function (v, i) {
-        return v === b[i];
-      });
-    }
-  }, {
-    key: 'get',
-    value: function get(name) {
-      return this.fieldState[name];
-    }
-  }, {
-    key: 'getKey',
-    value: function getKey() {
-      return this.key;
-    }
-  }, {
-    key: 'getName',
-    value: function getName() {
-      return this.field && this.field.name;
-    }
-  }, {
-    key: 'getValue',
-    value: function getValue() {
-      var value = this.fieldState.value;
-
-      if (this.fieldState.isCoerced || this.field && this.field.noCoercion) {
-        return value;
-      }
-
-      if (!exists(value) && this.field && Array.isArray(this.field.defaultValue)) {
-        // if injected model.value is null and you are providing the value to, say, a select-multiple
-        // note that you can use 'preferNull' to reverse this upon model generation
-        return [];
-      }
-
-      return coerceToString(value);
-    }
-  }, {
-    key: 'getUncoercedValue',
-    value: function getUncoercedValue() {
-      return this.fieldState.value;
-    }
-  }, {
-    key: 'getMessage',
-    value: function getMessage() {
-      return this.fieldState.message;
-    }
-  }, {
-    key: 'isCoerced',
-    value: function isCoerced() {
-      return Boolean(this.fieldState.isCoerced);
-    }
-  }, {
-    key: 'isValidated',
-    value: function isValidated() {
-      return exists(this.fieldState.validity);
-    }
-  }, {
-    key: 'isValid',
-    value: function isValid() {
-      return this.fieldState.validity === 1;
-    }
-  }, {
-    key: 'isInvalid',
-    value: function isInvalid() {
-      return this.fieldState.validity === 2;
-    }
-  }, {
-    key: 'isValidating',
-    value: function isValidating() {
-      return this.fieldState.validity === 3;
-    }
-  }, {
-    key: 'isUploading',
-    value: function isUploading() {
-      return this.fieldState.validity === 4;
-    }
-  }, {
-    key: 'isDeleted',
-    value: function isDeleted() {
-      return Boolean(this.fieldState.isDeleted);
-    }
-  }, {
-    key: 'isMessageVisible',
-    value: function isMessageVisible() {
-      return Boolean(this.fieldState.isMessageVisible);
-    }
-  }, {
-    key: 'getField',
-    value: function getField() {
-      return this.field;
-    }
-  }, {
-    key: 'setValue',
-    value: function setValue(value) {
-      return this.setValueImp(value, false);
-    }
-  }, {
-    key: 'setCoercedValue',
-    value: function setCoercedValue(value) {
-      return this.setValueImp(value, true);
-    }
   }, {
     key: 'validate',
     value: function validate() {
@@ -752,20 +636,6 @@ var FieldState = function () {
 
       if (this.field.validate && this.field.fsValidate) {
         console.log('warning: both validate and fsValidate defined on ' + this.field.key + '. fsValidate will be used.');
-      }
-
-      // Bigger fix is in UnitOfWork.getFieldState, if fieldState is not aleady in the context, then
-      // ALWAYS make a copy the "form state" fieldState right away and add it into the context.
-      // Then further calls to getFieldState on that context will return the context's version of the fieldState,
-      // so they will all point to the same fieldState that is under construction. 'isModified' should be moved
-      // into the fieldState, and the updateFormState method will need tweaking. Make sure not to store
-      // 'isModified' === true into the root "form state", and try to avoid unnecessary setState calls.
-      //
-      // Note that this also suggests that the 'setCoercedValue' method is useless, as is the 'isCoerced'
-      // fieldState value. 'noCoercion' however IS important! very important!
-
-      if (!this.isModified) {
-        this.setValue(this.getValue()); // TODO: temporary quick hacky fix until I clean things up
       }
 
       var message = void 0;
@@ -835,56 +705,195 @@ var FieldState = function () {
       // else
       return this.setValid();
     }
+  }, {
+    key: 'equals',
+    value: function equals(fieldState) {
+      // TODO: deprecate this
+      if (fieldState.getMessage() !== this.getMessage()) {
+        return false;
+      } // else
+      if (fieldState.isMessageVisible() !== this.isMessageVisible()) {
+        return false;
+      } // else
+      var a = fieldState.getValue(),
+          b = this.getValue();
+      if (!Array.isArray(a)) {
+        return a === b;
+      } // else
+      return a.length === b.length && a.every(function (v, i) {
+        return v === b[i];
+      });
+    }
+  }, {
+    key: 'get',
+    value: function get(name) {
+      return this.fieldState[name];
+    }
+  }, {
+    key: 'getKey',
+    value: function getKey() {
+      return this.key;
+    }
+  }, {
+    key: 'getName',
+    value: function getName() {
+      return this.field && this.field.name;
+    }
+  }, {
+    key: 'getValue',
+    value: function getValue() {
+      var value = this.fieldState.value;
 
-    // when you hit submit the message gets wiped by validation. use setValid instead.
-    // setMessage(message) { return this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), message, this.getAsyncToken(), this.isMessageVisible()); }
+      if (this.field && this.field.noCoercion) {
+        return value;
+      }
+
+      if (!exists(value) && this.field && Array.isArray(this.field.defaultValue)) {
+        // if injected model.value is null and you are providing the value to, say, a select-multiple
+        // note that you can use 'preferNull' to reverse this upon model generation
+        return [];
+      }
+
+      return coerceToString(value);
+    }
+  }, {
+    key: 'getUncoercedValue',
+    value: function getUncoercedValue() {
+      return this.fieldState.value;
+    }
+  }, {
+    key: 'getMessage',
+    value: function getMessage() {
+      return this.fieldState.message;
+    }
+  }, {
+    key: 'isCoerced',
+    value: function isCoerced() {
+      return false;
+    } // TODO: deprecate
 
   }, {
-    key: 'set',
-    value: function set(name, value) {
-      if (!this.isModified) {
-        var customProps = this.getCustomProps();
-        this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), this.isMessageVisible());
-        Object.assign(this.fieldState, customProps);
-      }
-      this.fieldState[name] = value;
-      return this;
+    key: 'isValidated',
+    value: function isValidated() {
+      return exists(this.fieldState.validity);
     }
+  }, {
+    key: 'isValid',
+    value: function isValid() {
+      return this.fieldState.validity === 1;
+    }
+  }, {
+    key: 'isInvalid',
+    value: function isInvalid() {
+      return this.fieldState.validity === 2;
+    }
+  }, {
+    key: 'isValidating',
+    value: function isValidating() {
+      return this.fieldState.validity === 3;
+    }
+  }, {
+    key: 'isUploading',
+    value: function isUploading() {
+      return this.fieldState.validity === 4;
+    }
+  }, {
+    key: 'isDeleted',
+    value: function isDeleted() {
+      return Boolean(this.fieldState.isDeleted);
+    }
+  }, {
+    key: 'isMessageVisible',
+    value: function isMessageVisible() {
+      return Boolean(this.fieldState.isMessageVisible);
+    }
+  }, {
+    key: 'getField',
+    value: function getField() {
+      return this.field;
+    }
+
+    //
+    // set value
+    // should wipe the entire field state
+    //
+
+  }, {
+    key: 'setValue',
+    value: function setValue(value) {
+      if (this.fieldState.isModified) {
+        throw new Error('setting value on a modified field state? if you are changing the value do that first');
+      }
+      return this.setValueImp(value);
+    }
+  }, {
+    key: 'setCoercedValue',
+    value: function setCoercedValue(value) {
+      return this.setValue(value);
+    } // TODO: deprecate this...
+
+    //
+    // set validity
+    // preserve custom properites? best guess is yes.
+    //
+
   }, {
     key: 'setValid',
     value: function setValid(message) {
-      return this.setProps(this.getValue(), this.isCoerced(), 1, message);
+      return this.setValidity(1, message);
     }
   }, {
     key: 'setInvalid',
     value: function setInvalid(message) {
-      return this.setProps(this.getValue(), this.isCoerced(), 2, message);
+      return this.setValidity(2, message);
     }
   }, {
     key: 'setValidating',
-    value: function setValidating(message, visible) {
-      // actually, the visible parameter is pointless since you could just make a subsequent call to showMessage.
-      // it's a holdover from previous implementation that automatically set message to visible here.
-      var asyncToken = generateQuickGuid();
-      this.setProps(this.getValue(), this.isCoerced(), 3, message, asyncToken, exists(visible) ? visible : false);
-      return asyncToken; // thinking this is more valuable than chaining
+    value: function setValidating(message) {
+      this.setValidity(3, message);
+      this.fieldState.asyncToken = generateQuickGuid();
+      return this.fieldState.asyncToken; // in retrospect i wish i had used a custom property for asyncToken... but not worth a breaking change.
     }
   }, {
     key: 'setUploading',
     value: function setUploading(message) {
-      return this.setProps(this.getValue(), this.isCoerced(), 4, message, null, true);
+      return this.setValidity(4, message);
     }
+
+    //
+    // show message
+    // must preserve custom properties
+    //
+
   }, {
     key: 'showMessage',
     value: function showMessage() {
-      // i don't think chaining adds any value to this method. can always change it later.
+      this.assertCanUpdate();
       if (!this.isMessageVisible()) {
         // prevents unnecessary calls to setState
-        var customProps = this.getCustomProps();
-        this.setProps(this.getValue(), this.isCoerced(), this.getValidity(), this.getMessage(), this.getAsyncToken(), true);
-        Object.assign(this.fieldState, customProps);
+        this.fieldState.isModified = true;
+        this.fieldState.isMessageVisible = true;
       }
+      return this;
     }
+
+    //
+    // set custom property
+    // must preserve custom properties
+    //
+
+  }, {
+    key: 'set',
+    value: function set(name, value) {
+      this.assertCanUpdate();
+      this.fieldState.isModified = true;
+      this.fieldState[name] = value;
+      return this;
+    }
+
+    // when you hit submit the message gets wiped by validation. use setValid instead.
+    // setMessage(message) { ...nevermind }
+
   }]);
 
   return FieldState;
@@ -971,7 +980,7 @@ var FormState = exports.FormState = function () {
   }]);
 
   function FormState(form) {
-    var _this5 = this;
+    var _this7 = this;
 
     _classCallCheck(this, FormState);
 
@@ -980,7 +989,7 @@ var FormState = exports.FormState = function () {
     this.rootFormState = this;
     this.fields = [];
     this.anyFieldState = function (f) {
-      return anyFieldState(_this5.form.state, f);
+      return anyFieldState(_this7.form.state, f);
     };
   }
 
@@ -1039,7 +1048,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'add',
     value: function add(state, name, value, doNotFlatten) {
-      new UnitOfWork(this, state).add(name, value, doNotFlatten);
+      new UnitOfWork(this, state).add(name, value, doNotFlatten, true);
     }
   }, {
     key: 'remove',
@@ -1083,10 +1092,10 @@ var FormState = exports.FormState = function () {
     }
   }, {
     key: 'getFieldState',
-    value: function getFieldState(fieldOrName, asyncToken, stateContext) {
+    value: function getFieldState(fieldOrName) {
       var field = findFieldByFieldOrName(this, fieldOrName),
           key = field ? field.key : this.buildKey(fieldOrName),
-          _fieldState = _getFieldState(this.form.state, key);
+          _fieldState = this.form && this.form.state ? _getFieldState(this.form.state, key) : null;
 
       // if model prop provided to root FormObject
       // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -1095,18 +1104,14 @@ var FormState = exports.FormState = function () {
       }
 
       if (!_fieldState || _fieldState.isDeleted) {
-        _fieldState = { value: null };
+        _fieldState = { value: null }; // would {} have been a better choice?
 
         if (field && field.defaultValue !== undefined) {
           _fieldState.value = field.defaultValue;
         }
       }
 
-      if (asyncToken && _fieldState.asyncToken !== asyncToken) {
-        return null;
-      } else {
-        return new FieldState(_fieldState, key, field, false, stateContext);
-      }
+      return new FieldState(_fieldState, key, field);
     }
   }, {
     key: 'get',
@@ -1197,6 +1202,59 @@ var UnitOfWork = function () {
   }
 
   _createClass(UnitOfWork, [{
+    key: 'addImp',
+    value: function addImp(name, value, doNotFlatten) {
+      if (isObject(value)) {
+        var formState = this.formState;
+        this.formState = formState.createFormState(name);
+        this.injectModelImp(value, doNotFlatten);
+        this.formState = formState;
+      } else {
+        var fi = this.getFieldState(name);
+        fi.setValue(value);
+      }
+    }
+  }, {
+    key: 'injectModelImp',
+    value: function injectModelImp(model, doNotFlatten) {
+      var _this8 = this;
+
+      model = model || {};
+
+      if ((typeof model === 'undefined' ? 'undefined' : _typeof(model)) !== 'object') {
+        throw new Error('injectModel only accepts object types (including arrays)');
+      }
+
+      // at this point there is no way to know how an array value will be used by the jsx.
+      // will it be for a FormArray or for a select-multiple or checkbox group?
+      // to cover either case, add an additional fieldState record for array values below.
+      // understand that the jsx will define the model that gets generated,
+      // so the extraneous fieldState entries should be harmless since they won't be referenced.
+      // that is, assuming isInvalid() is sufficient wrt the api...
+      // if formState.isValid() becomes necessary this could be problematic.
+      //
+      // object values also stored, for instance, react-datepicker uses a 'moment' data type.
+
+      var fi = this.getFieldState('');
+      fi.setValue(model);
+
+      if (doNotFlatten) {
+        return;
+      }
+
+      // else
+
+      if (Array.isArray(model)) {
+        for (var i = 0, len = model.length; i < len; i++) {
+          this.addImp(i.toString(), model[i]);
+        }
+      } else {
+        Object.keys(model).forEach(function (name) {
+          return _this8.addImp(name, model[name]);
+        });
+      }
+    }
+  }, {
     key: 'recursiveCreateModel',
     value: function recursiveCreateModel(fields, model) {
       var isModelValid = true;
@@ -1284,11 +1342,19 @@ var UnitOfWork = function () {
           key = field ? field.key : this.formState.buildKey(fieldOrName),
           _fieldState = _getFieldState(this.stateUpdates, key);
 
-      if (_fieldState) {
-        return new FieldState(_fieldState, key, field, true, this);
-      } else {
-        return this.formState.getFieldState(field ? field : fieldOrName, asyncToken, this);
+      var result = _fieldState ? new FieldState(_fieldState, key, field, this) : this.formState.getFieldState(field ? field : fieldOrName);
+
+      if (asyncToken && result.getAsyncToken() !== asyncToken) {
+        return null;
       }
+
+      if (!_fieldState) {
+        result.stateContext = this;
+        result.fieldState = _extends({}, result.fieldState, { isModified: false });
+        _setFieldState(this.stateUpdates, key, result.fieldState);
+      }
+
+      return result;
     }
   }, {
     key: 'get',
@@ -1308,93 +1374,81 @@ var UnitOfWork = function () {
   }, {
     key: 'setc',
     value: function setc(name, value) {
-      return this.getFieldState(name).setCoercedValue(value);
+      // TODO: deprecate this
+      return this.set(name, value);
+    }
+  }, {
+    key: 'getUpdates',
+    value: function getUpdates(resetContext) {
+      var _this9 = this;
+
+      var updates = {};
+
+      Object.keys(this.stateUpdates).forEach(function (k) {
+        var fi = _this9.stateUpdates[k];
+        if (fi.isModified) {
+          var fiClone = _extends({}, fi);
+          delete fiClone['isModified'];
+          updates[k] = fiClone;
+        }
+        if (resetContext) {
+          fi.isModified = false;
+        }
+      });
+
+      return updates;
     }
   }, {
     key: 'updateFormState',
     value: function updateFormState(additionalUpdates) {
+      var updates = this.getUpdates();
+
       if (additionalUpdates) {
-        this.formState.form.setState(Object.assign(this.stateUpdates, additionalUpdates));
-      } else if (Object.keys(this.stateUpdates).length > 0) {
-        this.formState.form.setState(this.stateUpdates);
+        this.formState.form.setState(Object.assign(updates, additionalUpdates));
+      } else if (Object.keys(updates).length > 0) {
+        this.formState.form.setState(updates);
       }
-    }
-  }, {
-    key: 'add',
-    value: function add(name, value, doNotFlatten) {
-      if (isObject(value)) {
-        var formState = this.formState;
-        this.formState = formState.createFormState(name);
-        this.injectModel(value, doNotFlatten);
-        this.formState = formState;
-      }
-
-      // at this point there is no way to know how an array value will be used by the jsx.
-      // will it be for a FormArray or for a select-multiple or checkbox group?
-      // to cover either case, add an additional fieldState record for array values below.
-      // understand that the jsx will define the model that gets generated,
-      // so the extraneous fieldState entries should be harmless since they won't be referenced.
-      // that is, assuming isInvalid() is sufficient wrt the api...
-      // if formState.isValid() becomes necessary this could be problematic.
-
-      if (!isObject(value) || Array.isArray(value)) {
-        _setFieldState(this.stateUpdates, this.formState.buildKey(name), { value: value });
-      }
-
-      return this.stateUpdates; // for transforming form state in form component constructor
-    }
-  }, {
-    key: 'remove',
-    value: function remove(name) {
-      var _this6 = this;
-
-      var key = this.formState.buildKey(name);
-
-      _setFieldState(this.stateUpdates, key, { isDeleted: true });
-
-      // remove the whole branch
-
-      var keyDot = key + '.';
-
-      iterateKeys(this.formState.form.state, function (key) {
-        if (key.startsWith(keyDot)) {
-          _setFieldState(_this6.stateUpdates, key, { isDeleted: true });
-        }
-      });
     }
   }, {
     key: 'injectModel',
     value: function injectModel(model, doNotFlatten) {
-      model = model || {};
-
-      if ((typeof model === 'undefined' ? 'undefined' : _typeof(model)) !== 'object') {
-        throw new Error('injectModel only accepts object types (including arrays)');
+      this.injectModelImp(model, doNotFlatten);
+      return this.getUpdates(false);
+    }
+  }, {
+    key: 'add',
+    value: function add(name, value, doNotFlatten, doNotReturnUpdates) {
+      this.addImp(name, value, doNotFlatten);
+      // this is heinous now that everything is getting copied.
+      // probably best to preserve old (OLD!) behavior until i've given fair warning though.
+      if (!doNotReturnUpdates) {
+        return this.getUpdates(false); // TODO: deprecate this!!!!
       }
+    }
+  }, {
+    key: 'remove',
+    value: function remove(name) {
+      var _this10 = this;
 
-      // a place to hold deleted status and validation messages
-      // actually for react-datepicker, which uses moments, you have to store the object value
-      _setFieldState(this.stateUpdates, this.formState.path || '', { value: model });
+      var fi = this.getFieldState(name);
+      fi.delete();
 
-      if (doNotFlatten) {
-        return this.stateUpdates;
-      }
+      // remove the whole branch
+      var contextBranch = this.formState.buildKey('');
+      var amtToSlice = contextBranch.length > 0 ? contextBranch.length + 1 : 0;
 
-      // else
+      var key = this.formState.buildKey(name);
+      var keyDot = key + '.';
 
-      if (Array.isArray(model)) {
-        for (var i = 0, len = model.length; i < len; i++) {
-          this.add(i.toString(), model[i]);
+      iterateKeys(this.formState.form.state, function (key) {
+        if (key.startsWith(keyDot)) {
+          // have to transform the absolute path to be relative to the context's path.
+          // there's probably a better way to do this.
+          // if UnitOfWork.getFieldState could work with an absolute path, that'd be nice.
+          fi = _this10.getFieldState(key.slice(amtToSlice));
+          fi.delete();
         }
-      } else {
-        var names = Object.keys(model);
-
-        for (var _i = 0, _len = names.length; _i < _len; _i++) {
-          var name = names[_i];
-          this.add(name, model[name]);
-        }
-      }
-
-      return this.stateUpdates;
+      });
     }
   }, {
     key: 'createModel',
