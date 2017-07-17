@@ -129,7 +129,7 @@ componentDidMount() {
     context.injectModel(model);
     context.add('isInitialized1', true);
     // alternatively you can set this flag directly in your state object
-    context.updateFormState({isInitialized2: true);
+    context.updateFormState({isInitialized2: true});
   });
 }
 ```
