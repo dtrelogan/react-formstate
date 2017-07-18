@@ -223,10 +223,10 @@ function changeHandler(formState, field, e) {
 
   fieldState.setValue(value).validate();
 
-  if (formState.rootFormState.updateCallback) {
+  if (formState.root().updateCallback) {
     // accessing internals... clean this up?
-    context.formState = formState.rootFormState;
-    formState.rootFormState.updateCallback(context, field.key);
+    context.formState = formState.root();
+    formState.root().updateCallback(context, field.key);
   } else {
     context.updateFormState();
   }
@@ -238,10 +238,10 @@ function simpleChangeHandler(formState, field, value) {
 
   fieldState.setValue(value).validate();
 
-  if (formState.rootFormState.updateCallback) {
+  if (formState.root().updateCallback) {
     // accessing internals... clean this up?
-    context.formState = formState.rootFormState;
-    formState.rootFormState.updateCallback(context, field.key);
+    context.formState = formState.root();
+    formState.root().updateCallback(context, field.key);
   } else {
     context.updateFormState();
   }
@@ -475,9 +475,9 @@ var FormObject = exports.FormObject = function (_Component2) {
         field.revalidateOnSubmit = Boolean(props.revalidateOnSubmit);
 
         if (typeof props.noCoercion === 'function') {
-          field.handlerBindFunction = props.noCoercion;
+          field.handlerBindFunction = props.noCoercion; // deprecated
         } else {
-          field.handlerBindFunction = props.handlerBindFunction;
+          field.handlerBindFunction = props.handlerBindFunction; // deprecated
         }
       }
 
@@ -583,35 +583,13 @@ var FieldState = function () {
       return f.apply(undefined, [this.getValue(), this.field.label].concat(_toConsumableArray(params)));
     }
   }, {
-    key: 'setValueImp',
-    value: function setValueImp(value) {
+    key: 'delete',
+    value: function _delete() {
       var _this5 = this;
 
       this.assertCanUpdate();
       Object.keys(this.fieldState).forEach(function (k) {
         return delete _this5.fieldState[k];
-      });
-      this.fieldState.isModified = true;
-      this.fieldState.value = value;
-      return this;
-    }
-  }, {
-    key: 'setValidity',
-    value: function setValidity(validity, message) {
-      this.assertCanUpdate();
-      this.fieldState.isModified = true;
-      this.fieldState.validity = validity;
-      this.fieldState.message = message;
-      return this;
-    }
-  }, {
-    key: 'delete',
-    value: function _delete() {
-      var _this6 = this;
-
-      this.assertCanUpdate();
-      Object.keys(this.fieldState).forEach(function (k) {
-        return delete _this6.fieldState[k];
       });
       this.fieldState.isModified = true;
       this.fieldState.isDeleted = true;
@@ -708,21 +686,16 @@ var FieldState = function () {
   }, {
     key: 'equals',
     value: function equals(fieldState) {
-      // TODO: deprecate this
-      if (fieldState.getMessage() !== this.getMessage()) {
-        return false;
-      } // else
-      if (fieldState.isMessageVisible() !== this.isMessageVisible()) {
-        return false;
-      } // else
-      var a = fieldState.getValue(),
-          b = this.getValue();
-      if (!Array.isArray(a)) {
-        return a === b;
-      } // else
-      return a.length === b.length && a.every(function (v, i) {
-        return v === b[i];
-      });
+      // deprecated
+      // this turned out to be overly simplistic in terms of preventing unnecessary renders.
+      // the calculation ultimately will depend on that nature of the specific input component and all its features.
+      return false;
+      // validity?
+      // if (fieldState.getMessage() !== this.getMessage()) { return false; } // else
+      // if (fieldState.isMessageVisible() !== this.isMessageVisible()) { return false; } // else
+      // let a = fieldState.getValue(), b = this.getValue();
+      // if (!Array.isArray(a)) { return a === b; } // else
+      // return a.length === b.length && a.every((v,i) => v === b[i]);
     }
   }, {
     key: 'get',
@@ -770,7 +743,7 @@ var FieldState = function () {
     key: 'isCoerced',
     value: function isCoerced() {
       return false;
-    } // TODO: deprecate
+    } // deprecated
 
   }, {
     key: 'isValidated',
@@ -821,22 +794,39 @@ var FieldState = function () {
   }, {
     key: 'setValue',
     value: function setValue(value) {
+      var _this6 = this;
+
       if (this.fieldState.isModified) {
         throw new Error('setting value on a modified field state? if you are changing the value do that first');
       }
-      return this.setValueImp(value);
+      this.assertCanUpdate();
+      Object.keys(this.fieldState).forEach(function (k) {
+        return delete _this6.fieldState[k];
+      });
+      this.fieldState.isModified = true;
+      this.fieldState.value = value;
+      return this;
     }
   }, {
     key: 'setCoercedValue',
     value: function setCoercedValue(value) {
       return this.setValue(value);
-    } // TODO: deprecate this...
+    } // deprecated
 
     //
     // set validity
     // preserve custom properites? best guess is yes.
     //
 
+  }, {
+    key: 'setValidity',
+    value: function setValidity(validity, message) {
+      this.assertCanUpdate();
+      this.fieldState.isModified = true;
+      this.fieldState.validity = validity;
+      this.fieldState.message = message;
+      return this;
+    }
   }, {
     key: 'setValid',
     value: function setValid(message) {
@@ -862,7 +852,7 @@ var FieldState = function () {
 
     //
     // show message
-    // must preserve custom properties
+    // preserve custom properties
     //
 
   }, {
@@ -879,7 +869,7 @@ var FieldState = function () {
 
     //
     // set custom property
-    // must preserve custom properties
+    // preserve custom properties
     //
 
   }, {
@@ -1003,6 +993,11 @@ var FormState = exports.FormState = function () {
       return formState;
     }
   }, {
+    key: 'root',
+    value: function root() {
+      return this.rootFormState;
+    }
+  }, {
     key: 'setShowMessageOnBlur',
     value: function setShowMessageOnBlur(value) {
       this.showOnBlur = exists(value) ? value : true;
@@ -1010,7 +1005,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'showMessageOnBlur',
     value: function showMessageOnBlur() {
-      var root = this.rootFormState;
+      var root = this.root();
       return exists(root.showOnBlur) ? root.showOnBlur : root.constructor.showMessageOnBlur();
     }
   }, {
@@ -1021,7 +1016,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'showMessageOnSubmit',
     value: function showMessageOnSubmit() {
-      var root = this.rootFormState;
+      var root = this.root();
       return exists(root.showOnSubmit) ? root.showOnSubmit : root.constructor.showMessageOnSubmit();
     }
   }, {
@@ -1032,7 +1027,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'ensureValidationOnBlur',
     value: function ensureValidationOnBlur() {
-      var root = this.rootFormState;
+      var root = this.root();
       return exists(root.validateOnBlur) ? root.validateOnBlur : root.constructor.ensureValidationOnBlur();
     }
   }, {
@@ -1048,7 +1043,13 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'add',
     value: function add(state, name, value, doNotFlatten) {
-      new UnitOfWork(this, state).add(name, value, doNotFlatten, true);
+      // deprecated
+      this.injectField(state, name, value, doNotFlatten);
+    }
+  }, {
+    key: 'injectField',
+    value: function injectField(state, name, value, doNotFlatten) {
+      new UnitOfWork(this, state).injectField(name, value, doNotFlatten);
     }
   }, {
     key: 'remove',
@@ -1088,7 +1089,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'getRootFields',
     value: function getRootFields() {
-      return this.rootFormState.fields;
+      return this.root().fields;
     }
   }, {
     key: 'getFieldState',
@@ -1099,8 +1100,8 @@ var FormState = exports.FormState = function () {
 
       // if model prop provided to root FormObject
       // decided not to replace a deleted fieldState here, hopefully that's the right call
-      if (!_fieldState && this.rootFormState.flatModel) {
-        _fieldState = _getFieldState(this.rootFormState.flatModel, key);
+      if (!_fieldState && this.root().flatModel) {
+        _fieldState = _getFieldState(this.root().flatModel, key);
       }
 
       if (!_fieldState || _fieldState.isDeleted) {
@@ -1137,7 +1138,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'clearFields',
     value: function clearFields() {
-      if (this === this.rootFormState) {
+      if (this === this.root()) {
         this.fields.length = 0;
       }
     }
@@ -1147,7 +1148,7 @@ var FormState = exports.FormState = function () {
       if (typeof f !== 'function') {
         throw new Error('adding an update callback that is not a function?');
       }
-      if (this !== this.rootFormState) {
+      if (this !== this.root()) {
         throw new Error('cannot add an update callback to nested form state');
       }
       this.updateCallback = f;
@@ -1155,7 +1156,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'injectModelProp',
     value: function injectModelProp(model) {
-      if (this === this.rootFormState) {
+      if (this === this.root()) {
         if (!this.flatModel) {
           // one-time only
           if (isObject(model)) {
@@ -1202,21 +1203,8 @@ var UnitOfWork = function () {
   }
 
   _createClass(UnitOfWork, [{
-    key: 'addImp',
-    value: function addImp(name, value, doNotFlatten) {
-      if (isObject(value)) {
-        var formState = this.formState;
-        this.formState = formState.createFormState(name);
-        this.injectModelImp(value, doNotFlatten);
-        this.formState = formState;
-      } else {
-        var fi = this.getFieldState(name);
-        fi.setValue(value);
-      }
-    }
-  }, {
-    key: 'injectModelImp',
-    value: function injectModelImp(model, doNotFlatten) {
+    key: '_injectModel',
+    value: function _injectModel(model, doNotFlatten) {
       var _this8 = this;
 
       model = model || {};
@@ -1246,11 +1234,11 @@ var UnitOfWork = function () {
 
       if (Array.isArray(model)) {
         for (var i = 0, len = model.length; i < len; i++) {
-          this.addImp(i.toString(), model[i]);
+          this.injectField(i.toString(), model[i]);
         }
       } else {
         Object.keys(model).forEach(function (name) {
-          return _this8.addImp(name, model[name]);
+          return _this8.injectField(name, model[name]);
         });
       }
     }
@@ -1374,7 +1362,7 @@ var UnitOfWork = function () {
   }, {
     key: 'setc',
     value: function setc(name, value) {
-      // TODO: deprecate this
+      // deprecated
       return this.set(name, value);
     }
   }, {
@@ -1401,7 +1389,7 @@ var UnitOfWork = function () {
   }, {
     key: 'updateFormState',
     value: function updateFormState(additionalUpdates) {
-      var updates = this.getUpdates();
+      var updates = this.getUpdates(true);
 
       if (additionalUpdates) {
         this.formState.form.setState(Object.assign(updates, additionalUpdates));
@@ -1412,17 +1400,27 @@ var UnitOfWork = function () {
   }, {
     key: 'injectModel',
     value: function injectModel(model, doNotFlatten) {
-      this.injectModelImp(model, doNotFlatten);
-      return this.getUpdates(false);
+      this._injectModel(model, doNotFlatten);
+      return this.getUpdates(false); // this is wasteful, but reverse compatible
     }
   }, {
     key: 'add',
-    value: function add(name, value, doNotFlatten, doNotReturnUpdates) {
-      this.addImp(name, value, doNotFlatten);
-      // this is heinous now that everything is getting copied.
-      // probably best to preserve old (OLD!) behavior until i've given fair warning though.
-      if (!doNotReturnUpdates) {
-        return this.getUpdates(false); // TODO: deprecate this!!!!
+    value: function add(name, value, doNotFlatten) {
+      // deprecated. 'injectField' is preferable.
+      this.injectField(name, value, doNotFlatten);
+      return this.getUpdates(false); // this is wasteful, but reverse compatible.
+    }
+  }, {
+    key: 'injectField',
+    value: function injectField(name, value, doNotFlatten) {
+      if (isObject(value)) {
+        var formState = this.formState;
+        this.formState = formState.createFormState(name);
+        this._injectModel(value, doNotFlatten);
+        this.formState = formState;
+      } else {
+        var fi = this.getFieldState(name);
+        fi.setValue(value);
       }
     }
   }, {
@@ -1442,9 +1440,8 @@ var UnitOfWork = function () {
 
       iterateKeys(this.formState.form.state, function (key) {
         if (key.startsWith(keyDot)) {
-          // have to transform the absolute path to be relative to the context's path.
-          // there's probably a better way to do this.
-          // if UnitOfWork.getFieldState could work with an absolute path, that'd be nice.
+          // have to transform the absolute path to something relative to the context's path.
+          // there's probably a better way to code this... might involve rejiggering getFieldState somehow.
           fi = _this10.getFieldState(key.slice(amtToSlice));
           fi.delete();
         }
@@ -1453,7 +1450,7 @@ var UnitOfWork = function () {
   }, {
     key: 'createModel',
     value: function createModel(noUpdate) {
-      if (this.formState !== this.formState.rootFormState) {
+      if (this.formState !== this.formState.root()) {
         throw new Error('createModel should only be called on root form state.');
       }
 

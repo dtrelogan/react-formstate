@@ -155,10 +155,10 @@ function changeHandler(formState, field, e) {
 
   fieldState.setValue(value).validate();
 
-  if (formState.rootFormState.updateCallback) {
+  if (formState.root().updateCallback) {
     // accessing internals... clean this up?
-    context.formState = formState.rootFormState;
-    formState.rootFormState.updateCallback(context, field.key);
+    context.formState = formState.root();
+    formState.root().updateCallback(context, field.key);
   } else {
     context.updateFormState();
   }
@@ -170,10 +170,10 @@ function simpleChangeHandler(formState, field, value) {
 
   fieldState.setValue(value).validate();
 
-  if (formState.rootFormState.updateCallback) {
+  if (formState.root().updateCallback) {
     // accessing internals... clean this up?
-    context.formState = formState.rootFormState;
-    formState.rootFormState.updateCallback(context, field.key);
+    context.formState = formState.root();
+    formState.root().updateCallback(context, field.key);
   } else {
     context.updateFormState();
   }
@@ -395,9 +395,9 @@ export class FormObject extends Component {
       field.revalidateOnSubmit = Boolean(props.revalidateOnSubmit);
 
       if (typeof(props.noCoercion) === 'function') {
-        field.handlerBindFunction = props.noCoercion;
+        field.handlerBindFunction = props.noCoercion; // deprecated
       } else {
-        field.handlerBindFunction = props.handlerBindFunction;
+        field.handlerBindFunction = props.handlerBindFunction; // deprecated
       }
     }
 
@@ -467,22 +467,6 @@ class FieldState {
 
   callRegisteredValidationFunction(f, params) {
     return f(this.getValue(), this.field.label, ...params);
-  }
-
-  setValueImp(value) {
-    this.assertCanUpdate();
-    Object.keys(this.fieldState).forEach(k => delete this.fieldState[k]);
-    this.fieldState.isModified = true;
-    this.fieldState.value = value;
-    return this;
-  }
-
-  setValidity(validity, message) {
-    this.assertCanUpdate();
-    this.fieldState.isModified = true;
-    this.fieldState.validity = validity;
-    this.fieldState.message = message;
-    return this;
   }
 
   delete() {
@@ -571,12 +555,16 @@ class FieldState {
     return this.setValid();
   }
 
-  equals(fieldState) { // TODO: deprecate this
-    if (fieldState.getMessage() !== this.getMessage()) { return false; } // else
-    if (fieldState.isMessageVisible() !== this.isMessageVisible()) { return false; } // else
-    let a = fieldState.getValue(), b = this.getValue();
-    if (!Array.isArray(a)) { return a === b; } // else
-    return a.length === b.length && a.every((v,i) => v === b[i]);
+  equals(fieldState) { // deprecated
+    // this turned out to be overly simplistic in terms of preventing unnecessary renders.
+    // the calculation ultimately will depend on that nature of the specific input component and all its features.
+    return false;
+    // validity?
+    // if (fieldState.getMessage() !== this.getMessage()) { return false; } // else
+    // if (fieldState.isMessageVisible() !== this.isMessageVisible()) { return false; } // else
+    // let a = fieldState.getValue(), b = this.getValue();
+    // if (!Array.isArray(a)) { return a === b; } // else
+    // return a.length === b.length && a.every((v,i) => v === b[i]);
   }
 
   get(name) { return this.fieldState[name]; }
@@ -603,7 +591,7 @@ class FieldState {
   getUncoercedValue() { return this.fieldState.value; }
   getMessage() { return this.fieldState.message; }
 
-  isCoerced() { return false; } // TODO: deprecate
+  isCoerced() { return false; } // deprecated
   isValidated() { return exists(this.fieldState.validity); }
   isValid() { return this.fieldState.validity === 1 }
   isInvalid() { return this.fieldState.validity === 2; }
@@ -621,14 +609,26 @@ class FieldState {
 
   setValue(value) {
     if (this.fieldState.isModified) { throw new Error('setting value on a modified field state? if you are changing the value do that first'); }
-    return this.setValueImp(value);
+    this.assertCanUpdate();
+    Object.keys(this.fieldState).forEach(k => delete this.fieldState[k]);
+    this.fieldState.isModified = true;
+    this.fieldState.value = value;
+    return this;
   }
-  setCoercedValue(value) { return this.setValue(value); } // TODO: deprecate this...
+  setCoercedValue(value) { return this.setValue(value); } // deprecated
 
   //
   // set validity
   // preserve custom properites? best guess is yes.
   //
+
+  setValidity(validity, message) {
+    this.assertCanUpdate();
+    this.fieldState.isModified = true;
+    this.fieldState.validity = validity;
+    this.fieldState.message = message;
+    return this;
+  }
 
   setValid(message) { return this.setValidity(1, message); }
   setInvalid(message) { return this.setValidity(2, message);  }
@@ -641,7 +641,7 @@ class FieldState {
 
   //
   // show message
-  // must preserve custom properties
+  // preserve custom properties
   //
 
   showMessage() {
@@ -655,7 +655,7 @@ class FieldState {
 
   //
   // set custom property
-  // must preserve custom properties
+  // preserve custom properties
   //
 
   set(name, value) {
@@ -752,12 +752,17 @@ export class FormState {
   }
 
 
+  root() {
+    return this.rootFormState;
+  }
+
+
   setShowMessageOnBlur(value) {
     this.showOnBlur = exists(value) ? value : true;
   }
 
   showMessageOnBlur() {
-    const root = this.rootFormState;
+    const root = this.root();
     return exists(root.showOnBlur) ? root.showOnBlur : root.constructor.showMessageOnBlur();
   }
 
@@ -766,7 +771,7 @@ export class FormState {
   }
 
   showMessageOnSubmit() {
-    const root = this.rootFormState;
+    const root = this.root();
     return exists(root.showOnSubmit) ? root.showOnSubmit : root.constructor.showMessageOnSubmit();
   }
 
@@ -775,7 +780,7 @@ export class FormState {
   }
 
   ensureValidationOnBlur() {
-    const root = this.rootFormState;
+    const root = this.root();
     return exists(root.validateOnBlur) ? root.validateOnBlur : root.constructor.ensureValidationOnBlur();
   }
 
@@ -790,8 +795,13 @@ export class FormState {
   }
 
 
-  add(state, name, value, doNotFlatten) {
-    new UnitOfWork(this, state).add(name, value, doNotFlatten, true);
+  add(state, name, value, doNotFlatten) { // deprecated
+    this.injectField(state, name, value, doNotFlatten);
+  }
+
+
+  injectField(state, name, value, doNotFlatten) {
+    new UnitOfWork(this, state).injectField(name, value, doNotFlatten);
   }
 
 
@@ -824,7 +834,7 @@ export class FormState {
 
 
   getRootFields() {
-    return this.rootFormState.fields;
+    return this.root().fields;
   }
 
 
@@ -835,8 +845,8 @@ export class FormState {
 
     // if model prop provided to root FormObject
     // decided not to replace a deleted fieldState here, hopefully that's the right call
-    if (!_fieldState && this.rootFormState.flatModel) {
-      _fieldState = _getFieldState(this.rootFormState.flatModel, key);
+    if (!_fieldState && this.root().flatModel) {
+      _fieldState = _getFieldState(this.root().flatModel, key);
     }
 
     if (!_fieldState || _fieldState.isDeleted) {
@@ -873,7 +883,7 @@ export class FormState {
 
 
   clearFields() {
-    if (this === this.rootFormState) {
+    if (this === this.root()) {
       this.fields.length = 0;
     }
   }
@@ -881,13 +891,13 @@ export class FormState {
 
   onUpdate(f) {
     if (typeof(f) !== 'function') { throw new Error('adding an update callback that is not a function?'); }
-    if (this !== this.rootFormState) { throw new Error('cannot add an update callback to nested form state'); }
+    if (this !== this.root()) { throw new Error('cannot add an update callback to nested form state'); }
     this.updateCallback = f;
   }
 
 
   injectModelProp(model) {
-    if (this === this.rootFormState) {
+    if (this === this.root()) {
       if (!this.flatModel) { // one-time only
         if (isObject(model)) {
           if (isObject(this.form.state) && Object.keys(this.form.state).some(k => k.startsWith(FORM_STATE_PREFIX))) {
@@ -926,21 +936,7 @@ class UnitOfWork {
   }
 
 
-  addImp(name, value, doNotFlatten) {
-    if (isObject(value)) {
-      let formState = this.formState;
-      this.formState = formState.createFormState(name);
-      this.injectModelImp(value, doNotFlatten);
-      this.formState = formState;
-    }
-    else {
-      const fi = this.getFieldState(name);
-      fi.setValue(value);
-    }
-  }
-
-
-  injectModelImp(model, doNotFlatten) {
+  _injectModel(model, doNotFlatten) {
     model = model || {};
 
     if (typeof(model) !== 'object') {
@@ -968,11 +964,11 @@ class UnitOfWork {
 
     if (Array.isArray(model)) {
       for (let i = 0, len = model.length; i < len; i++) {
-        this.addImp(i.toString(), model[i]);
+        this.injectField(i.toString(), model[i]);
       }
     }
     else {
-      Object.keys(model).forEach(name => this.addImp(name, model[name]));
+      Object.keys(model).forEach(name => this.injectField(name, model[name]));
     }
   }
 
@@ -1079,7 +1075,7 @@ class UnitOfWork {
   }
 
 
-  setc(name, value) { // TODO: deprecate this
+  setc(name, value) { // deprecated
     return this.set(name, value);
   }
 
@@ -1102,7 +1098,7 @@ class UnitOfWork {
 
 
   updateFormState(additionalUpdates) {
-    const updates = this.getUpdates();
+    const updates = this.getUpdates(true);
 
     if (additionalUpdates) {
       this.formState.form.setState(Object.assign(updates, additionalUpdates));
@@ -1114,17 +1110,27 @@ class UnitOfWork {
 
 
   injectModel(model, doNotFlatten) {
-    this.injectModelImp(model, doNotFlatten);
-    return this.getUpdates(false);
+    this._injectModel(model, doNotFlatten);
+    return this.getUpdates(false); // this is wasteful, but reverse compatible
   }
 
 
-  add(name, value, doNotFlatten, doNotReturnUpdates) {
-    this.addImp(name, value, doNotFlatten);
-    // this is heinous now that everything is getting copied.
-    // probably best to preserve old (OLD!) behavior until i've given fair warning though.
-    if (!doNotReturnUpdates) {
-      return this.getUpdates(false); // TODO: deprecate this
+  add(name, value, doNotFlatten) { // deprecated. 'injectField' is preferable.
+    this.injectField(name, value, doNotFlatten);
+    return this.getUpdates(false); // this is wasteful, but reverse compatible.
+  }
+
+
+  injectField(name, value, doNotFlatten) {
+    if (isObject(value)) {
+      let formState = this.formState;
+      this.formState = formState.createFormState(name);
+      this._injectModel(value, doNotFlatten);
+      this.formState = formState;
+    }
+    else {
+      const fi = this.getFieldState(name);
+      fi.setValue(value);
     }
   }
 
@@ -1142,9 +1148,8 @@ class UnitOfWork {
 
     iterateKeys(this.formState.form.state, key => {
       if (key.startsWith(keyDot)) {
-        // have to transform the absolute path to be relative to the context's path.
-        // there's probably a better way to do this.
-        // if UnitOfWork.getFieldState could work with an absolute path, that'd be nice.
+        // have to transform the absolute path to something relative to the context's path.
+        // there's probably a better way to code this... might involve rejiggering getFieldState somehow.
         fi = this.getFieldState(key.slice(amtToSlice));
         fi.delete();
       }
@@ -1154,7 +1159,7 @@ class UnitOfWork {
 
 
   createModel(noUpdate) {
-    if (this.formState !== this.formState.rootFormState) {
+    if (this.formState !== this.formState.root()) {
       throw new Error('createModel should only be called on root form state.');
     }
 

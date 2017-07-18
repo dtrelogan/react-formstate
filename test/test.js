@@ -695,6 +695,12 @@ describe('FormState', function() {
       assert.equal(0, fs.fields.length);
     });
   });
+  describe('#root', function() {
+    it('returns the root form state', function() {
+      var fs = new FormState(this);
+      assert.equal(true, fs.root() === fs.rootFormState);
+    });
+  });
   describe('#createFormState', function() {
     it('sets a path property', function() {
       var fs = new FormState(this);
@@ -1182,7 +1188,7 @@ describe('FormState', function() {
       var wasCalled = false;
       FormState.prototype.clearFields = function() {
         wasCalled = true;
-        if (this === this.rootFormState) {
+        if (this === this.root()) {
           this.fields.length = 0;
         }
       };
@@ -1228,7 +1234,7 @@ describe('FormState', function() {
         assert.equal('UnitOfWork', context.constructor.name);
         assert.equal('123 pinecrest rd.', context.stateUpdates['formState.contact.address.line1'].value);
         assert.equal('contact.address.line1', key);
-        assert.equal(context.formState, context.formState.rootFormState);
+        assert.equal(context.formState, context.formState.root());
       });
       contactAddressLine1Input.props.handleValueChange('123 pinecrest rd.');
       assert.equal(true, wasCalled);
@@ -1283,10 +1289,27 @@ describe('FormState', function() {
     });
   });
   describe('#add', function() {
+    it('calls injectField and returns nothing', function() {
+      var fs = new FormState();
+      var wasCalled = false;
+      fs.injectField = function(state, name, value, doNotFlatten) {
+        wasCalled = true;
+        assert.equal(1, state);
+        assert.equal(2, name);
+        assert.equal(3, value);
+        assert.equal(4, doNotFlatten);
+        return 5;
+      };
+      var result = fs.add(1,2,3,4);
+      assert.equal(true, wasCalled);
+      assert.equal(true, result === undefined);
+    });
+  });
+  describe('#injectField', function() {
     it('adds a formState value to provided state', function() {
       var fs = new FormState({});
       var state = fs.injectModel({ x: 3 });
-      fs.add(state, 'y', 4);
+      fs.injectField(state, 'y', 4);
       assert.equal(state['formState.x'].value, 3);
       assert.equal(state['formState.y'].value, 4);
     });
@@ -1294,7 +1317,7 @@ describe('FormState', function() {
       var fs = new FormState();
       var state = {};
       const model = { a: 1, b: 2};
-      fs.add(state, 'x', model);
+      fs.injectField(state, 'x', model);
       assert.equal(true, state['formState.x'].value === model);
       assert.equal(true, state['formState.x.a'].value === 1);
       assert.equal(true, state['formState.x.b'].value === 2);
@@ -1303,10 +1326,15 @@ describe('FormState', function() {
       var fs = new FormState();
       var state = {};
       const model = { a: 1, b: 2};
-      fs.add(state, 'x', model, true);
+      fs.injectField(state, 'x', model, true);
       assert.equal(true, state['formState.x'].value === model);
       assert.equal(true, state['formState.x.a'] === undefined);
       assert.equal(true, state['formState.x.b'] === undefined);
+    });
+    it('returns nothing', function() {
+      var fs = new FormState({});
+      var state = fs.injectModel({ x: 3 });
+      assert.equal(true, fs.injectField(state, 'y', 4) === undefined);
     });
   });
   describe('#remove', function() {
@@ -1433,7 +1461,38 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#getFieldState', function() {
-    it('returned field states point to same underlying context fieldState', function() {
+    it('returns a copy of the form fieldState if not already in the context', function() {
+      var _fi = { value: 'Henry' };
+      var state = { 'formState.name': _fi },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var formFi = fs.getFieldState('name');
+      assert.equal(true, formFi.fieldState === _fi);
+      assert.equal(true, formFi.fieldState.isModified === undefined);
+      assert.equal(true, formFi.stateContext === undefined);
+      var uowFi = context.getFieldState('name');
+      assert.equal(false, uowFi.fieldState === _fi);
+      assert.equal(true, uowFi.fieldState.isModified === false);
+      assert.equal(true, uowFi.stateContext === context);
+      assert.equal('Henry', uowFi.getValue());
+      assert.equal('name', uowFi.getKey());
+      assert.equal(true, context.stateUpdates['formState.name'] === uowFi.fieldState);
+    });
+    it('returns the context fieldState if already in context', function() {
+      var _fi = { value: 'Henry' };
+      var state = { 'formState.name': _fi },
+        fs = new FormState({ state: state }),
+        context = fs.createUnitOfWork();
+      var _uowFi = { value: 'Henry Paul', isModified: true };
+      context.stateUpdates = { 'formState.name': _uowFi };
+      var uowFi = context.getFieldState('name');
+      assert.equal(true, uowFi.fieldState === _uowFi);
+      assert.equal(true, uowFi.fieldState.isModified === true);
+      assert.equal(true, uowFi.stateContext === context);
+      assert.equal('Henry Paul', uowFi.getValue());
+      assert.equal('name', uowFi.getKey());
+    });
+    it('same context returns pointer to same fieldState', function() {
       var state = { 'formState.name': { value: 'Henry' } },
         fs = new FormState({ state: state }),
         context = fs.createUnitOfWork();
@@ -1529,7 +1588,92 @@ describe('UnitOfWork', function() {
       assert.equal(field, fieldState.getField());
     });
   });
+  describe('#getUpdates', function() {
+    it('returns copies of modified field states with isModified deleted', function() {
+      var form = {
+        state: {
+          'formState.contact.address.line1': { value: '123 elm st' },
+          'formState.contact.address.line2': { value: null }
+        }
+      };
+      var fs = new FormState(form);
+      var nfs = fs.createFormState('contact.address');
+      var context = nfs.createUnitOfWork();
+      var _fi = { value: 'u', isModified: true };
+      context.stateUpdates = {
+        'formState.contact.address.line1': _fi,
+        'formState.contact.address.line2': { value: null, isModified: false }
+      };
+      var result = context.getUpdates();
+      assert.equal(1, Object.keys(result).length);
+      assert.equal('u', result['formState.contact.address.line1'].value);
+      assert.equal(true, result['formState.contact.address.line1'].isModified === undefined);
+      assert.equal(true, context.stateUpdates['formState.contact.address.line1'] === _fi);
+      assert.equal(true, result['formState.contact.address.line1'] !== _fi);
+    });
+    it('does not reset context if passed false', function() {
+      var form = {
+        state: {
+          'formState.contact.address.line1': { value: '123 elm st' },
+          'formState.contact.address.line2': { value: null }
+        }
+      };
+      var fs = new FormState(form);
+      var nfs = fs.createFormState('contact.address');
+      var context = nfs.createUnitOfWork();
+      var _fi = { value: 'u', isModified: true };
+      context.stateUpdates = {
+        'formState.contact.address.line1': _fi,
+        'formState.contact.address.line2': { value: 'BOX 456', isModified: true }
+      };
+      var result = context.getUpdates();
+      assert.equal(2, Object.keys(result).length);
+      assert.equal(true, context.stateUpdates['formState.contact.address.line1'].isModified === true);
+      assert.equal(true, context.stateUpdates['formState.contact.address.line2'].isModified === true);
+    });
+    it('resets context if passed true', function() {
+      var form = {
+        state: {
+          'formState.contact.address.line1': { value: '123 elm st' },
+          'formState.contact.address.line2': { value: null }
+        }
+      };
+      var fs = new FormState(form);
+      var nfs = fs.createFormState('contact.address');
+      var context = nfs.createUnitOfWork();
+      var _fi = { value: 'u', isModified: true };
+      context.stateUpdates = {
+        'formState.contact.address.line1': _fi,
+        'formState.contact.address.line2': { value: 'BOX 456', isModified: true }
+      };
+      var result = context.getUpdates(true);
+      assert.equal(2, Object.keys(result).length);
+      assert.equal(true, context.stateUpdates['formState.contact.address.line1'].isModified === false);
+      assert.equal(true, context.stateUpdates['formState.contact.address.line2'].isModified === false);
+    });
+  });
   describe('#updateFormState', function() {
+    it('calls getUpdates(true)', function() {
+      var form = {
+        state: {
+          'formState.contact.address.line1': { value: '123 elm st' }
+        }
+      };
+      var fs = new FormState(form);
+      var nfs = fs.createFormState('contact.address');
+      var context = nfs.createUnitOfWork();
+      context.stateUpdates = {
+        'formState.contact.address.line1': { value: 'u', isModified: true }
+      };
+      var wasCalled = false;
+      context.getUpdates = function(x) {
+        wasCalled = true;
+        assert.equal(true, x);
+        return {};
+      }
+      context.updateFormState();
+      assert.equal(true, wasCalled);
+    });
     it('calls set state on the root form', function() {
       var form = {
         state: {
@@ -1562,10 +1706,12 @@ describe('UnitOfWork', function() {
       var fs = new FormState(form);
       var nfs = fs.createFormState('contact.address');
       var context = nfs.createUnitOfWork();
+      context.stateUpdates = {
+        'formState.contact.address.line1': { value: '123 elm st', isModified: false }
+      };
       var wasCalled = false;
       form.setState = function(x) {
         wasCalled = true;
-        assert.equal(x, context.stateUpdates);
       }
       context.updateFormState();
       assert.equal(false, wasCalled);
@@ -1595,32 +1741,17 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#add', function() {
-    it('normally flattens objects', function() {
+    it('calls uow.injectField', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
-      const model = { a: 1, b: 2};
-      context.add('x', model);
-      assert.equal(true, context.stateUpdates['formState.x'].value === model);
-      assert.equal(true, context.stateUpdates['formState.x.a'].value === 1);
-      assert.equal(true, context.stateUpdates['formState.x.b'].value === 2);
-    });
-    it('optionally does not flatten objects', function() {
-      var fs = new FormState(), context = fs.createUnitOfWork();
-      const model = { a: 1, b: 2};
-      context.add('x', model, true);
-      assert.equal(true, context.stateUpdates['formState.x'].value === model);
-      assert.equal(true, context.stateUpdates['formState.x.a'] === undefined);
-      assert.equal(true, context.stateUpdates['formState.x.b'] === undefined);
-    });
-    it('adds a value to the unit of work state updates', function() {
-      var fs = new FormState(), context = fs.createUnitOfWork();
-      context.add('x', 1);
-      context.add('y', 2);
-      assert.equal(true, context.stateUpdates['formState.x'].value === 1);
-      assert.equal(true, context.getFieldState('x').getValue() === '1');
-      assert.equal(true, context.getFieldState('x').getUncoercedValue() === 1);
-      assert.equal(true, context.stateUpdates['formState.y'].value === 2);
-      assert.equal(true, context.getFieldState('y').getValue() === '2');
-      assert.equal(true, context.getFieldState('y').getUncoercedValue() === 2);
+      var wasCalled = false;
+      context.injectField = function(name, value, doNotFlatten) {
+        wasCalled = true;
+        assert.equal(1, name);
+        assert.equal(2, value);
+        assert.equal(3, doNotFlatten);
+      };
+      context.add(1,2,3);
+      assert.equal(true, wasCalled);
     });
     it('returns the unit of work state updates', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
@@ -1628,10 +1759,65 @@ describe('UnitOfWork', function() {
       assert.equal(true, result !== undefined);
       assert.equal(1, result['formState.x'].value);
     });
+    it('calls getUpdates and does not reset the context', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      var wasCalled = false;
+      context.getUpdates = function(x) {
+        wasCalled = true;
+        assert.equal(true, x === false);
+      };
+      context.add('x', model);
+      assert.equal(true, wasCalled);
+    });
+  });
+  describe('#injectField', function() {
+    it('normally flattens objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.injectField('x', model);
+      assert.equal(true, context.stateUpdates['formState.x'].value === model);
+      assert.equal(true, context.stateUpdates['formState.x.a'].value === 1);
+      assert.equal(true, context.stateUpdates['formState.x.b'].value === 2);
+    });
+    it('does not call getUpdates', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      var wasCalled = false;
+      context.getUpdates = function() {
+        wasCalled = true;
+      };
+      context.injectField('x', model);
+      assert.equal(false, wasCalled);
+    });
+    it('optionally does not flatten objects', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      context.injectField('x', model, true);
+      assert.equal(true, context.stateUpdates['formState.x'].value === model);
+      assert.equal(true, context.stateUpdates['formState.x.a'] === undefined);
+      assert.equal(true, context.stateUpdates['formState.x.b'] === undefined);
+    });
+    it('adds a value to the unit of work state updates', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      context.injectField('x', 1);
+      context.injectField('y', 2);
+      assert.equal(true, context.stateUpdates['formState.x'].value === 1);
+      assert.equal(true, context.getFieldState('x').getValue() === '1');
+      assert.equal(true, context.getFieldState('x').getUncoercedValue() === 1);
+      assert.equal(true, context.stateUpdates['formState.y'].value === 2);
+      assert.equal(true, context.getFieldState('y').getValue() === '2');
+      assert.equal(true, context.getFieldState('y').getUncoercedValue() === 2);
+    });
+    it('returns nothing', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      var result = context.injectField('x', 1);
+      assert.equal(true, result === undefined);
+    });
     it('adds a value that will be coerced', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         context = fs.createUnitOfWork();
-      context.add('x', 1);
+      context.injectField('x', 1);
       assert.equal(true, context.stateUpdates['formState.x'].value === 1);
       assert.equal(true, context.getFieldState('x').getValue() === '1');
       assert.equal(true, context.getFieldState('x').getUncoercedValue() === 1);
@@ -1645,7 +1831,7 @@ describe('UnitOfWork', function() {
     it('adds a nested value relative to form state path', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         nfs = fs.createFormState('nested'), context = nfs.createUnitOfWork();
-      context.add('x', 1);
+      context.injectField('x', 1);
       assert.equal(true, context.getFieldState('x').getValue() === '1');
       form.setState = function(x) {
         this.state = x;
@@ -1657,7 +1843,7 @@ describe('UnitOfWork', function() {
     it('can work with a key rather than a relative name', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         nfs = fs.createFormState('nested'), context = fs.createUnitOfWork();
-      context.add('nested.x', 1);
+      context.injectField('nested.x', 1);
       assert.equal(true, context.getFieldState('nested.x').getValue() === '1');
       form.setState = function(x) {
         this.state = x;
@@ -1670,13 +1856,13 @@ describe('UnitOfWork', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         context = fs.createUnitOfWork();
       var wasCalled = false;
-      context.injectModelImp = function(value) {
+      context._injectModel = function(value) {
         wasCalled = true;
         assert.notEqual(fs, context.formState);
-        assert.equal(fs, context.formState.rootFormState);
+        assert.equal(fs, context.formState.root());
         assert.equal('contact', context.formState.path);
       };
-      context.add('contact', { email: 'henry@ka.edu' });
+      context.injectField('contact', { email: 'henry@ka.edu' });
       assert.equal(true, wasCalled);
       assert.equal(fs, context.formState);
     });
@@ -1684,7 +1870,7 @@ describe('UnitOfWork', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         context = fs.createUnitOfWork();
       var obj = { email: 'henry@ka.edu' };
-      context.add('contact', obj);
+      context.injectField('contact', obj);
       assert.equal('henry@ka.edu', context.stateUpdates['formState.contact'].value.email);
       assert.equal('henry@ka.edu', context.getFieldState('contact').getUncoercedValue().email);
     });
@@ -1692,13 +1878,13 @@ describe('UnitOfWork', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         context = fs.createUnitOfWork();
       var wasCalled = false;
-      context.injectModelImp = function(value) {
+      context._injectModel = function(value) {
         wasCalled = true;
         assert.notEqual(fs, context.formState);
-        assert.equal(fs, context.formState.rootFormState);
+        assert.equal(fs, context.formState.root());
         assert.equal('contacts', context.formState.path);
       };
-      context.add('contacts', [ { email: 'henry@ka.edu' } ]);
+      context.injectField('contacts', [ { email: 'henry@ka.edu' } ]);
       assert.equal(true, wasCalled);
       assert.equal(fs, context.formState);
     });
@@ -1706,7 +1892,7 @@ describe('UnitOfWork', function() {
       var state = {}, form = { state: state }, fs = new FormState(form),
         context = fs.createUnitOfWork();
       var arr = [ { email: 'henry@ka.edu' } ];
-      context.add('contacts', arr);
+      context.injectField('contacts', arr);
       assert.equal('henry@ka.edu', context.stateUpdates['formState.contacts'].value[0].email);
       assert.equal('henry@ka.edu', context.getFieldState('contacts').getUncoercedValue()[0].email);
     });
@@ -1798,6 +1984,17 @@ describe('UnitOfWork', function() {
     });
   });
   describe('#injectModel', function() {
+    it('calls getUpdates and does not reset the context', function() {
+      var fs = new FormState(), context = fs.createUnitOfWork();
+      const model = { a: 1, b: 2};
+      var wasCalled = false;
+      context.getUpdates = function(x) {
+        wasCalled = true;
+        assert.equal(true, x === false);
+      }
+      context.injectModel(model);
+      assert.equal(true, wasCalled);
+    });
     it('normally flattens objects', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
       const model = { a: 1, b: 2};
@@ -1824,7 +2021,7 @@ describe('UnitOfWork', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
 
       var names = [];
-      context.addImp = function(name, value) {
+      context.injectField = function(name, value) {
         names.push({ name: name, value: value });
       };
       context.injectModel({ a: 1, b: 2 });
@@ -1837,7 +2034,7 @@ describe('UnitOfWork', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
 
       var names = [];
-      context.addImp = function(name, value) {
+      context.injectField = function(name, value) {
         names.push({ name: name, value: value });
       };
       context.injectModel([1,2]);
@@ -1850,7 +2047,7 @@ describe('UnitOfWork', function() {
       var fs = new FormState(), context = fs.createUnitOfWork();
 
       var names = [];
-      context.addImp = function(name, value) {
+      context.injectField = function(name, value) {
         names.push({ name: name, value: value });
       };
       var model = { a: 1, b: 2 };
@@ -2306,6 +2503,16 @@ describe('UnitOfWork', function() {
   });
 });
 describe('FieldState', function() {
+  describe('#isCoerced', function() {
+    it('is deprecated and always returns false', function() {
+      var state = {
+        'formState.name': { value: 3, isCoerced: true }
+      };
+      var fs = new FormState({ state: state });
+      var fieldState = fs.getFieldState('name');
+      assert.equal(false, fieldState.isCoerced());
+    });
+  });
   describe('#getName', function() {
     it('returns the field name', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2606,6 +2813,14 @@ describe('FieldState', function() {
       assert.throws(f, /not a function/);
     });
   });
+  describe('#equals', function() {
+    it('is deprecated and always returns false', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fs = context.getFieldState('contact.email');
+      assert.equal(false, fs.equals(fs));
+    });
+  });
   // describe('#equals', function() {
   //   it('returns false if messages are different', function() {
   //     ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -2820,7 +3035,45 @@ describe('FieldState', function() {
       assert.equal('minLength', fieldState.getField().validate[0][0]);
     });
   });
+  describe('#delete', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.delete(); };
+      assert.throws(f, /read-only/);
+    });
+    it('marks deleted and modified and clears the other props', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var context = testForm.formState.createUnitOfWork();
+      var fieldState = context.getFieldState('contact.address.line1');
+      fieldState.fieldState.value = 'old';
+      fieldState.fieldState.validity = 2;
+      fieldState.fieldState.message = 'old';
+      fieldState.fieldState.asyncToken = 'old';
+      fieldState.fieldState.isMessageVisible = true;
+      fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.fieldState.isModified = false;
+      const oldFi = fieldState.fieldState;
+      fieldState.delete();
+      assert.equal(fieldState.fieldState, oldFi);
+      assert.equal(undefined, fieldState.fieldState.value);
+      assert.equal(undefined, fieldState.fieldState.validity);
+      assert.equal(undefined, fieldState.fieldState.message);
+      assert.equal(undefined, fieldState.fieldState.asyncToken);
+      assert.equal(undefined, fieldState.fieldState.isMessageVisible);
+      assert.equal(undefined, fieldState.fieldState.formerProp);
+      assert.equal(true, fieldState.fieldState.isModified);
+      assert.equal(true, fieldState.fieldState.isDeleted);
+      assert.equal(2, Object.keys(fieldState.fieldState).length);
+    });
+  });
   describe('#setValue', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.setValue(''); };
+      assert.throws(f, /read-only/);
+    });
     it('throws an error if field state is modified', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -2839,6 +3092,7 @@ describe('FieldState', function() {
       fieldState.fieldState.asyncToken = 'old';
       fieldState.fieldState.isMessageVisible = true;
       fieldState.fieldState.formerProp = 'willBeRemoved';
+      fieldState.fieldState.isModified = false;
       const oldFi = fieldState.fieldState;
       fieldState.setValue('');
       assert.equal(fieldState.fieldState, oldFi);
@@ -2848,6 +3102,7 @@ describe('FieldState', function() {
       assert.equal(undefined, fieldState.fieldState.asyncToken);
       assert.equal(undefined, fieldState.fieldState.isMessageVisible);
       assert.equal(undefined, fieldState.fieldState.formerProp);
+      assert.equal(true, fieldState.fieldState.isModified);
     });
     it('returns a field state', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
@@ -3416,6 +3671,12 @@ describe('FieldState', function() {
     });
   });
   describe('#setValid', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.setValid(); };
+      assert.throws(f, /read-only/);
+    });
     it('sets message and validity, and leaves the other props alone', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -3449,6 +3710,12 @@ describe('FieldState', function() {
     });
   });
   describe('#setInvalid', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.setInvalid(); };
+      assert.throws(f, /read-only/);
+    });
     it('sets message and validity, and leaves the other props alone', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -3482,6 +3749,12 @@ describe('FieldState', function() {
     });
   });
   describe('#setValidating', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.setValidating(); };
+      assert.throws(f, /read-only/);
+    });
     it('sets validity and message and asyncToken, leaves other props alone, and returns the asyncToken', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -3506,6 +3779,12 @@ describe('FieldState', function() {
     });
   });
   describe('#setUploading', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.setUploading(); };
+      assert.throws(f, /read-only/);
+    });
     it('sets validity and message and leaves other props alone', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -3540,6 +3819,12 @@ describe('FieldState', function() {
     });
   });
   describe('#showMessage', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.showMessage(); };
+      assert.throws(f, /read-only/);
+    });
     it('shows the message and copies all the other props', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();
@@ -3603,6 +3888,12 @@ describe('FieldState', function() {
     });
   });
   describe('#set', function() {
+    it('throws an error if field state is read-only', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var fieldState = testForm.formState.getFieldState('contact.address.line1');
+      var f = function() { fieldState.set('a', 1); };
+      assert.throws(f, /read-only/);
+    });
     it('adds the prop and only copies the other core props', function() {
       ReactDOMServer.renderToString(React.createElement(UserFormEdit));
       var context = testForm.formState.createUnitOfWork();

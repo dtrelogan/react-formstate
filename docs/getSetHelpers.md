@@ -62,34 +62,3 @@ render() {
   // ...
 }
 ```
-
-### setc
-
-lastly setc can be used when you know the value you are setting has been coerced. for example if you do this:
-
-```es6
-customHandler(e) {
-  let context = this.formState.createUnitOfWork(),
-    fieldState = context.set('someField', e.target.value);
-
-  // ...
-}
-```
-
-the next time you do a get on 'someField' the coercion function will be called to coerce the newly set value.
-
-if you know the value is already coerced, you can save a future call to the coercion function by using setc instead
-
-```es6
-customHandler(e) {
-  let context = this.formState.createUnitOfWork(),
-    fieldState = context.setc('someField', e.target.value);
-
-  // or
-  // fieldState = context.getFieldState('someField').setCoercedValue(e.target.value);
-
-  // ...
-}
-```
-
-it's not going to make much of a performance difference, but one might consider it a matter of principle not to do unnecessary work, right?

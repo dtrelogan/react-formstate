@@ -369,7 +369,7 @@ export default class DocumentInput extends Component {
   onRemove(e) {
     e.preventDefault();
     let context = this.props.formState.createUnitOfWork(),
-      fi = context.setc(this.props.fieldState.getName(), '').validate();
+      fi = context.set(this.props.fieldState.getName(), '').validate();
     if (fi.isValid()) { fi.setValid('Please submit form to finalize removal'); }
     context.updateFormState();
   }

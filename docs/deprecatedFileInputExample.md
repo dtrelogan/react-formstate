@@ -133,7 +133,7 @@ export default class SampleForm extends Component {
 
   removeImage() {
     let context = this.formState.createUnitOfWork();
-    context.setc('imageUrl', '');
+    context.set('imageUrl', '');
     context.updateFormState();
   }
 

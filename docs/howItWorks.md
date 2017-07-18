@@ -150,7 +150,7 @@ handleNameChange(newValue) {
   let context = this.formState.createUnitOfWork(),
     fieldState = context.getFieldState('name');
 
-  fieldState.setCoercedValue(newValue).validate();
+  fieldState.setValue(newValue).validate();
   context.updateFormState();
 }
 ```
