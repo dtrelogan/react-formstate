@@ -23,12 +23,14 @@ export default class UserForm extends Component {
   }
 
   render() {
-    let submitMessage = null;
+    let submitMessage = null, disabled = false;
 
     if (this.formState.isValidating()) {
       submitMessage = 'Waiting for validation to finish...';
+      disabled = true;
     } else if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
+      disabled = true;
     }
 
     // notice we are overriding the framework-generated handleValueChange prop for username
@@ -46,7 +48,7 @@ export default class UserForm extends Component {
           fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
           handleValueChange={this.handleUsernameChange}
         />
-        <input type='submit' value='Submit'/>
+        <input type='submit' value='Submit' disabled={disabled}/>
         <span>{submitMessage}</span>
       </Form>
     );

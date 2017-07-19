@@ -92,11 +92,11 @@ var createUserFormFixture = function(inject, doThrow) {
     },
     render: function() {
       return React.createElement('form', null,
-        React.createElement(FormObject, { formState: this.formState, model: this.props.model },
+        React.createElement(FormObject, { formState: this.formState, model: this.props.model, className: {x: 1} },
           React.createElement(NameInput, { formField: 'name', label: 'Name', defaultValue: 'hpt' }),
-          React.createElement(FormObject, { name: 'contact', labelPrefix: 'Work ' },
+          React.createElement(FormObject, { name: 'contact', labelPrefix: 'Work ', className: 'a-super-duper-test-html-class' },
             React.createElement(ContactEmailInput, { formField: 'email', label: 'Email' }),
-            React.createElement(FormObject, { name: 'address', labelPrefix: 'Address ' },
+            React.createElement(FormObject, { name: 'address', labelPrefix: 'Address ', className: null },
               React.createElement(ContactAddressLine1Input, { formField: 'line1', label: 'Line 1', required: true, validate: [['minLength', 3]] })
             )
           ),
@@ -341,10 +341,13 @@ var ExtendedUserForm = createExtendedUserFormFixture();
 
 var OnBlurNameInput, onBlurNameInput;
 
-var createInput = function(saveRef) {
+var createInput = function(saveRef, suppressChildren) {
   return createReactClass({
     render: function() {
       saveRef(this);
+      if (suppressChildren) {
+        return React.createElement('div', null);
+      }
       return React.createElement('div', null,
         React.createElement('label', null, this.props.label),
         React.createElement('input', { type: 'text', value: this.props.fieldState.getValue(), onChange: this.props.updateFormState, onBlur: this.props.showValidationMessage }),
@@ -473,6 +476,86 @@ var createNoCoercionForm = function(inject, doThrow) {
 var NoCoercionForm = createNoCoercionForm();
 
 
+var propsNotSwallowedInput;
+var PropsNotSwallowedInput = createInput(function(input) { propsNotSwallowedInput = input; }, true);
+
+
+var refToNameInput;
+var refToNameInputFunction = function(c) {refToNameInput=c;};
+
+var createSwallowPropsForm = function(inject, doThrow) {
+  return createReactClass({
+    getInitialState: function() {
+      testForm = this;
+      this.formState = new FormState(this);
+      return {};
+    },
+    render: function() {
+      return React.createElement('form', null,
+        React.createElement(FormObject, { formState: this.formState, model: this.props.model },
+          [
+            React.createElement(NameInput, {
+              className: 'notSwallowed',
+              key: 'doesNameKeyGetRetained',
+              ref: refToNameInputFunction,
+              formField: 'name',
+              label: 'Name',
+              validate: ['noSpaces'],
+              fsValidate: null,
+              fsv: null,
+              noTrim: true,
+              preferNull: true,
+              intConvert: true,
+              defaultValue: 'a',
+              noCoercion: true,
+              revalidateOnSubmit: true,
+              handlerBindFunction: null,
+              validationMessages: ['hello'],
+              msgs: ['hello'],
+              noCoercion: true
+            }),
+            React.createElement(PropsNotSwallowedInput, {
+              key: 'someOtherKey',
+              // formField: 'name',
+              label: 'Name',
+              validate: ['noSpaces'],
+              fsValidate: null,
+              fsv: null,
+              noTrim: true,
+              preferNull: true,
+              intConvert: true,
+              defaultValue: 'a',
+              noCoercion: true,
+              revalidateOnSubmit: true,
+              handlerBindFunction: null,
+              validationMessages: ['hello'],
+              msgs: ['hello'],
+              noCoercion: true
+            })
+          ],
+          'test no child',
+          null,
+          doThrow ? React.createElement(FormObject) : null
+        ),
+        React.createElement('input', { type: 'submit', value: 'Submit', onClick: this.handleSubmit }),
+        React.createElement('span', null, this.formState.isInvalid() ? 'Please fix validation errors' : null)
+      );
+    },
+    handleSubmit: function(e) {
+      e.preventDefault();
+      var model = this.formState.createUnitOfWork().createModel();
+      if (model) {
+        alert(JSON.stringify(model));
+      }
+    },
+    validateName: function(v) {
+      return;
+    }
+  });
+};
+
+
+var SwallowPropsForm = createSwallowPropsForm();
 
 
 
@@ -913,10 +996,10 @@ describe('FormState', function() {
         fs = new FormState({ state: state });
       assert.equal(true, fs.getu('name') === 3);
     });
-    it('returns null if no match', function() {
+    it('returns undefined if no match', function() {
       var state = { 'formState.name': { value: 3 } },
         fs = new FormState({ state: state });
-      assert.equal(true, fs.getu('noMatch') === null);
+      assert.equal(true, fs.getu('noMatch') === undefined);
     });
   });
   describe('#getFieldState', function() {
@@ -963,33 +1046,45 @@ describe('FormState', function() {
       var fieldState = fs.getFieldState('name', 1);
       assert.equal('Henry', fieldState.getValue());
     });
-    it('returns a field state with value set to null if none exists', function() {
+    it('returns an empty field state if none exists', function() {
       var fs = new FormState({ state: {} });
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.fieldState.value === null);
+      assert.equal(0, Object.keys(fieldState.fieldState).length);
+      assert.equal(true, fieldState.fieldState.value === undefined);
     });
-    it('returns a field state with value set to null if model prop field does not exist', function() {
+    it('returns an empty field state if model prop field does not exist', function() {
       var fs = new FormState({ state: {} });
       fs.injectModelProp({});
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.fieldState.value === null);
+      var valueIsDefined = false;
+      assert.equal(0, Object.keys(fieldState.fieldState).length);
+      assert.equal(true, fieldState.fieldState.value === undefined);
     });
-    it('returns a field state with value set to null if deleted', function() {
+    it('returns an empty field state if deleted', function() {
       var state = {
         'formState.name': { value: 'Henry', isDeleted: true }
       };
       var fs = new FormState({ state: state });
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.fieldState.value === null);
+      var valueIsDefined = false;
+      Object.keys(fieldState.fieldState).forEach(function(key) {
+        if (key === 'value') { valueIsDefined = true; }
+      });
+      assert.equal(true, fieldState.fieldState.value === undefined);
     });
-    it('returns a field state with value set to null if deleted, ignoring model prop', function() {
+    it('returns an empty field state if deleted, ignoring model prop', function() {
       var state = {
         'formState.name': { value: 'Henry', isDeleted: true }
       };
       var fs = new FormState({ state: state });
       fs.injectModelProp(createTestModel());
       var fieldState = fs.getFieldState('name');
-      assert.equal(true, fieldState.fieldState.value === null);
+      var valueIsDefined = false;
+      Object.keys(fieldState.fieldState).forEach(function(key) {
+        if (key === 'value') { valueIsDefined = true; }
+      });
+      assert.equal(false, valueIsDefined);
+      assert.equal(true, fieldState.fieldState.value === undefined);
     });
     it('uses a name relative to form state path', function() {
       var state = {
@@ -1092,14 +1187,14 @@ describe('FormState', function() {
       field = field.fields.find(x => x.name === 'email');
       field.noCoercion = true;
       var fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, null === fieldState.getValue());
+      assert.equal(true, undefined === fieldState.getValue());
       testForm.state = { 'formState.contact.email': { value: undefined } };
       fieldState = testForm.formState.getFieldState(field);
       assert.equal(true, undefined === fieldState.getValue());
       testForm.state = {};
       field.defaultValue = undefined;
       fieldState = testForm.formState.getFieldState(field);
-      assert.equal(true, null === fieldState.getValue());
+      assert.equal(true, undefined === fieldState.getValue());
     });
     it('can return null value if no coercion', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
@@ -1118,14 +1213,19 @@ describe('FormState', function() {
       var field = testForm.formState.fields.find(x => x.name === 'contact');
       field = field.fields.find(x => x.name === 'email');
       var fieldState = testForm.formState.getFieldState(field, null, testForm.formState.createUnitOfWork());
-      assert.equal(true, fieldState.fieldState.value === null);
+      var valueIsDefined = false;
+      Object.keys(fieldState.fieldState).forEach(function(k) {
+        if (k === 'value') { valueIsDefined = true; }
+      });
+      assert.equal(false, valueIsDefined);
+      assert.equal(true, fieldState.fieldState.value === undefined);
       assert.equal(true, fieldState.getValue() === '');
-      assert.equal(true, fieldState.getUncoercedValue() === null);
+      assert.equal(true, fieldState.getUncoercedValue() === undefined);
     });
-    it('can return a value for undefined fields', function() {
+    it('returns undefined for undefined fields', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));
       assert.equal(true, testForm.formState.get('notAFieldNoWay') === '');
-      assert.equal(true, testForm.formState.getu('notAFieldNoWay') === null);
+      assert.equal(true, testForm.formState.getu('notAFieldNoWay') === undefined);
     });
   });
   describe('#isDeleted', function() {
@@ -1453,11 +1553,11 @@ describe('UnitOfWork', function() {
       context.stateUpdates['formState.name'] = { value: 4, isModified: true };
       assert.equal(true, context.getu('name') === 4);
     });
-    it('returns null if no match', function() {
+    it('returns undefined if no match', function() {
       var state = { 'formState.name': { value: 3 } },
         fs = new FormState({ state: state }),
         context = fs.createUnitOfWork();
-      assert.equal(true, context.getu('noMatch') === null);
+      assert.equal(true, context.getu('noMatch') === undefined);
     });
   });
   describe('#getFieldState', function() {
@@ -4123,6 +4223,50 @@ describe('Field', function() {
 });
 describe('FormObject', function() {
   describe('#addProps', function() {
+    it('swallows rfs props for a formField component', function() {
+      var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+      Object.keys(nameInput.props).forEach(k => {
+        assert.notEqual(k, 'formField');
+        assert.notEqual(k, 'validate');
+        assert.notEqual(k, 'fsValidate');
+        assert.notEqual(k, 'fsv');
+        assert.notEqual(k, 'noTrim');
+        assert.notEqual(k, 'preferNull');
+        assert.notEqual(k, 'intConvert');
+        assert.notEqual(k, 'defaultValue');
+        assert.notEqual(k, 'noCoercion');
+        assert.notEqual(k, 'revalidateOnSubmit');
+        assert.notEqual(k, 'handlerBindFunction');
+        assert.notEqual(k, 'validationMessages');
+        assert.notEqual(k, 'msgs');
+      });
+      assert.notEqual(-1, Object.keys(nameInput.props).indexOf('className'));
+      assert.equal('notSwallowed', nameInput.props.className);
+      assert.notEqual(-1, Object.keys(nameInput.props).indexOf('updateFormState'));
+      assert.notEqual(-1, Object.keys(propsNotSwallowedInput.props).indexOf('validate'));
+      assert.notEqual(-1, Object.keys(propsNotSwallowedInput.props).indexOf('fsValidate'));
+      assert.notEqual(-1, Object.keys(propsNotSwallowedInput.props).indexOf('noTrim'));
+      assert.notEqual(-1, Object.keys(propsNotSwallowedInput.props).indexOf('preferNull'));
+      // ...
+    });
+    it('can configurably swallow rfs props for a formField component', function() {
+      try {
+        FormState.rfsProps.updateFormState.suppress = true;
+        var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+        assert.equal(-1, Object.keys(nameInput.props).indexOf('updateFormState'));
+        assert.notEqual(-1, Object.keys(nameInput.props).indexOf('handleValueChange'));
+        assert.notEqual(-1, Object.keys(nameInput.props).indexOf('className'));
+        assert.equal('notSwallowed', nameInput.props.className);
+      }
+      finally {
+        FormState.rfsProps.updateFormState.suppress = false;
+      }
+    });
+    it('retains key and ref for a formField component', function() {
+      var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+      assert.equal(true, nameInput._reactInternalInstance._currentElement.key.endsWith('doesNameKeyGetRetained'));
+      assert.equal(true, nameInput._reactInternalInstance._currentElement.ref === refToNameInputFunction);
+    });
     it('throws assertion for nested FormObject unless name specified', function() {
       var f = function() {
         ReactDOMServer.renderToString(React.createElement(UserFormThrow));
@@ -4152,6 +4296,10 @@ describe('FormObject', function() {
       ReactDOMServer.renderToString(React.createElement(UserContactsFormBackwardsModelProp, { model: createTestContactsModel() }));
       var model = testForm.formState.createUnitOfWork().createModel();
       assert.equal('123 pinecrest rd', model.contacts[0].address.line1);
+    });
+    it('can add a className to the containing div', function() {
+      var html = ReactDOMServer.renderToString(React.createElement(UserForm));
+      assert.notEqual(-1, html.indexOf('<div class="a-super-duper-test-html-class"'));
     });
     it('optionally prefixes labels', function() {
       ReactDOMServer.renderToString(React.createElement(UserForm));

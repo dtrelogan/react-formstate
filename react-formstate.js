@@ -338,7 +338,12 @@ var FormObject = exports.FormObject = function (_Component2) {
         this.formState.clearFields();
       }
 
-      return _react2.default.createElement('div', null, _react2.default.Children.map(this.props.children, this.addProps));
+      var props = null;
+      if (typeof this.props.className === 'string' && this.props.className.trim() !== '') {
+        props = { className: this.props.className };
+      }
+
+      return _react2.default.createElement('div', props, _react2.default.Children.map(this.props.children, this.addProps));
     }
   }, {
     key: 'addProps',
@@ -348,9 +353,11 @@ var FormObject = exports.FormObject = function (_Component2) {
       } // else
 
       var props = null,
-          formState = this.formState;
+          formState = this.formState,
+          swallowProps = false;
 
       if (exists(child.props.formField)) {
+        swallowProps = true;
         props = this.createFieldProps(child);
       } else if (exists(child.props.formObject) || exists(child.props.formArray)) {
         props = this.createObjectProps(exists(child.props.formObject) ? child.props.formObject : child.props.formArray, child.props, exists(child.props.formArray));
@@ -368,7 +375,26 @@ var FormObject = exports.FormObject = function (_Component2) {
         throw new Error('a FormExtension element should not be nested within a Form, FormObject, or FormArray element in the same render function');
       }
 
-      var result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
+      var result = null;
+
+      if (swallowProps) {
+
+        var computedProps = {};
+
+        conditionallyAddProps(child.props, computedProps);
+        conditionallyAddProps(props, computedProps);
+
+        if (child.key) {
+          computedProps.key = child.key;
+        }
+        if (child.ref) {
+          computedProps.ref = child.ref;
+        }
+
+        result = _react2.default.createElement(child.type, computedProps, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
+      } else {
+        result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
+      }
 
       this.formState = formState;
 
@@ -402,14 +428,6 @@ var FormObject = exports.FormObject = function (_Component2) {
         validationComponent: this.validationComponent, // ignored by a nested COMPONENT
         labelPrefix: (this.labelPrefix || '') + (props.labelPrefix || '')
       };
-
-      // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
-      //
-      // let { name, formObject, formArray, labelPrefix, preferNull, ...newProps } = props;
-      // newProps.formState = formState.createFormState(normalizedName);
-      // newProps.validationComponent = this.validationComponent; // ignored by a nested COMPONENT
-      // newProps.labelPrefix = (this.labelPrefix || '') + (props.labelPrefix || '');
-      // return newProps;
     }
   }, {
     key: 'createExtensionProps',
@@ -424,9 +442,6 @@ var FormObject = exports.FormObject = function (_Component2) {
     value: function createFieldProps(child) {
 
       var props = child.props;
-
-      // this was a waste of time. react.cloneElement merges props. it doesn't replace them.
-      // let {formField,label,required,validate,etc,...newProps} = props;
 
       var fieldName = props.formField.toString(),
           formState = this.formState,
@@ -1105,7 +1120,7 @@ var FormState = exports.FormState = function () {
       }
 
       if (!_fieldState || _fieldState.isDeleted) {
-        _fieldState = { value: null }; // would {} have been a better choice?
+        _fieldState = {};
 
         if (field && field.defaultValue !== undefined) {
           _fieldState.value = field.defaultValue;
@@ -1502,3 +1517,40 @@ var FormStateValidation = function () {
 
   return FormStateValidation;
 }();
+
+//
+// rfsProps
+//
+
+FormState.rfsProps = {
+  formState: { suppress: false },
+  fieldState: { suppress: false },
+  handleValueChange: { suppress: false },
+  showValidationMessage: { suppress: false },
+  required: { suppress: false },
+  label: { suppress: false },
+  updateFormState: { suppress: false }, // deprecated ... reverse compatibility
+  // suppressed
+  formField: { suppress: true },
+  validate: { suppress: true },
+  fsValidate: { suppress: true },
+  fsv: { suppress: true },
+  noTrim: { suppress: true },
+  preferNull: { suppress: true },
+  intConvert: { suppress: true },
+  defaultValue: { suppress: true },
+  noCoercion: { suppress: true },
+  revalidateOnSubmit: { suppress: true },
+  handlerBindFunction: { suppress: true },
+  validationMessages: { suppress: true },
+  msgs: { suppress: true }
+};
+
+function conditionallyAddProps(source, dest) {
+  Object.keys(source).forEach(function (k) {
+    var propSpec = FormState.rfsProps[k];
+    if (!propSpec || !propSpec.suppress) {
+      dest[k] = source[k];
+    }
+  });
+}
