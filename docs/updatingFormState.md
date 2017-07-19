@@ -224,9 +224,9 @@ if (fieldState.get('warn')) {
 
 ## Introduction to the UnitOfWork API
 
-We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'add', 'updateFormState', and 'createModel'.
+We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'injectField', 'updateFormState', and 'createModel'.
 
-It is worth mentioning that the 'add' method can also update data. The main difference between 'add' and 'set' is that 'add' can accept both objects and primitive types. This makes 'add' more powerful, but the 'set' method is used the vast majority of the time.
+It is worth mentioning that the 'injectField' method can also update data. The main difference between 'injectField' and 'set' is that 'injectField' can accept both objects and primitive types. This makes 'injectField' more powerful, but the 'set' method is used the vast majority of the time.
 
 Also important to note is that the 'updateFormState' method can receive additional updates to provide to the call to setState:
 
@@ -235,6 +235,12 @@ context.updateFormState({someFlag: true, someOtherStateValue: 1});
 // ...
 if (this.state.someFlag)
 // ...
+```
+
+Alternatively you could use the getUpdates method:
+
+```es6
+this.setState(Object.assign(context.getUpdates(), {someFlag: true, someOtherStateValue: 1}));
 ```
 
 The 'createModel' method is worthy of its own section.

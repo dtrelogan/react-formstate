@@ -13,7 +13,6 @@
   - [defaultValue](#Field.defaultValue)
   - [revalidateOnSubmit](#Field.revalidateOnSubmit)
 - [FieldState](#FieldState)
-  - [equals](#FieldState.equals)
   - [get](#FieldState.get)
   - [getField](#FieldState.getField)
   - [getKey](#FieldState.getKey)
@@ -33,7 +32,6 @@
   - [setValid](#FieldState.setValid)
   - [setValidating](#FieldState.setValidating)
   - [setValue](#FieldState.setValue)
-  - [setCoercedValue](#FieldState.setCoercedValue)
   - [showMessage](#FieldState.showMessage)
   - [validate](#FieldState.validate)
 - [Form](#Form)
@@ -44,6 +42,7 @@
   - [generated props](#FormObject.generatedProps)
 - [FormExtension](#FormExtension)
 - [FormState](#FormState)
+  - [rfsProps](#FormState.rfsProps)
   - [registerValidation](#FormState.registerValidation)
   - [setRequired](#FormState.setRequired)
   - [setEnsureValidationOnBlur](#FormState.setEnsureValidationOnBlur)
@@ -53,10 +52,10 @@
   - [showMessageOnBlur](#FormState.showMessageOnBlur)
   - [showMessageOnSubmit](#FormState.showMessageOnSubmit)
   - [constructor](#FormState.constructor)
-  - [add](#FormState.add)
   - [anyFieldState](#FormState.anyFieldState)
   - [createUnitOfWork](#FormState.createUnitOfWork)
   - [inject](#FormState.inject)
+  - [injectField](#FormState.injectField)
   - [injectModel](#FormState.injectModel)
   - [isDeleted](#FormState.isDeleted)
   - [isInvalid](#FormState.isInvalid)
@@ -66,20 +65,26 @@
   - [getFieldState](#FormState.getFieldState)
   - [getu](#FormState.getu)
   - [onUpdate](#FormState.onUpdate)
+  - [root](#FormState.root)
 - [UnitOfWork](#UnitOfWork)
-  - [add](#UnitOfWork.add)
   - [createModel](#UnitOfWork.createModel)
   - [get](#UnitOfWork.get)
   - [getFieldState](#UnitOfWork.getFieldState)
   - [getu](#UnitOfWork.getu)
+  - [getUpdates](#UnitOfWork.getUpdates)
+  - [injectField](#UnitOfWork.injectField)
   - [injectModel](#UnitOfWork.injectModel)
   - [remove](#UnitOfWork.remove)
   - [set](#UnitOfWork.set)
-  - [setc](#UnitOfWork.setc)
   - [updateFormState](#UnitOfWork.updateFormState)
 - [Deprecated](#Deprecated)
   - [Field.handlerBindFunction](#Field.handlerBindFunction)
-  - [the updateFormState handler](#updateFormStateHandler)
+  - [Field.updateFormState](#Field.updateFormState)
+  - [FieldState.equals](#FieldState.equals)
+  - [FieldState.setCoercedValue](#FieldState.setCoercedValue)
+  - [FormState.add](#FormState.add)
+  - [UnitOfWork.add](#UnitOfWork.add)
+  - [UnitOfWork.setc](#UnitOfWork.setc)
 
 ## <a name='Field'>Field</a>
 
@@ -237,7 +242,7 @@ if you aren't using ajax to submit your data, you could use the key to create an
 
 ### <a name='FieldState.getName'>string getName()</a>
 
-### <a name='FieldState.getValue'>string getValue()</a>
+### <a name='FieldState.getValue'>? getValue()</a>
 
 returns the value for the field state. values are typically coerced to strings. for example:
 
@@ -260,7 +265,7 @@ return v.toString();
 
 you can override this behavior with [getUncoercedValue](#FieldState.getUncoercedValue)
 
-### <a name='FieldState.getUncoercedValue'>string getUncoercedValue()</a>
+### <a name='FieldState.getUncoercedValue'>? getUncoercedValue()</a>
 
 bypasses string coercion, see [getValue](#FieldState.getValue)
 
@@ -291,7 +296,7 @@ see the [on blur](/docs/onBlurExample.md) example
 
 ### <a name='FieldState.isValidating'>boolean isValidating()</a>
 
-### <a name='FieldState.set'>string set(string propertyName, ? value)</a>
+### <a name='FieldState.set'>FieldState set(string propertyName, ? value)</a>
 
 use this to set custom property values
 
@@ -300,9 +305,9 @@ fieldState.set('warn', true);
 assert.equal(true, true === fieldState.get('warn'));
 ```
 
-### <a name='FieldState.setInvalid'>void setInvalid(string message)</a>
+### <a name='FieldState.setInvalid'>FieldState setInvalid(string message)</a>
 
-### <a name='FieldState.setValid'>void setValid(string message)</a>
+### <a name='FieldState.setValid'>FieldState setValid(string message)</a>
 
 ### <a name='FieldState.setValidating'>string setValidating(string message)</a>
 
@@ -319,11 +324,9 @@ validateAsync().then((result) => {
 });
 ```
 
-### <a name='FieldState.setUploading'>string setUploading(string message)</a>
+### <a name='FieldState.setUploading'>FieldState setUploading(string message)</a>
 
-### <a name='FieldState.setValue'>void setValue(string message)</a>
-
-typical behavior. contrast with [setCoercedValue](#FieldState.setCoercedValue)
+### <a name='FieldState.setValue'>FieldState setValue(string message)</a>
 
 ```es6
 let context = this.formState.createUnitOfWork();
@@ -333,27 +336,11 @@ assert(true, fieldState.getValue() === '3');
 assert(true, fieldState.getUncoercedValue() === 3);
 ```
 
-### <a name='FieldState.setCoercedValue'>void setCoercedValue(string message)</a>
-
-retrieved values are typically coerced to strings, see [getValue](#FieldState.getValue)
-
-to avoid wasted effort in the getValue function, if the value you are setting is already coerced, you can use setCoercedValue:
-
-```es6
-let context = this.formState.createUnitOfWork();
-let fieldState = context.getFieldState('x');
-fieldState.setCoercedValue('3');
-assert(true, fieldState.getValue() === '3');
-assert(true, fieldState.getUncoercedValue() === '3');
-```
-
-the default change handler uses this function since html inputs produce string values.
-
-### <a name='FieldState.showMessage'>boolean showMessage()</a>
+### <a name='FieldState.showMessage'>FieldState showMessage()</a>
 
 see the [on blur](/docs/onBlurExample.md) example
 
-### <a name='FieldState.validate'>void validate()</a>
+### <a name='FieldState.validate'>FieldState validate()</a>
 
 calls the appropriate validation function(s). uses the result to update the validity and message properties appropriately. see the [validation](/docs/validationWiring.md) documentation.
 
@@ -586,6 +573,49 @@ similar to FormObject. see [FormExtension](/docs/formExtension.md) for an explan
 
 ## <a name='FormState'>FormState</a>
 
+### <a name='FormState.rfsProps'>static object rfsProps</a>
+
+This might be built out more in the future, but for now it's primarily a utility for suppressing react-formstate props that would otherwise propagate to an input component tagged with 'formField'.
+
+For example, to prevent noTrim and preferNull from being passed as props to the Input component below:
+
+```jsx
+<Input formField='description' required validate={this.validateDescription} noTrim preferNull/>
+```
+
+FormState.rfsProps = {
+  formState: { suppress: false },
+  fieldState: { suppress: false },
+  handleValueChange: { suppress: false },
+  showValidationMessage: { suppress: false },
+  required: { suppress: false },
+  label: { suppress: false },
+  updateFormState: { suppress: false }, // deprecated ... reverse compatibility
+  // suppressed
+  formField: { suppress: true },
+  validate: { suppress: true },
+  fsValidate: { suppress: true },
+  fsv: { suppress: true },
+  noTrim: { suppress: true },
+  preferNull: { suppress: true },
+  intConvert: { suppress: true },
+  defaultValue: { suppress: true },
+  noCoercion: { suppress: true },
+  revalidateOnSubmit: { suppress: true },
+  handlerBindFunction: { suppress: true },
+  validationMessages: { suppress: true },
+  msgs: { suppress: true }
+};
+
+The deprecated *updateFormState* prop is passed by default for backward compatibility. If you want, you can stop this property from being passed by doing the following:
+
+```es6
+import { FormState } from 'react-formstate';
+FormState.rfsProps.updateFormState.suppress = true;
+```
+
+You can suppress or unsuppress other props if you'd like.
+
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 
 adds a reusable validation function with custom messaging
@@ -644,40 +674,6 @@ export default class UserForm extends Component {
 }
 ```
 
-### <a name="FormState.add">void add(object state, string name, ? value, boolean doNotFlatten)</a>
-
-adds a value directly to your form state, OR UPDATES an existing value. 'upsert' might have been a better name.
-
-this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
-
-```es6
-this.state = this.formState.injectModel(model);
-// the model field is named 'disabled' but the jsx presents it as 'active'
-this.formState.add(this.state, 'active', !model.disabled);
-```
-
-you can add object, array, and primitive values:
-
-```es6
-{
-  this.state = this.formState.injectModel({});
-  this.formState.add(this.state, 'x', 3);
-  // { 'formState.x': 3 }
-  this.formState.add(this.state, 'obj', { y: 4, z: { a: 5 } });
-  // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5 }
-  this.formState.add(this.state, 'arrayValue', [1]);
-  // { 'formState.x': 3, 'formState.obj.y': 4, 'formState.obj.z.a': 5, 'formState.arrayValue': [1], 'formState.arrayValue.0' : 1 }
-}
-```
-
-you can avoiding flattening an object into form state. for instance, if you are adding a [moment](https://momentjs.com/):
-
-```es6
-this.formState.add(this.state, 'someDate', moment(), true);
-// { 'formState.someDate': { an object with LOTS of fields } }
-// NOT added: 'formState.someDate.field1' (and field2 and so on...)
-```
-
 ### <a name="FormState.anyFieldState">boolean anyFieldState(function givenAFieldStateReturnABoolean)</a>
 
 primarily used to determine whether you can submit the form. for example:
@@ -723,16 +719,92 @@ export default class UserForm extends Component {
 }
 ```
 
-if necessary, during injection, you can transform the injected form state using the [add](#FormState.add) method.
+works in tandem with the [injectField](#FormState.injectField) method.
 
-also see [add](#FormState.add) for an explanation of the doNotFlatten parameter.
+see [injectField](#FormState.injectField) for an explanation of the doNotFlatten parameter.
 
+### <a name="FormState.injectField">void injectField(object state, string name, ? value, boolean doNotFlatten)</a>
+
+adds a value directly to your form state, or updates an existing value.
+
+this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
+
+```es6
+this.state = this.formState.injectModel(model);
+// the model field is named 'disabled' but the jsx presents it as 'active'
+this.formState.injectField(this.state, 'active', !model.disabled);
+```
+
+it also helps to initialize form state:
+
+```es6
+this.state = this.formState.injectModel(model);
+if (!this.formState.get('country')) {
+  this.formState.injectField(this.state, 'country', 'USA');
+}
+```
+
+you can add object, array, and primitive values:
+
+```es6
+this.state = this.formState.injectModel({});
+
+this.formState.injectField(this.state, 'x', 3);
+// { 'formState.x': { value: 3 } }
+
+this.formState.injectField(this.state, 'obj', { y: 4, z: { a: 5 } });
+// {
+//   'formState.x': { value: 3 },
+//   'formState.obj': { value: { y: 4, z: { a: 5 } } },
+//   'formState.obj.y': { value: 4 },
+//   'formState.obj.z': { value: { a: 5 } },
+//   'formState.obj.z.a': { value: 5 }
+// }
+
+this.formState.injectField(this.state, 'arrayValue', [1]);
+// {
+//   'formState.x': { value: 3 },
+//   'formState.obj': { value: { y: 4, z: { a: 5 } } },
+//   'formState.obj.y': { value: 4 },
+//   'formState.obj.z': { value: { a: 5 } },
+//   'formState.obj.z.a': { value: 5 },
+//   'formState.arrayValue': { value: [1] },
+//   'formState.arrayValue.0' : { value: 1 }
+// }
+```
+
+you can avoiding flattening an object into form state using the doNotFlatten parameter:
+
+```es6
+this.state = this.formState.injectModel({});
+
+this.formState.injectField(this.state, 'obj', { y: 4, z: { a: 5 } }, true);
+// {
+//   'formState.obj': { value: { y: 4, z: { a: 5 } } }
+// }
+// formState.obj.y and the like are NOT injected...
+
+this.formState.injectField(this.state, 'arrayValue', [1,2,3,4,5], true);
+// {
+//   'formState.obj': { value: { y: 4, z: { a: 5 } } },
+//   'formState.arrayValue': { value: [1,2,3,4,5] }
+// }
+// formState.arrayValue.0, formState.arrayValue.1 and the like are NOT injected...
+```
+
+the doNotFlatten option is especially useful for working with a nonstandard input like [react-datepicker](https://github.com/Hacker0x01/react-datepicker), which works with [moment](https://momentjs.com/) values:
+
+```es6
+this.formState.injectField(this.state, 'someDate', moment(), true);
+// { 'formState.someDate': { an object with LOTS of fields } }
+// NOT added, a hundred other fields... 'formState.someDate.field1' (and field2 and so on...)
+```
 
 ### <a name="FormState.injectModel">object injectModel(object model, boolean doNotFlatten)</a>
 
 initializes form state. values will be [coerced](#FieldState.getValue) to strings by default.
 
-see [add](#FormState.add) for an explanation of the doNotFlatten parameter.
+see [injectField](#FormState.injectField) for an explanation of the doNotFlatten parameter.
 
 ```es6
 import React, { Component } from 'react';
@@ -749,7 +821,7 @@ export default class UserForm extends Component {
 }
 ```
 
-if necessary, during injection, you can transform the injected form state using the [add](#FormState.add) method.
+works in tandem with the [injectField](#FormState.injectField) method.
 
 ### <a name="FormState.isDeleted">boolean isDeleted(string name)</a>
 
@@ -864,12 +936,11 @@ this.formState.onUpdate((context, key) => {
 });
 ```
 
+### <a name="formState.root">FormState root()</a>
+
+If you are working with a formState prop in a nested form component, you can use formState.root() to access the formState for the root form component.
+
 ## <a name='UnitOfWork'>UnitOfWork</a>
-
-### <a name='UnitOfWork.add'>void add(string name, ? value, boolean doNotFlatten)</a>
-
-see [injectModel](#UnitOfWork.injectModel)
-and [add](#FormState.add)
 
 ### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
@@ -984,11 +1055,56 @@ let context = this.formState.createUnitOfWork();
 let value = context.getu('x');
 ```
 
-### <a name='UnitOfWork.injectModel'>void injectModel(object model, boolean doNotFlatten)</a>
+### <a name="UnitOfWork.getUpdates">object getUpdates(boolean resetContext)<a/>
 
-before you use this see [injectModel](#FormState.injectModel)
+You can use the *updateFormState* method as follows:
 
-see [FormState.add](#FormState.add) for an explanation of the doNotFlatten parameter.
+```es6
+// the additional updates will be merged into the context's pending updates for the call to setState.
+context.updateFormState({additionalUpdate1: 'someValue', additionalUpdate2: 'anotherValue'});
+```
+
+Now you can alternatively do:
+
+```es6
+const updates = context.getUpdates();
+const otherUpdates = {additionalUpdate1: 'someValue', additionalUpdate2: 'anotherValue'};
+this.setState(Object.assign(updates, otherUpdates));
+```
+
+This could have utility, for instance, for initialization code that is shared between a constructor and a componentWillReceiveProps method, where the constructor needs to assign to this.state but componentWillReceiveProps needs to make a call to setState.
+
+providing false for 'resetContext' (or something with truthiness false):
+
+```es6
+context.getUpdates();
+// { 'formState.name': { value: 'newName' }}
+
+context.getUpdates();
+// { 'formState.name': { value: 'newName' }}
+
+context.set('username', 'newUsername');
+context.getUpdates();
+// { 'formState.name': { value: 'newName' }, 'formState.username': { value: 'newUsername'} }
+```
+
+passing true for 'resetContext':
+
+```es6
+context.getUpdates(true);
+// { 'formState.name': { value: 'newName' }}
+
+context.getUpdates(true);
+// {}
+
+context.set('username', 'newUsername');
+context.getUpdates(true);
+// { 'formState.username': { value: 'newUsername'} }
+```
+
+### <a name='UnitOfWork.injectField'>void injectField(string name, object model, boolean doNotFlatten)</a>
+
+before you use this see [FormState.injectField](#FormState.injectField)
 
 if you need to inject outside your constructor you can use this
 
@@ -1000,13 +1116,39 @@ constructor(props) {
 }
 componentDidMount() {
   this.props.getModel().then((model) => {
-    let context = this.formState.createUnitOfWork();
+    const context = this.formState.createUnitOfWork();
     context.injectModel(model);
-    context.add('someOtherField', 'someValue');
+    context.injectField('someOtherField', 'someValue');
     context.updateFormState();
   });
 }
 ```
+
+see [FormState.injectField](#FormState.injectField) for an explanation of the doNotFlatten parameter.
+
+### <a name='UnitOfWork.injectModel'>void injectModel(object model, boolean doNotFlatten)</a>
+
+before you use this see [FormState.injectModel](#FormState.injectModel)
+
+if you need to inject outside your constructor you can use this
+
+```es6
+constructor(props) {
+  super(props);
+  this.formState = new FormState(this);
+  this.state = {};
+}
+componentDidMount() {
+  this.props.getModel().then((model) => {
+    const context = this.formState.createUnitOfWork();
+    context.injectModel(model);
+    context.injectField('someOtherField', 'someValue');
+    context.updateFormState();
+  });
+}
+```
+
+see [FormState.injectField](#FormState.injectField) for an explanation of the doNotFlatten parameter.
 
 ### <a name="UnitOfWork.remove">void remove(string name)<a/>
 
@@ -1040,22 +1182,6 @@ let context = this.formState.createUnitOfWork();
 let fieldState = context.set('x', 3);
 ```
 
-### <a name="UnitOfWork.setc">FieldState setc(string name, ? value)<a/>
-
-
-```es6
-let context = this.formState.createUnitOfWork();
-let fieldState = context.getFieldState('x');
-fieldState.setCoercedValue(3);
-```
-
-can be shortened to:
-
-```es6
-let context = this.formState.createUnitOfWork();
-let fieldState = context.setc('x', 3);
-```
-
 ### <a name="UnitOfWork.updateFormState">void updateFormState(object additionalUpdates)</a>
 
 calls setState on your root form component.
@@ -1078,6 +1204,29 @@ handleUsernameChange(e) {
 there are no plans to remove these functions but they are no longer part of the examples.
 
 ### <a name='Field.handlerBindFunction'>Field.handlerBindFunction</a>
-### <a name='updateFormStateHandler'>the updateFormState handler</a>
 
-see [handleValueChange](/docs/handleValueChange.md) for why these are deprecated
+is only relevant to the [deprecated updateFormState handler](#Field.updateFormState)
+
+### <a name='Field.updateFormState'>Field.updateFormState</a>
+
+see [handleValueChange](/docs/handleValueChange.md) for why this is deprecated.
+
+### <a name='FieldState.equals'>boolean equals(otherFieldState)</a>
+
+this was intended to support React's 'shouldComponentUpdate' method, but making a calculation in that regard is more complicated than just comparing the fieldstate data. it is exceedingly difficult to write this method so that it meets the requirements of all the different ways it might be used. it is still in the code but now it always returns false.
+
+### <a name='FieldState.setCoercedValue'>void setCoercedValue(string message)</a>
+
+now simply calls [FieldState.setValue](#FieldState.setValue). see the [noCoercion example](/docs/datePickerExample.md) for context.
+
+### <a name="FormState.add">void add(object state, string name, ? value, boolean doNotFlatten)</a>
+
+replaced by [injectField](#FormState.injectField)
+
+### <a name='UnitOfWork.add'>object add(string name, ? value, boolean doNotFlatten)</a>
+
+replaced by [injectField](#UnitOfWork.injectField)
+
+### <a name="UnitOfWork.setc">FieldState setc(string name, ? value)<a/>
+
+now simply calls [UnitOfWork.set](#UnitOfWork.set). see the [noCoercion example](/docs/datePickerExample.md) for context.

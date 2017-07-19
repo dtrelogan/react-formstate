@@ -8,7 +8,7 @@ constructor(props) {
   this.formState = new FormState(this);
   let context = this.formState.createUnitOfWork();
   this.state = context.injectModel(props.model);
-  this.state = context.add('someOtherField', 'someValue');
+  this.state = context.injectField('someOtherField', 'someValue');
 }
 ```
 
@@ -19,7 +19,7 @@ constructor(props) {
   super(props);
   this.formState = new FormState(this);
   this.state = this.formState.injectModel(props.model);
-  this.formState.add(this.state, 'someOtherField', 'someValue');
+  this.formState.injectField(this.state, 'someOtherField', 'someValue');
 }
 ```
 
@@ -35,7 +35,7 @@ componentDidMount() {
   this.props.getModel().then((model) => {
     let context = this.formState.createUnitOfWork();
     context.injectModel(model);
-    context.add('someOtherField', 'someValue');
+    context.injectField('someOtherField', 'someValue');
     context.updateFormState();
   });
 }

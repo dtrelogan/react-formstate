@@ -7,6 +7,8 @@
 
 react-formstate streamlines form components using plain old setState and one-way binding. It's like building a form in raw React... minus the busy work.
 
+[v0.5.0 release notes](/docs/releaseNotes.0.5.0.md)
+
 ### Motivation
 
 If you are adding validation to a [React form](https://facebook.github.io/react/docs/forms.html) and you find yourself thinking - *there must be a better way* - that was the impetus behind react-formstate. Since React is all about responding to changes in component state, the key to a React-based solution is to provide an API to easily manage form state, specifically validation status. In doing so, you get productivity gains beyond validation. The end result is you keep your form components DRY.
@@ -17,7 +19,7 @@ react-formstate turned out even better than I expected so I decided to share it 
 
 If you have any feedback I am happy to hear it. Thanks.
 
-### Demo
+### Demo (NEW!)
 
 <a href='https://dtrelogan.github.io/react-formstate-demo/'>react-formstate-demo</a>
 
@@ -55,6 +57,7 @@ If you have any feedback I am happy to hear it. Thanks.
 
 ### Documentation
 
+- [v0.5.0 release notes](/docs/releaseNotes.0.5.0.md)
 - [API](/docs/api.md)
 - [React forms](https://facebook.github.io/react/docs/forms.html)
 
@@ -67,12 +70,6 @@ If you have any feedback I am happy to hear it. Thanks.
 
 - Friendly full featured finely functioning fantastically fun form framework for React
 - Another React form package?!
-
-### File input examples
-
-- [File input example - iteration 1](/docs/deprecatedFileInputExample.md)
-- [File input example - iteration 2](/docs/fileInputExampleIteration2.md)
-- [File input example - iteration 3](/docs/fileInputExample.md)
 
 ### Enhancements
 

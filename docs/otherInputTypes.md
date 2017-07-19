@@ -39,7 +39,7 @@ export default class UserForm extends Component {
     this.state = this.formState.injectModel(model);
 
     // transform model state for the UI
-    this.formState.add(this.state, 'active', !model.disabled);
+    this.formState.injectField(this.state, 'active', !model.disabled);
 
     this.contactChoices = [
       { id: 1, name: 'Contact Me' },

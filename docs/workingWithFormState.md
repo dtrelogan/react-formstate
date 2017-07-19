@@ -89,7 +89,7 @@ constructor(props) {
 }
 ```
 
-The 'add' method can help with initialization. (Although since it both inserts and updates data, a more appropriate name might be 'upsert'.)
+The 'injectField' method can help with initialization.
 
 ```es6
 constructor(props) {
@@ -100,15 +100,15 @@ constructor(props) {
   // If we are using the same form for CRUD 'creates' and 'updates',
   // and if in 'create' mode, props.model is null or undefined,
   // and if we have to do something dynamic during render based on country,
-  // we can initialize a default value for country using the 'add' method.
+  // we can initialize a default value for country using the 'injectField' method.
   if (!this.formState.get('country')) {
-    this.formState.add(this.state, 'country', 'USA');
+    this.formState.injectField(this.state, 'country', 'USA');
 
-    // The 'add' method can inject both primitive types and objects.
-    // The main difference between using add and injectModel
+    // The 'injectField' method can inject both primitive types and objects.
+    // The main difference between using injectField and injectModel
     // is whether you are injecting your root form model,
     // or a specific field within that model.
-    this.formState.add(this.state, 'favoriteFormPackage', {name: 'react-formstate', foundedIn: 2016});
+    this.formState.injectField(this.state, 'favoriteFormPackage', {name: 'react-formstate', foundedIn: 2016});
   }
 }
 ```
@@ -127,7 +127,7 @@ componentDidMount() {
     // it is properly introduced later
     const context = this.formState.createUnitOfWork();
     context.injectModel(model);
-    context.add('isInitialized1', true);
+    context.injectField('isInitialized1', true);
     // alternatively you can set this flag directly in your state object
     context.updateFormState({isInitialized2: true});
   });

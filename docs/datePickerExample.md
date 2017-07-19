@@ -48,11 +48,14 @@ export default class FormComponent extends Component {
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
 
-    // might need to "reverse coerce" a string to a moment here
+    // Might need to "reverse coerce" a string to a moment here
     // i.e., moment('2017-07-12T18:32:24.402Z');
-    // otherwise set an appropriate default value
-    // pass true to skip flattening the moment object into form state.
-    this.formState.add(this.state, 'when', (props.model && props.model.when) ? moment(props.model.when) : null, true);
+    //
+    const when = (props.model && props.model.when) ? moment(props.model.when) : null;
+
+    // Pass true to skip flattening the moment object into form state.
+    //
+    this.formState.injectField(this.state, 'when', when, true);
 
     this.handleSubmit = this.handleSubmit.bind(this);
   }

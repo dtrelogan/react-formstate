@@ -52,9 +52,9 @@ You can alternatively load a provided model directly into your state. This is ge
 constructor(props) {
   super(props);
   this.formState = new FormState(this);
-  
+
   this.state = this.formState.injectModel(props.model);
-  this.formState.add(this.state, 'someOtherField', 'someValue');
+  this.formState.injectField(this.state, 'someOtherField', 'someValue');
 
   this.handleSubmit = this.handleSubmit.bind(this);
 }
@@ -92,7 +92,7 @@ componentDidMount() {
   this.props.getModel().then((model) => {
     let context = this.formState.createUnitOfWork();
     context.injectModel(model);
-    context.add('someOtherField', 'someValue');
+    context.injectField('someOtherField', 'someValue');
     context.updateFormState();
   });
 }
