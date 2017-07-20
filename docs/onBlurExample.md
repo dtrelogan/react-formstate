@@ -74,27 +74,19 @@ For onBlur and onSubmit, in your form component, you can pass 'true' to FormStat
 
 ## Dynamic configuration
 
+Sometimes different forms are better suited to different user experiences. For instance, in the [demo login form](https://dtrelogan.github.io/react-formstate-demo/?form=login), it might make sense to show messages onSubmit. The react-formstate API provides some built-in support for dynamic configuration:
+
 ```jsx
 export default ({formState, fieldState, handleValueChange, showValidationMessage, ...other}) => {
 
-  let validationState = null, help = null;
+  let help = null;
 
   if (fieldState.isMessageVisible() || !(formState.showMessageOnBlur() || formState.showMessageOnSubmit())) {
-
-    // for demonstration, showing how you could manipulate styling based on validation status
-    // this is based on react-bootstrap inputs
-    if (fieldState.isValid()) {
-      validationState = fieldState.get('warn') ? 'warning' : 'success';
-    }
-    if (fieldState.isValidating()) {validationState = 'warning';}
-    if (fieldState.isInvalid()) {validationState = 'error';}
-
     help = fieldState.getMessage();
   }
 
   return (
     <Input
-      validationState={validationState}
       value={fieldState.getValue()}
       help={help}
       onChange={e => handleValueChange(e.target.value)}
@@ -105,7 +97,7 @@ export default ({formState, fieldState, handleValueChange, showValidationMessage
 };
 ```
 
-Globally:
+Configuring behavior globally:
 
 ```es6
 import { FormState } from 'react-formstate';
@@ -121,7 +113,7 @@ FormState.setEnsureValidationOnBlur(true); // explained below
 
 ```
 
-Locally:
+Overriding locally:
 
 ```es6
 constructor(props) {
@@ -130,17 +122,17 @@ constructor(props) {
 
   // override global settings on FormState
 
-  this.formState.setShowMessageOnBlur(true);
-  this.formState.setShowMessageOnSubmit(true);
-  this.formState.setEnsureValidationOnBlur(true);
+  this.formState.setShowMessageOnBlur(false);
+  this.formState.setShowMessageOnSubmit(false);
+  this.formState.setEnsureValidationOnBlur(false);
 }
 ```
 
-You could also override on a per-input basis in a variety of ways.
+You could also override the behavior on a per-input basis in a variety of ways.
 
 ## ensureValidationOnBlur
 
-The best way to understand what this does is to play with the [demo](https://dtrelogan.github.io/react-formstate-demo/). Toggle the ensure validation onBlur setting and blur through some inputs without changing them.
+The best way to understand what this does is to play with the [demo](https://dtrelogan.github.io/react-formstate-demo/). Blur through some inputs without changing them, then toggle the ensure validation onBlur setting and repeat.
 
 ## Overriding showValidationMessage
 
@@ -151,7 +143,7 @@ Like 'handleValueChange', 'showValidationMessage' is another framework generated
 ```
 
 ```es6
-// this is what the standard framework generated blur handler does
+// this is what the standard react-formstate generated blur handler does
 customBlurHandler() {
   const context = this.formState.createUnitOfWork();
   const fieldState = context.getFieldState('someField');
@@ -189,3 +181,5 @@ window.setTimeout(function() {
 ```
 
 Alternatively you can check to see if the message was already visible at the beginning of your async callback and only showMessage at the end if so.
+
+In the end it will be a matter of personal preference. react-formstate gives you the flexibility to make it work as you wish.
