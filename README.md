@@ -21,7 +21,7 @@ If you have any feedback I am happy to hear it. Thanks.
 
 ### Demo (NEW!)
 
-<a href='https://dtrelogan.github.io/react-formstate-demo/'>react-formstate-demo</a>
+Validated react-bootstrap components: <a href='https://dtrelogan.github.io/react-formstate-demo/'>react-formstate-demo</a>
 
 ### Setup
 
@@ -63,13 +63,9 @@ If you have any feedback I am happy to hear it. Thanks.
 
 ### Peer dependencies
 
-- [React](https://facebook.github.io/react) (!)
-- Assumes es5 polyfills (for example: Object.keys and Array.isArray)
-
-### Alternate titles
-
-- Friendly full featured finely functioning fantastically fun form framework for React
-- Another React form package?!
+- [React](https://facebook.github.io/react)
+- es5 polyfills (for example: Object.keys and Array.isArray)
+- That's it!
 
 ### Enhancements
 
