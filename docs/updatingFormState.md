@@ -132,93 +132,140 @@ As for the 'validate' method, if, for example, you have an input specified as:
 
 the validate method will call the 'validateName' method and apply the results accordingly.
 
-Rather than call a separate validation method, you *can* perform the validation directly in the change handler using the FieldState API:
+### Validation and the FieldState API
+
+You can use the FieldState API to assist with validation. For instance, sometimes it is useful to store miscellaneous data as part of field state:
+
+```jsx
+<Input
+  formField='password'
+  label='Password'
+  required
+  validate={this.validatePassword}
+  handleValueChange={this.handlePasswordChange}
+  />
+```
 
 ```es6
 //
 // demonstrate the FieldState API
 //
 
-handleNameChange(newName) {
+validatePassword(newPassword) {
+  if (newPassword.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+}
+
+handlePasswordChange(newPassword) {
   const context = this.formState.createUnitOfWork(),
-    fieldState = context.set('name', newName);
+    fieldState = context.set('password', newPassword);
 
-  // DO NOT put required field validation in a change handler.
-  // The createModel method that runs on submit will not call a change handler...
+  context.set('passwordConfirmation', ''); // clear the confirmation field.
 
-  fieldState.validate(); // call required field validation
+  // Validation should normally be performed in dedicated validation blocks.
+  // Required field validation, in particular, should NEVER be coded into a change handler.
+
+  fieldState.validate(); // perform regular validation, including required field validation
   if (fieldState.isInvalid()) {
     context.updateFormState();
     return;
   } // else
 
-  // perform other validation
+  // Validation that simply warns the user is okay in a change handler.
 
-  if (newName.substring(0,1) === newName.substring(0,1).toLowerCase()) {
-    fieldState.setInvalid('Name must be capitalized');
-  } else {
-    fieldState.setValid();
+  if (newPassword.length < 12) {
+    fieldState.setValid('Passwords are ideally at least 12 characters');
+    fieldState.set('warn', true);
   }
 
   context.updateFormState();
 }
 ```
 
-&nbsp;
-
-You can argue it's best practice, however, to always put synchronous validation logic into a code block referenced from your input elements (or using the fluent validation API). That way you can make sure *all* your validation runs at least once, regardless of whether an input is ever changed prior to hitting submit. That protects you against the nasty edge case of injecting an invalid model into your form state.
-
-```jsx
-<Input
-  formField='username'
-  label='Username'
-  required
-  fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
-  handleValueChange={this.handleUsernameChange}
-  />
-```
 ```es6
-handleUsernameChange(newUsername) {
-  const context = this.formState.createUnitOfWork(),
-    fieldState = context.set('username', newUsername);
-
-  // run the synchronous validation specified on the input element
-  fieldState.validate();
-  if (fieldState.isInvalid()) {
-    context.updateFormState();
-    return;
-  }
-  // else
-
-  // run asynchronous validation...
+if (fieldState.get('warn')) {
+  // ...
 }
 ```
 
-It is sometimes useful to store miscellaneous data with a field state. A generic 'set' method provides this ability. For instance:
+&nbsp;
+
+Note the 'validate' method can also call validation specified via the fluent API. For instance, the above example can be shortened to:
+
+```jsx
+<Input
+  formField='password'
+  label='Password'
+  required
+  fsv={v => v.minLength(8).msg('Password must be at least 8 characters')}
+  handleValueChange={this.handlePasswordChange}
+  />
+```
+
+```es6
+handlePasswordChange(newPassword) {
+  const context = this.formState.createUnitOfWork();
+  const fieldState = context.set('password', newPassword).validate();
+  context.set('passwordConfirmation', ''); // clear the confirmation field.
+  if (fieldState.isValid() && newPassword.length < 12) {
+    fieldState.setValid('Passwords are ideally at least 12 characters');
+    fieldState.set('warn', true);
+  }
+  context.updateFormState();
+}
+```
+
+To guard against an invalid model injected into form state, it is best practice to put all normal, synchronous validation into dedicated validation blocks, since a change handler might never be called. Required field validation, in particular, never makes sense in a change handler.
+
+Although validation that simply warns the user is okay in a change handler, the example could be reworked as:
+
+```jsx
+<Input
+  formField='password'
+  label='Password'
+  required
+  validate={this.validatePassword}
+  handleValueChange={this.handlePasswordChange}
+  />
+```
+
+```es6
+validatePassword(newPassword, context) {
+  if (newPassword.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+  if (newPassword.length < 12) {
+    const fieldState = context.getFieldState('password');
+    fieldState.setValid('Passwords are ideally at least 12 characters');
+    fieldState.set('warn', true);
+  }
+}
+
+handlePasswordChange(newPassword) {
+  const context = this.formState.createUnitOfWork();
+  context.set('password', newPassword).validate();
+  context.set('passwordConfirmation', ''); // clear the confirmation field.
+  context.updateFormState();
+}
+```
+
+Finally, the validation block could be reworked as:
 
 ```es6
 validatePassword(newPassword, context) {
 
+  const fieldState = context.getFieldState('password');
+
   if (newPassword.length < 8) {
-    return 'Password must contain at least 8 characters';
-  }
-  if (newPassword.length < 12) {
-    //
-    // Notice that we have the option of using the FieldState API directly in the validation block.
-    //
-    const fieldState = context.getFieldState('password');
-    // value has already been set to newPassword here.
-    fieldState.setValid('Passwords ideally contain at least 12 characters');
-    fieldState.set('warn', true); // <------ set a nonstandard property
-    // no need to call updateFormState here.
+    fieldState.setInvalid('Password must be at least 8 characters');
     return;
   }
-}
-```
-
-```es6
-if (fieldState.get('warn')) {
-  // ...
+  if (newPassword.length < 12) {
+    fieldState.setValid('Passwords are ideally at least 12 characters');
+    fieldState.set('warn', true);
+    return;
+  }
 }
 ```
 
@@ -237,7 +284,7 @@ if (this.state.someFlag)
 // ...
 ```
 
-Alternatively you could use the getUpdates method:
+Alternatively you could use the 'getUpdates' method to prepare a call to setState:
 
 ```es6
 this.setState(Object.assign(context.getUpdates(), {someFlag: true, someOtherStateValue: 1}));
