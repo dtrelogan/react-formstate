@@ -101,7 +101,7 @@ a Field is a representation of a rendered input component. if you define an inpu
   />
 ```
 
-a framework object is created with the following properties:
+a Field instance is created with the following properties:
 
 ```es6
 {
@@ -181,9 +181,9 @@ defines a default value for your input. values will be [coerced](#FieldState.get
 
 if a model is [injected](#FormState.injectModel) into form state, the model value takes precedence over the default value. *be careful*: when inputs do not align exactly with your backing model, some inputs could receive an initial value from the injected model while other unaligned inputs could receive the configured default value. this could be a source of confusion and/or bugs during development.
 
-do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by the framework are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
+do not confuse this property with the defaultValue for a react [uncontrolled component](https://facebook.github.io/react/docs/forms.html#uncontrolled-components). input components managed by react-formstate are [controlled components](https://facebook.github.io/react/docs/forms.html#controlled-components). always supply a value property to your inputs.
 
-note: if you are using the DEPRECATED framework generated 'updateFormState' change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the framework has no idea whether your component contains a text input or a select input. it is better to use the new 'handleValueChange' handler where this is no longer a concern.
+note: if you are using the DEPRECATED 'updateFormState' change handler, for select-multiple and checkbox group inputs *always* supply an array default value in your jsx. you must do this because otherwise the react-formstate has no idea whether your component contains a text input or a select input. it is better to use the new 'handleValueChange' handler where this is no longer a concern.
 
 ### <a name='Field.revalidateOnSubmit'>revalidateOnSubmit</a>
 
@@ -559,7 +559,7 @@ the following deprecated prop is also passed:
 
 - updateFormState: the DEPRECATED onChange handler for your input component (takes an event parameter)
 
-note: for asynchronous validation you must override the framework generated handleValueChange handler. see an example [here](/docs/asyncExample.md)
+note: for asynchronous validation you must override the handleValueChange handler. see an example [here](/docs/asyncExample.md)
 
 FormObjects and FormArrays pass the following properties to nested FormObjects and FormArrays.
 
@@ -913,11 +913,11 @@ let value = this.formState.getu('x');
 
 ### <a name='FormState.onUpdate'>void onUpdate(function callback)</a>
 
-sets a callback from the framework generated onChange handler.
+sets a callback from the standard handleValueChange onChange handler.
 
-if you add an onUpdate callback, be sure to call context.updateFormState in your callback, as the framework delegates that responsibility.
+if you add an onUpdate callback, be sure to call context.updateFormState in your callback, as react-formstate delegates that responsibility.
 
-if you override the framework generated event handler for any of your fields, remember to call your onUpdate callback from your change handler.
+if you override the standard event handler for any of your fields, remember to call your onUpdate callback from your change handler.
 
 an onUpdate callback may only be added to a root form state instance (i.e., not a nested one).
 
@@ -988,9 +988,9 @@ handleSubmit(e) {
 }
 ```
 
-the framework can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
+react-formstate can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
-note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of the framework, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
+note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of react-formstate, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
 
 ### <a name="UnitOfWork.get">FieldState get(string name)<a/>
 

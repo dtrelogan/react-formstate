@@ -251,4 +251,4 @@ Enjoy!
 
 ### asynchronous validation
 
-All validation functions documented in this section are intended to be callbacks for the framework generated event handler. They should be *synchronous*. Asynchronous validation should instead override the event handler. An example is provided [here](/docs/asyncExample.md)
+All validation functions documented in this section are intended to be callbacks for the standard event handler. They should be *synchronous*. Asynchronous validation should instead override the event handler. An example is provided [here](/docs/asyncExample.md)

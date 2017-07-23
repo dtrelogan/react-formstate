@@ -14,7 +14,7 @@ export default class LoginForm extends Component {
     this.formState = new FormState(this);
     this.state = {};
 
-    // set a callback from the framework generated onChange handler
+    // set a callback from the standard onChange handler
     this.formState.onUpdate(this.onUpdate.bind(this));
 
     this.handleSubmit = this.handleSubmit.bind(this);

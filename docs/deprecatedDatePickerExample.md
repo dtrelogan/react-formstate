@@ -11,7 +11,7 @@ for problem #2, the best solution may vary depending on use case. four methods a
 
 ## method 1 - override the change handler
 
-the most straightforward way to deal with a nonstandard input is to override the framework generated event handler:
+the most straightforward way to deal with a nonstandard input is to override the standard event handler:
 
 ```es6
 import React, { Component } from 'react';
@@ -140,7 +140,7 @@ since this feature will frequently be used in tandem with 'noCoercion', you can 
 
 another approach is to wrap the nonstandard event handler to make it act as if it returns an event like a normal html input.
 
-the framework generated event handler only looks at e.target.type and e.target.value. e.target.type is only important so much as it's not 'checkbox' or 'select-multiple'.
+the standard event handler only looks at e.target.type and e.target.value. e.target.type is only important so much as it's not 'checkbox' or 'select-multiple'.
 
 ```es6
 import React, { Component } from 'react';

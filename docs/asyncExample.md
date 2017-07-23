@@ -33,7 +33,7 @@ export default class UserForm extends Component {
       disabled = true;
     }
 
-    // notice we are overriding the framework-generated handleValueChange prop for username
+    // notice we are overriding the standard handleValueChange prop for username
 
     // also notice username is still marked required.
     // this will prevent a valid form submission before the user enters anything.
