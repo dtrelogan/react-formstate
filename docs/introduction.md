@@ -319,7 +319,7 @@ Note that the examples here make use of destructuring assignment:
 
 ```es6
 {
-  "presets": ["es2015"],
+  "presets": ["es2015", "react"],
   "plugins": ["transform-object-rest-spread"]
 }
 ```
