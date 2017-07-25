@@ -103,11 +103,3 @@ export default class FormComponent extends Component {
   }
 };
 ```
-
-Note that if you were to skip setting rfsNoCoercion and the noCoercion flag, and instead in the DateInput component simply do this:
-
-```jsx
-selected={fieldState.getUncoercedValue()}
-```
-
-that would cover you 99% of the time. But if you have validation on the field, and if the change handler never fires before a submit... the noCoercion setting covers that case.
