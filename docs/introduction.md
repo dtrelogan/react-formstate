@@ -1,6 +1,6 @@
 # An introduction to react-formstate
 
-Let's contrast a simple form built in raw react:
+Let's contrast a simple form built in raw React:
 
 &nbsp;
 
@@ -129,7 +129,7 @@ export default class SimpleRfsForm extends Component {
 
 &nbsp;
 
-Comparing the examples, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but at this point the form written with react-formstate isn't necessarily more elegant or more maintainable than the form written in raw react.
+Comparing the examples, react-formstate saves some effort in terms of initializing an empty form and dealing with updates to immutable state, but at this point the form written with react-formstate isn't necessarily more elegant or more maintainable than the form written in raw React.
 
 Now let's try to add simple validation:
 
