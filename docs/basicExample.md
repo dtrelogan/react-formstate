@@ -49,7 +49,6 @@ export default class ChangePasswordForm extends Component {
     this.state = {};
 
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.validateConfirmNewPassword = this.validateConfirmNewPassword.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
   }
 

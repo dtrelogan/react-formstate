@@ -257,7 +257,6 @@ export default class SimpleRfsForm extends Component {
     this.state = {};
 
     this.handleSubmit = this.handleSubmit.bind(this);
-+   this.validateName = this.validateName.bind(this);
   }
 
   render() {
