@@ -3,9 +3,13 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-The most straightforward approach to form validation in React.
+## An optimal productivity API for React forms
+
+react-formstate streamlines form components using plain old setState and one-way binding. It's like building a form in raw React... minus the busy work.
 
     $ npm install react-formstate --save
+
+It's a best-in-class solution with a focus on validation. Short of command pattern, **it will support your use case**.
 
 ### Demo
 

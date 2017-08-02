@@ -575,14 +575,15 @@ similar to FormObject. see [FormExtension](/docs/formExtension.md) for an explan
 
 ### <a name='FormState.rfsProps'>static object rfsProps</a>
 
-This might be built out more in the future, but for now it's primarily a utility for suppressing react-formstate props that would otherwise propagate to an input component tagged with 'formField'.
-
-For example, to prevent noTrim and preferNull from being passed as props to the Input component below:
+This might be built out more in the future, but for now it's primarily a utility for suppressing react-formstate props that would otherwise propagate to an input component tagged with 'formField'. For example, react-formstate prevents noTrim and preferNull from being passed as props to the Input component below:
 
 ```jsx
 <Input formField='description' required validate={this.validateDescription} noTrim preferNull/>
 ```
 
+Here are the standard settings:
+
+```es6
 FormState.rfsProps = {
   formState: { suppress: false },
   fieldState: { suppress: false },
@@ -606,6 +607,7 @@ FormState.rfsProps = {
   validationMessages: { suppress: true },
   msgs: { suppress: true }
 };
+```es6
 
 The deprecated *updateFormState* prop is passed by default for backward compatibility. If you want, you can stop this property from being passed by doing the following:
 
@@ -615,6 +617,8 @@ FormState.rfsProps.updateFormState.suppress = true;
 ```
 
 You can suppress or unsuppress other props if you'd like.
+
+You can also [rename](/docs/renameProps.md) some of the standard props if you wish.
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 

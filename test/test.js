@@ -51,10 +51,11 @@ var createInput = function(saveRef) {
   return createReactClass({
     render: function() {
       saveRef(this);
+      const fieldState = this.props.fieldState || this.props.field;
       return React.createElement('div', null,
         React.createElement('label', null, this.props.label),
-        React.createElement('input', { type: 'text', value: this.props.fieldState.getValue(), onChange: this.props.updateFormState }),
-        React.createElement('span', null, this.props.fieldState.getMessage())
+        React.createElement('input', { type: 'text', value: fieldState.getValue(), onChange: this.props.updateFormState }),
+        React.createElement('span', null, fieldState.getMessage())
       );
     }
   });
@@ -479,6 +480,10 @@ var NoCoercionForm = createNoCoercionForm();
 var propsNotSwallowedInput;
 var PropsNotSwallowedInput = createInput(function(input) { propsNotSwallowedInput = input; }, true);
 
+const doNothing = function() {};
+
+var propsRenamedInput;
+var PropsRenamedInput = createInput(function(input) { propsRenamedInput = input; }, true);
 
 var refToNameInput;
 var refToNameInputFunction = function(c) {refToNameInput=c;};
@@ -512,7 +517,10 @@ var createSwallowPropsForm = function(inject, doThrow) {
               handlerBindFunction: null,
               validationMessages: ['hello'],
               msgs: ['hello'],
-              noCoercion: true
+              noCoercion: true,
+              // test renaming props
+              fieldFor: 'name',
+              fluentValidate: function(v) { return v.minLength(100).msg('Not blah'); }
             }),
             React.createElement(PropsNotSwallowedInput, {
               key: 'someOtherKey',
@@ -531,7 +539,14 @@ var createSwallowPropsForm = function(inject, doThrow) {
               validationMessages: ['hello'],
               msgs: ['hello'],
               noCoercion: true
-            })
+            }),
+            React.createElement(PropsRenamedInput, {
+              key: 'anotherKey',
+              fieldFor: 'overrideRenamed',
+              label: 'Renamed',
+              setValue: doNothing,
+              setTouched: doNothing
+            }),
           ],
           'test no child',
           null,
@@ -4241,6 +4256,8 @@ describe('FormObject', function() {
         assert.notEqual(k, 'msgs');
       });
       assert.notEqual(-1, Object.keys(nameInput.props).indexOf('className'));
+      assert.notEqual(-1, Object.keys(nameInput.props).indexOf('fluentValidate'));
+      assert.notEqual(-1, Object.keys(nameInput.props).indexOf('fieldFor'));
       assert.equal('notSwallowed', nameInput.props.className);
       assert.notEqual(-1, Object.keys(nameInput.props).indexOf('updateFormState'));
       assert.notEqual(-1, Object.keys(propsNotSwallowedInput.props).indexOf('validate'));
@@ -4260,6 +4277,74 @@ describe('FormObject', function() {
       }
       finally {
         FormState.rfsProps.updateFormState.suppress = false;
+      }
+    });
+    it('can use renamed rfs props', function() {
+      try {
+        FormState.rfsProps.formField.name = 'fieldFor';
+        FormState.rfsProps.fsv.name = 'fluentValidate';
+        FormState.rfsProps.fieldState.name = 'field';
+        FormState.rfsProps.handleValueChange.name = 'setValue';
+        FormState.rfsProps.showValidationMessage.name = 'setTouched';
+        var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+        assert.equal('object', typeof(nameInput.props.field));
+        assert.equal('name', nameInput.props.field.getField().name);
+        assert.equal('function', typeof(nameInput.props.setValue));
+        assert.equal('function', typeof(nameInput.props.setTouched));
+        testForm.setState = function(x) {
+          this.state = x;
+        };
+        const context = testForm.formState.createUnitOfWork();
+        context.set('name', 'b').validate();
+        assert.equal('Not blah', context.getUpdates()['formState.name'].message);
+      }
+      finally {
+        FormState.rfsProps.formField.name = 'formField';
+        FormState.rfsProps.fsv.name = 'fsv';
+        FormState.rfsProps.fieldState.name = 'fieldState';
+        FormState.rfsProps.handleValueChange.name = 'handleValueChange';
+        FormState.rfsProps.showValidationMessage.name = 'showValidationMessage';
+      }
+    });
+    it('suppresses both standard rfs props and renamed rfs props', function() {
+      try {
+        FormState.rfsProps.formField.name = 'fieldFor';
+        FormState.rfsProps.fsv.name = 'fluentValidate';
+        FormState.rfsProps.fieldState.name = 'field';
+        FormState.rfsProps.handleValueChange.name = 'setValue';
+        FormState.rfsProps.showValidationMessage.name = 'setTouched';
+        var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+        assert.equal(-1, Object.keys(nameInput.props).indexOf('fluentValidate'));
+        assert.equal(-1, Object.keys(nameInput.props).indexOf('fieldFor'));
+        assert.equal(-1, Object.keys(nameInput.props).indexOf('formField'));
+        assert.equal(-1, Object.keys(nameInput.props).indexOf('fsv'));
+      }
+      finally {
+        FormState.rfsProps.formField.name = 'formField';
+        FormState.rfsProps.fsv.name = 'fsv';
+        FormState.rfsProps.fieldState.name = 'fieldState';
+        FormState.rfsProps.handleValueChange.name = 'handleValueChange';
+        FormState.rfsProps.showValidationMessage.name = 'showValidationMessage';
+      }
+    });
+    it('can override renamed rfs props', function() {
+      try {
+        FormState.rfsProps.formField.name = 'fieldFor';
+        FormState.rfsProps.fsv.name = 'fluentValidate';
+        FormState.rfsProps.fieldState.name = 'field';
+        FormState.rfsProps.handleValueChange.name = 'setValue';
+        FormState.rfsProps.showValidationMessage.name = 'setTouched';
+        var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+        assert.equal('overrideRenamed', propsRenamedInput.props.field.getField().name);
+        assert.equal(true, propsRenamedInput.props.setValue === doNothing);
+        assert.equal(true, propsRenamedInput.props.setTouched === doNothing);
+      }
+      finally {
+        FormState.rfsProps.formField.name = 'formField';
+        FormState.rfsProps.fsv.name = 'fsv';
+        FormState.rfsProps.fieldState.name = 'fieldState';
+        FormState.rfsProps.handleValueChange.name = 'handleValueChange';
+        FormState.rfsProps.showValidationMessage.name = 'showValidationMessage';
       }
     });
     it('retains key and ref for a formField component', function() {
