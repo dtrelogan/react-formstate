@@ -2,8 +2,6 @@
 
 Working example [here](https://dtrelogan.github.io/react-formstate-demo/)
 
-Note you can [rename](/docs/renameProps.md) the props provided by react-formstate.
-
 ```jsx
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
@@ -30,7 +28,7 @@ const Input = ({label, type, value, help, onChange}) => {
 
 // A component shim to transform props provided by react-formstate
 // to simple props for the vanilla Input component
-// (Note you can rename these props if you want)
+// (prop names are configurable)
 //
 const RfsInput = ({fieldState, handleValueChange, ...other}) => {
   return (
