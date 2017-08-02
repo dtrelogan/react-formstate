@@ -68,8 +68,6 @@ export default class RawReactForm extends Component {
 
 with an equivalent form built using react-formstate:
 
-(Note you can [rename](/docs/renameProps.md) the props provided by react-formstate.)
-
 &nbsp;
 
 ```jsx
@@ -85,7 +83,7 @@ const Input = ({label, value, onChange}) => {
   );
 };
 
-// you can rename these props if you want
+// (prop names are configurable)
 const RfsInput = ({fieldState, handleValueChange, ...other}) => {
   return (
     <Input
