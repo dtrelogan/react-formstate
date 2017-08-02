@@ -607,7 +607,7 @@ FormState.rfsProps = {
   validationMessages: { suppress: true },
   msgs: { suppress: true }
 };
-```es6
+```
 
 The deprecated *updateFormState* prop is passed by default for backward compatibility. If you want, you can stop this property from being passed by doing the following:
 
