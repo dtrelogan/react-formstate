@@ -35,7 +35,7 @@ Form fields are specified directly in your JSX (no need for a redundant schema s
 
 ## Unobtrusive
 
-react-formstate is not declarative (nor magical), so it won't get in your way.
+react-formstate does not trap you in a workflow and it isn't magical, so it won't get in your way.
 
 You can write plain old validation code:
 
