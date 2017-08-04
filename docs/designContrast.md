@@ -12,11 +12,11 @@ Which layer should hold the state of an unsubmitted form?
 
 [Redux](https://github.com/reactjs/redux) advocates storing all data upstream in a store. This is consistent with React's core concept of one-way binding. Typical benefits of a Redux/Flux architecture include supporting real-time applications, undo/redo functionality, and replay.
 
-Consider these features in the context of an HTML form. Is pushing real-time data into an HTML form a useful feature? Most likely not. Is sophisticated undo/redo beyond what's offered by standard HTML inputs important? Probably not. Is watching a replay of a user manipulating a form a valuable feature? Potentially. Is it worth the additional effort of wrapping an HTML form in command pattern? Probably not.
+Consider these features in the context of an HTML form. Is pushing real-time data into an HTML form a useful feature? Most likely not. Is sophisticated undo/redo beyond what's offered by standard HTML inputs important? Probably not. Is watching a replay of a user manipulating a form a valuable feature? Potentially. Is it worth the additional effort of wrapping an HTML form in command pattern?
 
-As an argument against a full-on Redux approach, one can question the need for an upstream store to touch invalid state. Are other parts of your application responding to changes to a partially completed form? I very much doubt it.
+As an argument against a full-on Redux approach, one can question the need for an upstream store to touch invalid state. Are other parts of your application responding to changes to a partially completed form? Probably not.
 
-Storing transient form state directly in your form component has the added benefit of encapsulating validation logic in the form component where it arguably belongs. Storing transient form state in a form component is compatible with Redux/Flux. Once valid data is submitted you can update the store in the usual manner.
+All that being said, it is straightforward to [enhance](https://github.com/dtrelogan/react-formstate/issues/8) react-formstate to integrate with Redux.
 
 Another goal of an upstream store might be to write validation logic once and have it service both a client UI and a server-side database. However, since validation in a client UI typically has fundamentally different requirements from that of server side data repositories, one can argue the goal of writing validation logic once is a chimera (unfortunately).
 
