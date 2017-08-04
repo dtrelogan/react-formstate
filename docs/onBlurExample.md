@@ -156,30 +156,3 @@ customBlurHandler() {
   context.updateFormState();
 }
 ```
-
-## Showing messages when asynchronous validation finishes
-
-In an asynchronous handler, it's simplest to show the message immediately when validation finishes:
-
-```jsx
-// simulate calling your api
-window.setTimeout(function() {
-  let context = this.formState.createUnitOfWork(),
-    fieldState = context.getFieldState('username', asyncToken);
-
-  // if the token still matches, the username we are verifying is still relevant
-  if (fieldState) {
-    if (username === 'taken') {
-      fieldState.setInvalid('Username already exists');
-    } else {
-      fieldState.setValid('Verified');
-    }
-    fieldState.showMessage(); // in case you are showing on blur
-    context.updateFormState();
-  }
-}.bind(this), 2000);
-```
-
-Alternatively you can check to see if the message was already visible at the beginning of your async callback and only showMessage at the end if so.
-
-In the end it will be a matter of personal preference. react-formstate gives you the flexibility to make it work as you wish.

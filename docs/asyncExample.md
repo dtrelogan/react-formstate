@@ -88,7 +88,6 @@ export default class UserForm extends Component {
         } else {
           fieldState.setValid('Verified');
         }
-        fieldState.showMessage(); // in case you are showing on blur
         context.updateFormState();
       }
     }, 2000);

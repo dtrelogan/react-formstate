@@ -180,7 +180,6 @@ class Test extends Component {
 
     if (username === this.originalUsername()) {
       fieldState.setValid('Verified');
-      fieldState.showMessage();
       context.updateFormState();
       return;
     } // else
@@ -216,7 +215,6 @@ class Test extends Component {
         } else {
           fieldState.setValid('Verified');
         }
-        fieldState.showMessage();
         context.updateFormState();
       }
     }, 2000);
@@ -304,7 +302,6 @@ class Test extends Component {
 
     if (username === this.originalUsername()) {
       fieldState.setValid('Verified');
-      fieldState.showMessage();
       context.updateFormState();
       return;
     } // else
@@ -340,7 +337,6 @@ class Test extends Component {
         } else {
           fieldState.setValid('Verified');
         }
-        fieldState.showMessage();
 
 +       if (this.state.submitting) {
 +         this.submit(context);
