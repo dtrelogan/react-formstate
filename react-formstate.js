@@ -987,28 +987,36 @@ var FormState = exports.FormState = function () {
     }
   }]);
 
-  function FormState(form) {
+  function FormState(form, stateFunction, setStateFunction) {
     var _this7 = this;
 
     _classCallCheck(this, FormState);
 
     this.form = form;
+    this.stateFunction = stateFunction;
+    this.setStateFunction = setStateFunction;
     this.path = null;
     this.rootFormState = this;
     this.fields = [];
     this.anyFieldState = function (f) {
-      return anyFieldState(_this7.form.state, f);
+      return anyFieldState(_this7.getState(), f);
     };
   }
 
   _createClass(FormState, [{
     key: 'createFormState',
     value: function createFormState(name) {
-      var formState = new FormState(this.form);
+      var formState = new FormState(this.form, this.stateFunction, this.setStateFunction);
       formState.path = this.buildKey(name);
       formState.rootFormState = this.rootFormState;
       formState.fields = undefined;
       return formState;
+    }
+  }, {
+    key: 'getState',
+    value: function getState() {
+      var state = this.stateFunction ? this.stateFunction() : this.form && this.form.state;
+      return state || {};
     }
   }, {
     key: 'root',
@@ -1114,7 +1122,7 @@ var FormState = exports.FormState = function () {
     value: function getFieldState(fieldOrName) {
       var field = findFieldByFieldOrName(this, fieldOrName),
           key = field ? field.key : this.buildKey(fieldOrName),
-          _fieldState = this.form && this.form.state ? _getFieldState(this.form.state, key) : null;
+          _fieldState = _getFieldState(this.getState(), key);
 
       // if model prop provided to root FormObject
       // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -1145,7 +1153,7 @@ var FormState = exports.FormState = function () {
   }, {
     key: 'isDeleted',
     value: function isDeleted(name) {
-      var _fieldState = _getFieldState(this.form.state, this.buildKey(name));
+      var _fieldState = _getFieldState(this.getState(), this.buildKey(name));
       return Boolean(_fieldState && _fieldState.isDeleted);
     }
   }, {
@@ -1178,7 +1186,7 @@ var FormState = exports.FormState = function () {
         if (!this.flatModel) {
           // one-time only
           if (isObject(model)) {
-            if (isObject(this.form.state) && Object.keys(this.form.state).some(function (k) {
+            if (Object.keys(this.getState()).some(function (k) {
               return k.startsWith(FORM_STATE_PREFIX);
             })) {
               console.log('warning: react-formstate: a model prop was provided to the root FormObject element even though a model was injected in the constructor?');
@@ -1262,7 +1270,7 @@ var UnitOfWork = function () {
     }
   }, {
     key: 'recursiveCreateModel',
-    value: function recursiveCreateModel(fields, model) {
+    value: function recursiveCreateModel(fields, model, doTransforms) {
       var isModelValid = true;
 
       for (var i = 0, len = fields.length; i < len; i++) {
@@ -1279,7 +1287,7 @@ var UnitOfWork = function () {
 
           var formState = this.formState;
           this.formState = formState.createFormState(field.name);
-          if (!this.recursiveCreateModel(field.fields || field.array, value)) {
+          if (!this.recursiveCreateModel(field.fields || field.array, value, doTransforms)) {
             isModelValid = false;
           }
           this.formState = formState;
@@ -1290,32 +1298,30 @@ var UnitOfWork = function () {
             fieldState.validate();
           }
           fieldState.showMessage();
-          if (!fieldState.isValid()) {
-            isModelValid = false;
-          }
-          if (!isModelValid) {
-            continue;
-          } // else
 
           value = fieldState.getValue();
 
-          if (field.intConvert) {
-            value = Array.isArray(value) ? value.map(function (x) {
-              return parseInt(x);
-            }) : parseInt(value);
-          }
-
-          if (typeof value === 'string') {
-            if (!field.noTrim) {
-              value = value.trim();
+          if (!fieldState.isValid()) {
+            isModelValid = false;
+          } else if (doTransforms) {
+            if (field.intConvert) {
+              value = Array.isArray(value) ? value.map(function (x) {
+                return parseInt(x);
+              }) : parseInt(value);
             }
-            if (field.preferNull && value === '') {
-              value = null;
+
+            if (typeof value === 'string') {
+              if (!field.noTrim) {
+                value = value.trim();
+              }
+              if (field.preferNull && value === '') {
+                value = null;
+              }
             }
           }
         }
 
-        if (field.preferNull) {
+        if (doTransforms && field.preferNull) {
           if (Array.isArray(value)) {
             if (value.length === 0) {
               value = null;
@@ -1407,12 +1413,10 @@ var UnitOfWork = function () {
   }, {
     key: 'updateFormState',
     value: function updateFormState(additionalUpdates) {
-      var updates = this.getUpdates(true);
+      var updates = Object.assign(this.getUpdates(true), additionalUpdates || {});
 
-      if (additionalUpdates) {
-        this.formState.form.setState(Object.assign(updates, additionalUpdates));
-      } else if (Object.keys(updates).length > 0) {
-        this.formState.form.setState(updates);
+      if (Object.keys(updates).length > 0) {
+        this.formState.setStateFunction ? this.formState.setStateFunction(updates) : this.formState.form.setState(updates);
       }
     }
   }, {
@@ -1456,7 +1460,7 @@ var UnitOfWork = function () {
       var key = this.formState.buildKey(name);
       var keyDot = key + '.';
 
-      iterateKeys(this.formState.form.state, function (key) {
+      iterateKeys(this.formState.getState(), function (key) {
         if (key.startsWith(keyDot)) {
           // have to transform the absolute path to something relative to the context's path.
           // there's probably a better way to code this... might involve rejiggering getFieldState somehow.
@@ -1466,17 +1470,30 @@ var UnitOfWork = function () {
       });
     }
   }, {
-    key: 'createModel',
-    value: function createModel(noUpdate) {
+    key: 'createModelResult',
+    value: function createModelResult(options) {
       if (this.formState !== this.formState.root()) {
         throw new Error('createModel should only be called on root form state.');
       }
 
-      var model = {},
-          isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model);
+      var _ref = options || {},
+          doTransforms = _ref.doTransforms;
 
-      if (isModelValid) {
-        return model;
+      var model = {},
+          isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model, doTransforms);
+
+      return {
+        model: model,
+        isValid: isModelValid
+      };
+    }
+  }, {
+    key: 'createModel',
+    value: function createModel(noUpdate) {
+      var result = this.createModelResult({ doTransforms: true });
+
+      if (result.isValid) {
+        return result.model;
       } // else
 
       if (!noUpdate) {

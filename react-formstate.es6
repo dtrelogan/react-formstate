@@ -751,21 +751,29 @@ export class FormState {
     return new FormStateValidation(value, label);
   }
 
-  constructor(form) {
+  constructor(form, stateFunction, setStateFunction) {
     this.form = form;
+    this.stateFunction = stateFunction;
+    this.setStateFunction = setStateFunction;
     this.path = null;
     this.rootFormState = this;
     this.fields = [];
-    this.anyFieldState = (f) => anyFieldState(this.form.state, f);
+    this.anyFieldState = (f) => anyFieldState(this.getState(), f);
   }
 
 
   createFormState(name) {
-    let formState = new FormState(this.form);
+    let formState = new FormState(this.form, this.stateFunction, this.setStateFunction);
     formState.path = this.buildKey(name);
     formState.rootFormState = this.rootFormState;
     formState.fields = undefined;
     return formState;
+  }
+
+
+  getState() {
+    const state = this.stateFunction ? this.stateFunction() : (this.form && this.form.state);
+    return state || {};
   }
 
 
@@ -858,7 +866,7 @@ export class FormState {
   getFieldState(fieldOrName) {
     let field = findFieldByFieldOrName(this, fieldOrName),
       key = field ? field.key : this.buildKey(fieldOrName),
-      _fieldState = (this.form && this.form.state) ? _getFieldState(this.form.state, key) : null;
+      _fieldState = _getFieldState(this.getState(), key);
 
     // if model prop provided to root FormObject
     // decided not to replace a deleted fieldState here, hopefully that's the right call
@@ -889,7 +897,7 @@ export class FormState {
 
 
   isDeleted(name) {
-    let _fieldState = _getFieldState(this.form.state, this.buildKey(name));
+    let _fieldState = _getFieldState(this.getState(), this.buildKey(name));
     return Boolean(_fieldState && _fieldState.isDeleted);
   }
 
@@ -917,7 +925,7 @@ export class FormState {
     if (this === this.root()) {
       if (!this.flatModel) { // one-time only
         if (isObject(model)) {
-          if (isObject(this.form.state) && Object.keys(this.form.state).some(k => k.startsWith(FORM_STATE_PREFIX))) {
+          if (Object.keys(this.getState()).some(k => k.startsWith(FORM_STATE_PREFIX))) {
             console.log('warning: react-formstate: a model prop was provided to the root FormObject element even though a model was injected in the constructor?');
           }
           this.flatModel = this.createUnitOfWork().injectModel(model);
@@ -990,7 +998,7 @@ class UnitOfWork {
   }
 
 
-  recursiveCreateModel(fields, model) {
+  recursiveCreateModel(fields, model, doTransforms) {
     let isModelValid = true;
 
     for (let i = 0, len = fields.length; i < len; i++) {
@@ -1005,7 +1013,7 @@ class UnitOfWork {
 
         let formState = this.formState;
         this.formState = formState.createFormState(field.name);
-        if (!this.recursiveCreateModel(field.fields || field.array, value)) {
+        if (!this.recursiveCreateModel(field.fields || field.array, value, doTransforms)) {
           isModelValid = false;
         }
         this.formState = formState;
@@ -1015,26 +1023,29 @@ class UnitOfWork {
 
         if (!fieldState.isValidated() || field.revalidateOnSubmit) { fieldState.validate(); }
         fieldState.showMessage();
-        if (!fieldState.isValid()) { isModelValid = false; }
-        if (!isModelValid) { continue; } // else
 
         value = fieldState.getValue();
 
-        if (field.intConvert) {
-          value = Array.isArray(value) ? value.map(x => parseInt(x)) : parseInt(value);
+        if (!fieldState.isValid()) {
+          isModelValid = false;
         }
-
-        if (typeof(value) === 'string') {
-          if (!field.noTrim) {
-            value = value.trim();
+        else if (doTransforms) {
+          if (field.intConvert) {
+            value = Array.isArray(value) ? value.map(x => parseInt(x)) : parseInt(value);
           }
-          if (field.preferNull && value === '') {
-            value = null;
+
+          if (typeof(value) === 'string') {
+            if (!field.noTrim) {
+              value = value.trim();
+            }
+            if (field.preferNull && value === '') {
+              value = null;
+            }
           }
         }
       }
 
-      if (field.preferNull) {
+      if (doTransforms && field.preferNull) {
         if (Array.isArray(value)) {
           if (value.length === 0) { value = null; }
         } else if (isObject(value)) {
@@ -1115,13 +1126,10 @@ class UnitOfWork {
 
 
   updateFormState(additionalUpdates) {
-    const updates = this.getUpdates(true);
+    const updates = Object.assign(this.getUpdates(true), additionalUpdates || {});
 
-    if (additionalUpdates) {
-      this.formState.form.setState(Object.assign(updates, additionalUpdates));
-    }
-    else if (Object.keys(updates).length > 0) {
-      this.formState.form.setState(updates);
+    if (Object.keys(updates).length > 0) {
+      this.formState.setStateFunction ? this.formState.setStateFunction(updates) : this.formState.form.setState(updates);
     }
   }
 
@@ -1163,7 +1171,7 @@ class UnitOfWork {
     let key = this.formState.buildKey(name);
     let keyDot = key + '.';
 
-    iterateKeys(this.formState.form.state, key => {
+    iterateKeys(this.formState.getState(), key => {
       if (key.startsWith(keyDot)) {
         // have to transform the absolute path to something relative to the context's path.
         // there's probably a better way to code this... might involve rejiggering getFieldState somehow.
@@ -1174,16 +1182,27 @@ class UnitOfWork {
   }
 
 
-
-  createModel(noUpdate) {
+  createModelResult(options) {
     if (this.formState !== this.formState.root()) {
       throw new Error('createModel should only be called on root form state.');
     }
 
-    let model = {},
-      isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model);
+    const { doTransforms } = (options || {});
 
-    if (isModelValid) { return model; } // else
+    const model = {},
+      isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model, doTransforms);
+
+    return {
+      model: model,
+      isValid: isModelValid
+    };
+  }
+
+
+  createModel(noUpdate) {
+    const result = this.createModelResult({doTransforms: true});
+
+    if (result.isValid) { return result.model; } // else
 
     if (!noUpdate) { this.updateFormState(); }
     return null;

@@ -68,6 +68,7 @@
   - [root](#FormState.root)
 - [UnitOfWork](#UnitOfWork)
   - [createModel](#UnitOfWork.createModel)
+  - [createModelResult](#UnitOfWork.createModelResult)
   - [get](#UnitOfWork.get)
   - [getFieldState](#UnitOfWork.getFieldState)
   - [getu](#UnitOfWork.getu)
@@ -657,7 +658,7 @@ and non-static versions...
 
 see the [onCreate, onBlur, onSubmit documentation](/docs/onBlurExample.md)
 
-### <a name="FormState.constructor">constructor(React.Component formComponent)</a>
+### <a name="FormState.constructor">constructor(React.Component formComponent, optional function stateFunction, optional function setStateFunction)</a>
 
 creates a root form state instance.
 
@@ -677,6 +678,8 @@ export default class UserForm extends Component {
   //...
 }
 ```
+
+You can pass optional functions that serve to outsource your underlying state. See the [Redux example](/docs/reduxIntegration.md).
 
 ### <a name="FormState.anyFieldState">boolean anyFieldState(function givenAFieldStateReturnABoolean)</a>
 
@@ -995,6 +998,20 @@ handleSubmit(e) {
 react-formstate can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
 note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of react-formstate, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
+
+### <a name="UnitOfWork.createModelResult">object createModelResult(object options)</a>
+
+Returns { model: generatedModel, isValid: whetherTheModelIsValid }
+
+The only option it takes is { doTransforms: defaultsToFalse }
+
+It is different from [createModel](#UnitOfWork.createModel) in that
+
+- it will return an invalid model
+- it will never call setState.
+- by default it does not do transforms like intConvert (it's probably a bad idea to try to do transforms on an invalid model)
+
+This is used to share an unsubmitted model with the rest of your application, see the [Redux example](/docs/reduxIntegration.md).
 
 ### <a name="UnitOfWork.get">FieldState get(string name)<a/>
 

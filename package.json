@@ -31,7 +31,8 @@
     "forms",
     "api",
     "bootstrap",
-    "setState"
+    "setState",
+    "redux"
   ],
   "author": "daniel trelogan",
   "license": "MIT",

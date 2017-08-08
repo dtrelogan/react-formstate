@@ -776,8 +776,20 @@ describe('FormState', function() {
   });
   describe('#constructor', function() {
     it('sets a form property', function() {
-      var fs = new FormState(this);
-      assert.equal(this, fs.form);
+      const x = 3;
+      var fs = new FormState(x);
+      assert.equal(x, fs.form);
+    });
+    it('sets a stateFunction property', function() {
+      const f = function() {return {}};
+      var fs = new FormState(this, f);
+      assert.equal(f, fs.stateFunction);
+    });
+    it('sets a setStateFunction property', function() {
+      const f = function() {return {}};
+      const g = function() {};
+      var fs = new FormState(this, f, g);
+      assert.equal(g, fs.setStateFunction);
     });
     it('sets a path property', function() {
       var fs = new FormState(this);
@@ -791,6 +803,36 @@ describe('FormState', function() {
       var fs = new FormState(this);
       assert.equal(true, Array.isArray(fs.fields));
       assert.equal(0, fs.fields.length);
+    });
+  });
+  describe('#getState', function() {
+    it('calls the stateFunction if present', function() {
+      var wasCalled = false;
+      const f = function() {
+        wasCalled = true;
+        return { 'formState.contact.email': { value: 'yay' } };
+      }
+      const fs = new FormState(this, f);
+      const fieldState = fs.getFieldState('contact.email');
+      assert.equal(true, wasCalled);
+      assert.equal('yay', fieldState.getValue());
+    });
+    it('defaults to empty object if stateFunction returns nothing', function() {
+      var wasCalled = false;
+      const f = function() {
+        wasCalled = true;
+      }
+      const fs = new FormState(this, f);
+      assert.equal(true, Object.keys(fs.getState()).length === 0);
+      assert.equal(true, wasCalled);
+    });
+    it('defaults to empty object if form is null', function() {
+      const fs = new FormState();
+      assert.equal(true, Object.keys(fs.getState()).length === 0);
+    });
+    it('defaults to empty object if form.state is null', function() {
+      const fs = new FormState({});
+      assert.equal(true, Object.keys(fs.getState()).length === 0);
     });
   });
   describe('#root', function() {
@@ -1812,6 +1854,29 @@ describe('UnitOfWork', function() {
       context.updateFormState();
       assert.equal(true, wasCalled);
     });
+    it('calls the setStateFunction if present', function() {
+      var f = function() {
+        return {
+          'formState.contact.address.line1': { value: '123 elm st' }
+        };
+      };
+      var wasCalled = false;
+      var g = function(x) {
+        wasCalled = true;
+        assert.notEqual(x, context.stateUpdates);
+        assert.equal(1, Object.keys(x).length);
+        assert.equal('u', x['formState.contact.address.line1'].value);
+        assert.equal(true, x['formState.contact.address.line1'].isModified === undefined);
+      }
+      var fs = new FormState(null, f, g);
+      var nfs = fs.createFormState('contact.address');
+      var context = nfs.createUnitOfWork();
+      context.stateUpdates = {
+        'formState.contact.address.line1': { value: 'u', isModified: true }
+      };
+      context.updateFormState();
+      assert.equal(true, wasCalled);
+    });
     it('does not call set state if no updates', function() {
       var form = {
         state: {
@@ -2228,6 +2293,82 @@ describe('UnitOfWork', function() {
       assert.equal(true, context.stateUpdates['formState.'].value !== null);
       assert.equal(true, typeof(context.stateUpdates['formState.']) === 'object');
       assert.equal(true, Object.keys(context.stateUpdates['formState.'].value).length === 0);
+    });
+  });
+  describe('#createModelResult', function() {
+    it('throws an error unless called on root form state', function () {
+      var fs = new FormState(), nfs = fs.createFormState('contact'),
+        context = nfs.createUnitOfWork();
+      var f = function() { context.createModelResult(); }
+      assert.throws(f, /root form state/);
+    });
+    it('returns a valid model in result if form state is valid', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var result = testForm.formState.createUnitOfWork().createModelResult();
+      var model = result.model;
+      assert.equal(true, result.isValid);
+      assert.equal('object', typeof(model));
+      assert.equal('Henry', model.name);
+      assert.equal('henry@ka.com', model.contact.email);
+      assert.equal('123 pinecrest rd', model.contact.address.line1);
+    });
+    it('returns an invalid model in result if form state is invalid and does not call setState', function() {
+      var model = createTestModel();
+      model.name = '';
+      ReactDOMServer.renderToString(React.createElement(UserForm, { model: model }));
+      var field = testForm.formState.fields.find(x => x.name === 'name');
+      field.required = true;
+      field.defaultValue = undefined;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var result = context.createModelResult();
+      var model = result.model;
+      assert.equal(false, result.isValid);
+      assert.equal('', model.name);
+      assert.equal('henry@ka.com', model.contact.email);
+      assert.equal('123 pinecrest rd', model.contact.address.line1);
+      var update = context.stateUpdates['formState.name'];
+      assert.equal(2, update.validity);
+      assert.equal('Name is required', update.message);
+      assert.equal(false, wasCalled);
+    });
+    it('normally skips transforms on primitive values', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var _fieldState = { value: '1', validity: 1 };
+      testForm.state['formState.contact.email'] = _fieldState;
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.intConvert = true;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var model = context.createModelResult().model;
+      assert.equal(true, '1' === model.contact.email);
+      assert.equal(false, wasCalled);
+    });
+    it('normally skips transforms on primitive values', function() {
+      ReactDOMServer.renderToString(React.createElement(UserFormEdit));
+      var _fieldState = { value: ['1','2'], validity: 1 };
+      testForm.state['formState.contact.email'] = _fieldState;
+      var field = testForm.formState.fields.find(x => x.name === 'contact');
+      field = field.fields.find(x => x.name === 'email');
+      field.intConvert = true;
+      var context = testForm.formState.createUnitOfWork();
+      var wasCalled = false;
+      context.updateFormState = function() {
+        wasCalled = true;
+      };
+      var model = context.createModelResult().model;
+      assert.equal(true, Array.isArray(model.contact.email));
+      assert.equal(2, model.contact.email.length);
+      assert.equal(true, '1' === model.contact.email[0]);
+      assert.equal(true, '2' === model.contact.email[1]);
+      assert.equal(false, wasCalled);
     });
   });
   describe('#createModel', function() {

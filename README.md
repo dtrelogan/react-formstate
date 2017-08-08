@@ -9,7 +9,7 @@ react-formstate streamlines form components using plain old setState and one-way
 
     $ npm install react-formstate --save
 
-It's a best-in-class solution with a focus on validation. Short of command pattern, **it will support your use case**.
+It's a best-in-class solution with a focus on validation. **It will support your use case**, you can even [hook it up to Redux](/docs/reduxIntegration.md).
 
 ### Demo
 
@@ -37,18 +37,16 @@ Validated react-bootstrap components: [react-formstate-demo](https://dtrelogan.g
 - [Form extension](/docs/formExtension.md)
 - [Arrays](/docs/arrayExample.md)
 - [The onUpdate callback](/docs/onUpdateExample.md)
+- [Redux integration](/docs/reduxIntegration.md)
 
 ### Motivation
 
 If you are adding validation to a [React form](https://facebook.github.io/react/docs/forms.html) and you find yourself thinking - there must be a better way - that was the impetus behind react-formstate. Since React is all about responding to changes in component state, the key to a React-based solution is to provide an API to easily manage form state, specifically validation status. In doing so, you get productivity gains beyond validation. The end result is you keep your form components DRY.
 
-### Arguments for react-formstate
-
-- [Advantages of react-formstate](/docs/advantages.md)
-- [Design contrast](/docs/designContrast.md)
-
 ### Documentation
 
+- [Advantages of react-formstate](/docs/advantages.md)
+- [Criticisms of react-formstate](/docs/criticisms.md)
 - [v0.5.0 release notes](/docs/releaseNotes.0.5.0.md)
 - [API](/docs/api.md)
 - [React forms](https://facebook.github.io/react/docs/forms.html)
