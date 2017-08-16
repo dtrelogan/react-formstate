@@ -46,7 +46,7 @@ function findField(rootFields, key, readOnly) {
     fields = objectField.fields || objectField.array;
   }
 
-  let field = fields.find(x => x.name === fieldnames[len - 1]);
+  let field = fields && fields.find(x => x.name === fieldnames[len - 1]);
   if (!field) {
     if (readOnly) { return null; }
     field = { key: key, name: fieldnames[len - 1], initialized: false };
@@ -180,6 +180,7 @@ function simpleChangeHandler(formState, field, value) {
 }
 
 function blurHandler(formState, field) {
+
   const context = formState.createUnitOfWork(),
     fieldState = context.getFieldState(field);
 
@@ -187,13 +188,9 @@ function blurHandler(formState, field) {
     fieldState.validate();
   }
 
-  // TODO: possibly show messages on anything in formState where isValidated && !isMessageVisible
-  // for validation that validates multiple fields when one field changes.
-  // usually you can get away with resetting validation status on the other fields.
-  // but a use case might come up where you might want this proposed behavior.
-  // context.showMessages()?
+  fieldState.setBlurred();
+  fieldState.showMessage(); // for backward compatibility
 
-  fieldState.showMessage();
   context.updateFormState();
 }
 
@@ -415,15 +412,21 @@ export class FormObject extends Component {
       }
     }
 
+    const showMessage = formState.getFieldState(field).isMessageVisibleOn(props.showMessageOn || formState.showingMessageOn());
+
     const generatedProps = {
       label: field.label,
       updateFormState: props.updateFormState || changeHandler.bind(null, formState, field), // deprecated
       formState: this.formState
     };
 
+    const boundBlurHandler = blurHandler.bind(null, formState, field);
+
     generatedProps[formState.constructor.rfsProps.fieldState.name] = formState.getFieldState(field); // read-only
     generatedProps[formState.constructor.rfsProps.handleValueChange.name] = props[formState.constructor.rfsProps.handleValueChange.name] || simpleChangeHandler.bind(null, formState, field);
-    generatedProps[formState.constructor.rfsProps.showValidationMessage.name] = props[formState.constructor.rfsProps.showValidationMessage.name] || blurHandler.bind(null, formState, field);
+    generatedProps[formState.constructor.rfsProps.showValidationMessage.name] = props[formState.constructor.rfsProps.showValidationMessage.name] || boundBlurHandler;
+    generatedProps[formState.constructor.rfsProps.handleBlur.name] = props[formState.constructor.rfsProps.handleBlur.name] || boundBlurHandler;
+    generatedProps[formState.constructor.rfsProps.showMessage.name] = props[formState.constructor.rfsProps.showMessage.name] || showMessage;
 
     return generatedProps;
   }
@@ -463,8 +466,14 @@ class FieldState {
 
   assertCanUpdate() {
     if (!this.stateContext) { throw new Error('Cannot update a read-only field state'); }
-    // should have gotten this through getFieldState, and if the persisted fieldState was deleted, it would have returned a new, empty fieldState instead.
-    if (this.isDeleted()) { throw new Error('Cannot update a deleted field state.'); }
+
+    // If you delete a fieldState and then createModelResult before calling setState,
+    // you might need to update the deleted fieldState in createModelResult. This can
+    // happen for instance, in the demo app, where the unsubmitted model is displayed
+    // to the user upon each call to updateFormState. The fieldState is marked deleted,
+    // but the field behind it isn't deleted until the subsequent render.
+
+    // if (this.isDeleted()) { throw new Error('Cannot update a deleted field state.'); }
   }
 
   getValidity() {
@@ -489,8 +498,56 @@ class FieldState {
   delete() {
     this.assertCanUpdate();
     Object.keys(this.fieldState).forEach(k => delete this.fieldState[k]);
-    this.fieldState.isModified = true;
-    this.fieldState.isDeleted = true;
+    this.fieldState.modified = true;
+    this.fieldState.deleted = true;
+  }
+
+  coerce(value) {
+    if (this.field && this.field.noCoercion) {
+      return value;
+    }
+
+    if (!exists(value) && this.field && Array.isArray(this.field.defaultValue)) {
+      // if injected model.value is null and you are providing the value to, say, a select-multiple
+      // note that you can use 'preferNull' to reverse this upon model generation
+      return [];
+    }
+
+    return coerceToString(value);
+  }
+
+  _setValue(value, isInitialValue) {
+    this.assertCanUpdate();
+
+    if (isInitialValue) {
+      this.fieldState.initialValue = value;
+    } else {
+      this.fieldState.initialValue = this.getUncoercedInitialValue();
+    }
+
+    Object.keys(this.fieldState).forEach(k => {
+      if (k !== 'initialValue') { delete this.fieldState[k]; }
+    });
+
+    this.fieldState.modified = true;
+    this.fieldState.value = value;
+
+    if (!isInitialValue) {
+      this.fieldState.changed = true;
+    }
+
+    return this;
+  }
+
+  setInitialValue(value) { return this._setValue(value, true); }
+
+  flag(flagName) {
+    this.assertCanUpdate();
+    if (!this.fieldState[flagName]) { // prevents unnecessary calls to setState
+      this.fieldState.modified = true;
+      this.fieldState[flagName] = true;
+    }
+    return this;
   }
 
   //
@@ -589,23 +646,15 @@ class FieldState {
   getKey() { return this.key; }
   getName() { return this.field && this.field.name; }
 
-  getValue() {
-    let value = this.fieldState.value;
-
-    if (this.field && this.field.noCoercion) {
-      return value;
-    }
-
-    if (!exists(value) && this.field && Array.isArray(this.field.defaultValue)) {
-      // if injected model.value is null and you are providing the value to, say, a select-multiple
-      // note that you can use 'preferNull' to reverse this upon model generation
-      return [];
-    }
-
-    return coerceToString(value);
-  }
-
+  getValue() { return this.coerce(this.fieldState.value); }
   getUncoercedValue() { return this.fieldState.value; }
+  getInitialValue() { return this.coerce(this.getUncoercedInitialValue()); }
+  getUncoercedInitialValue() {
+    if (Object.keys(this.fieldState).indexOf('initialValue') !== -1) {
+      return this.fieldState.initialValue;
+    }
+    return this.fieldState.value;
+  }
   getMessage() { return this.fieldState.message; }
 
   isCoerced() { return false; } // deprecated
@@ -614,8 +663,19 @@ class FieldState {
   isInvalid() { return this.fieldState.validity === 2; }
   isValidating() { return this.fieldState.validity === 3; }
   isUploading() { return this.fieldState.validity === 4; }
-  isDeleted() { return Boolean(this.fieldState.isDeleted); }
-  isMessageVisible() { return Boolean(this.fieldState.isMessageVisible); }
+  isDeleted() { return Boolean(this.fieldState.deleted); }
+  isChanged() { return Boolean(this.fieldState.changed); }
+  isBlurred() { return Boolean(this.fieldState.blurred); }
+  isSubmitted() { return Boolean(this.fieldState.submitted); }
+  isMessageVisible() { return Boolean(this.fieldState.messageVisible); }
+  //isPristine() { would have to do deep compare on arrays and the like }
+
+  isMessageVisibleOn(showMessageOn) {
+    const { changed, blurred, submitted } = this.fieldState;
+    if (showMessageOn === 'submit') { return Boolean(submitted); }
+    if (showMessageOn === 'blur') { return Boolean(blurred || submitted); }
+    return Boolean(changed || blurred || submitted);
+  }
 
   getField() { return this.field; }
 
@@ -624,14 +684,7 @@ class FieldState {
   // should wipe the entire field state
   //
 
-  setValue(value) {
-    if (this.fieldState.isModified) { throw new Error('setting value on a modified field state? if you are changing the value do that first'); }
-    this.assertCanUpdate();
-    Object.keys(this.fieldState).forEach(k => delete this.fieldState[k]);
-    this.fieldState.isModified = true;
-    this.fieldState.value = value;
-    return this;
-  }
+  setValue(value) { return this._setValue(value, false); }
   setCoercedValue(value) { return this.setValue(value); } // deprecated
 
   //
@@ -641,7 +694,7 @@ class FieldState {
 
   setValidity(validity, message) {
     this.assertCanUpdate();
-    this.fieldState.isModified = true;
+    this.fieldState.modified = true;
     this.fieldState.validity = validity;
     this.fieldState.message = message;
     return this;
@@ -661,14 +714,18 @@ class FieldState {
   // preserve custom properties
   //
 
-  showMessage() {
-    this.assertCanUpdate();
-    if (!this.isMessageVisible()) { // prevents unnecessary calls to setState
-      this.fieldState.isModified = true;
-      this.fieldState.isMessageVisible = true;
+  showMessage(submitting) {
+    if (!submitting) {
+      // retain backward compatibility for async alternatives example.
+      // (a custom blur handler with async validation still using showMessage.)
+      // so that FormState.isValidating still works.
+      this.flag('blurred');
     }
-    return this;
+    return this.flag('messageVisible');
   }
+
+  setBlurred() { return this.flag('blurred'); }
+  setSubmitted() { return this.flag('submitted'); }
 
   //
   // set custom property
@@ -677,7 +734,7 @@ class FieldState {
 
   set(name, value) {
     this.assertCanUpdate();
-    this.fieldState.isModified = true;
+    this.fieldState.modified = true;
     this.fieldState[name] = value;
     return this;
   }
@@ -687,18 +744,64 @@ class FieldState {
 
 }
 
+
+const _showMessageOn = (target, value) => {
+  target.showOnSubmit = false;
+  target.showOnBlur = false;
+  target.showOnChange = false;
+
+  if (value === 'submit') {
+    target.showOnSubmit = true;
+  } else if (value === 'blur') {
+    target.showOnBlur = true;
+  } else {
+    // default to change
+    target.showOnChange = true;
+  }
+};
+
+const _showingMessageOn = (target) => {
+  if (target.showMessageOnSubmit()) { return 'submit'; }
+  if (target.showMessageOnBlur()) { return 'blur'; }
+  return 'change';
+}
+
 //
 // FormState
 //
 
 export class FormState {
 
+  // change || blur || submit
+  static showMessageOn(value) {
+    _showMessageOn(this, value);
+  }
+
+  static showingMessageOn() {
+    return _showingMessageOn(this);
+  }
+
+  // deprecated
+  static showMessageOnChange() {
+    return Boolean(this.showOnChange);
+  }
+
+  static showingMessageOnChange() {
+    return this.showMessageOnChange();
+  }
+
+  // deprecated
   static setShowMessageOnBlur(value) {
     this.showOnBlur = exists(value) ? value : true;
   }
 
+  // deprecated
   static showMessageOnBlur() {
     return Boolean(this.showOnBlur);
+  }
+
+  static showingMessageOnBlur() {
+    return this.showMessageOnBlur();
   }
 
   static setEnsureValidationOnBlur(value) {
@@ -709,12 +812,18 @@ export class FormState {
     return Boolean(this.validateOnBlur);
   }
 
+  // deprecated
   static setShowMessageOnSubmit(value) {
     this.showOnSubmit = exists(value) ? value : true;
   }
 
+  // deprecated
   static showMessageOnSubmit() {
     return Boolean(this.showOnSubmit);
+  }
+
+  static showingMessageOnSubmit() {
+    return this.showMessageOnSubmit();
   }
 
   static setRequired(f) {
@@ -782,22 +891,53 @@ export class FormState {
   }
 
 
+  // change || blur || submit
+  showMessageOn(value) {
+    _showMessageOn(this, value);
+  }
+
+  showingMessageOn() {
+    return _showingMessageOn(this);
+  }
+
+  // deprecated
+  showMessageOnChange() {
+    const root = this.root();
+    return exists(root.showOnChange) ? root.showOnChange : root.constructor.showMessageOnChange();
+  }
+
+  showingMessageOnChange() {
+    return this.showMessageOnChange();
+  }
+
+  // deprecated
   setShowMessageOnBlur(value) {
     this.showOnBlur = exists(value) ? value : true;
   }
 
+  // deprecated
   showMessageOnBlur() {
     const root = this.root();
     return exists(root.showOnBlur) ? root.showOnBlur : root.constructor.showMessageOnBlur();
   }
 
+  showingMessageOnBlur() {
+    return this.showMessageOnBlur();
+  }
+
+  // deprecated
   setShowMessageOnSubmit(value) {
     this.showOnSubmit = exists(value) ? value : true;
   }
 
+  // deprecated
   showMessageOnSubmit() {
     const root = this.root();
     return exists(root.showOnSubmit) ? root.showOnSubmit : root.constructor.showMessageOnSubmit();
+  }
+
+  showingMessageOnSubmit() {
+    return this.showMessageOnSubmit();
   }
 
   setEnsureValidationOnBlur(value) {
@@ -834,17 +974,32 @@ export class FormState {
     new UnitOfWork(this, state).remove(name);
   }
 
-  isInvalid(visibleMessagesOnly) {
-    var visibleOnly = this.showMessageOnBlur() || this.showMessageOnSubmit();
-    if (exists(visibleMessagesOnly)) {
-      visibleOnly = visibleMessagesOnly;
-    }
-    return this.anyFieldState(fi => fi.isInvalid() && (!visibleOnly || fi.isMessageVisible()));
+
+  // A better name for this function would be 'isVisiblyInvalid'
+  //
+  isInvalid(brokenVisibleMessagesOnlyParameter) {
+
+    // Because of a poor choice made in the original API, if you want to see if ANY field state is invalid,
+    // you now have to explicitly pass 'false' to this function. (Yuck.)
+
+    // However, if you're interested in that behavior, 'createModel' is probably what you're after - this
+    // function is typically only used to determine whether to disable the submit button.
+
+    const visibleMessagesOnly = (
+      brokenVisibleMessagesOnlyParameter !== undefined ?
+      brokenVisibleMessagesOnlyParameter :
+      true
+    );
+
+    return this.anyFieldState(fi => {
+      const visible = fi.isMessageVisibleOn(this.showingMessageOn());
+      return fi.isInvalid() && (visible || !visibleMessagesOnly);
+    });
   }
 
 
-  isValidating(visibleMessagesOnly) {
-    return this.anyFieldState(fi => fi.isValidating() && (!visibleMessagesOnly || fi.isMessageVisible()));
+  isValidating(performingAsynchronousValidationOnBlur) {
+    return this.anyFieldState(fi => fi.isValidating() && (fi.isBlurred() || fi.isSubmitted() || !performingAsynchronousValidationOnBlur));
   }
 
 
@@ -874,7 +1029,7 @@ export class FormState {
       _fieldState = _getFieldState(this.root().flatModel, key);
     }
 
-    if (!_fieldState || _fieldState.isDeleted) {
+    if (!_fieldState || _fieldState.deleted) {
       _fieldState = {};
 
       if (field && (field.defaultValue !== undefined)) {
@@ -898,12 +1053,22 @@ export class FormState {
 
   isDeleted(name) {
     let _fieldState = _getFieldState(this.getState(), this.buildKey(name));
-    return Boolean(_fieldState && _fieldState.isDeleted);
+    return Boolean(_fieldState && _fieldState.deleted);
   }
 
 
-  createUnitOfWork() {
-    return new UnitOfWork(this);
+  createUnitOfWork(updates) {
+    let clonedUpdates = undefined;
+
+    if (isObject(updates)) {
+      // copy the fieldstates to create a clean work area
+      clonedUpdates = Object.keys(updates).reduce((r,k) => {
+        r[k] = {...updates[k]};
+        return r;
+      }, {});
+    }
+
+    return new UnitOfWork(this, clonedUpdates);
   }
 
 
@@ -937,6 +1102,8 @@ export class FormState {
   }
 
 }
+
+FormState.showOnChange = true;
 
 FormState.required = function(value) {
   if (typeof(value) !== 'string' || value.trim() === '') { return 'Required field'; }
@@ -979,7 +1146,7 @@ class UnitOfWork {
     // object values also stored, for instance, react-datepicker uses a 'moment' data type.
 
     const fi = this.getFieldState('');
-    fi.setValue(model);
+    fi.setInitialValue(model);
 
     if (doNotFlatten) {
       return;
@@ -998,11 +1165,15 @@ class UnitOfWork {
   }
 
 
-  recursiveCreateModel(fields, model, doTransforms) {
+  recursiveCreateModel(fields, model, options) {
     let isModelValid = true;
+
+    const { doTransforms, markSubmitted } = (options || {});
 
     for (let i = 0, len = fields.length; i < len; i++) {
       let value, field = fields[i];
+
+      let fieldState = this.getFieldState(field);
 
       if (field.fields || field.array) { // nested object
         if (field.fields) {
@@ -1013,16 +1184,18 @@ class UnitOfWork {
 
         let formState = this.formState;
         this.formState = formState.createFormState(field.name);
-        if (!this.recursiveCreateModel(field.fields || field.array, value, doTransforms)) {
+        if (!this.recursiveCreateModel(field.fields || field.array, value, options)) {
           isModelValid = false;
         }
         this.formState = formState;
       }
       else {
-        let fieldState = this.getFieldState(field);
-
         if (!fieldState.isValidated() || field.revalidateOnSubmit) { fieldState.validate(); }
-        fieldState.showMessage();
+
+        if (markSubmitted) {
+          fieldState.setSubmitted();
+          fieldState.showMessage(true); // for backward compatibility
+        }
 
         value = fieldState.getValue();
 
@@ -1080,7 +1253,7 @@ class UnitOfWork {
 
     if (!_fieldState) {
       result.stateContext = this;
-      result.fieldState = {...result.fieldState, isModified: false};
+      result.fieldState = {...result.fieldState, modified: false};
       _setFieldState(this.stateUpdates, key, result.fieldState);
     }
 
@@ -1113,12 +1286,12 @@ class UnitOfWork {
 
     Object.keys(this.stateUpdates).forEach(k => {
       const fi = this.stateUpdates[k];
-      if (fi.isModified) {
+      if (fi.modified) {
         const fiClone = {...fi};
-        delete fiClone['isModified'];
+        delete fiClone['modified'];
         updates[k] = fiClone;
       }
-      if (resetContext) { fi.isModified = false; }
+      if (resetContext) { fi.modified = false; }
     });
 
     return updates;
@@ -1155,7 +1328,7 @@ class UnitOfWork {
     }
     else {
       const fi = this.getFieldState(name);
-      fi.setValue(value);
+      fi.setInitialValue(value);
     }
   }
 
@@ -1187,10 +1360,8 @@ class UnitOfWork {
       throw new Error('createModel should only be called on root form state.');
     }
 
-    const { doTransforms } = (options || {});
-
     const model = {},
-      isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model, doTransforms);
+      isModelValid = this.recursiveCreateModel(this.formState.getRootFields(), model, options);
 
     return {
       model: model,
@@ -1200,7 +1371,7 @@ class UnitOfWork {
 
 
   createModel(noUpdate) {
-    const result = this.createModelResult({doTransforms: true});
+    const result = this.createModelResult({doTransforms: true, markSubmitted: true});
 
     if (result.isValid) { return result.model; } // else
 
@@ -1244,9 +1415,11 @@ FormState.rfsProps = {
   formState: { suppress: false },
   fieldState: { suppress: false, name: 'fieldState' },
   handleValueChange: { suppress: false, name: 'handleValueChange' },
-  showValidationMessage: { suppress: false, name: 'showValidationMessage' },
+  handleBlur: { suppress: false, name: 'handleBlur' },
+  showMessage: { suppress: false, name: 'showMessage' },
   required: { suppress: false },
   label: { suppress: false },
+  showValidationMessage: { suppress: false, name: 'showValidationMessage' }, // deprecated ... reverse compatibility
   updateFormState: { suppress: false }, // deprecated ... reverse compatibility
   // suppressed
   formField: { suppress: true, name: 'formField' },
@@ -1261,7 +1434,8 @@ FormState.rfsProps = {
   revalidateOnSubmit: { suppress: true },
   handlerBindFunction: { suppress: true },
   validationMessages: { suppress: true },
-  msgs: { suppress: true }
+  msgs: { suppress: true },
+  showMessageOn: { suppress: true }
 };
 
 function conditionallyAddProps(source, dest) {

@@ -1,3 +1,7 @@
+So I ended up adding Redux support, mostly for the possibility of using the time-travel features, and so as not to lock people into any particular solution they might choose.
+
+I don't think I'm wrong about any of the below though. Basically, it seems odd to want to use a library like react-formstate for the purpose of sharing an unsubmitted model with the rest of your application. react-formstate adds the most value for validated forms. If your model requires validation prior to a submit, it's unclear why you'd want to make an invalid model available to the rest of your application. If your model does not require validation prior to a submit, it should be easy enough to write the form in raw React.
+
 # Design contrast
 
 Upstream store

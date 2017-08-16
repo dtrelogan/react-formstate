@@ -21,7 +21,7 @@ const otherUpdates = {additionalUpdate1: 'someValue', additionalUpdate2: 'anothe
 this.setState(Object.assign(updates, otherUpdates));
 ```
 
-This could have utility, for instance, for initialization code that is shared between a constructor and a componentWillReceiveProps method, where the constructor needs to assign to this.state but componentWillReceiveProps needs to make a call to setState.
+This gives you wiggle room, but it is still best practice to use updateFormState whenever possible.
 
 ## One breaking change
 
@@ -77,13 +77,16 @@ Prior to this release, if you were to specify this input component:
 
 The props passed to the input component would include *formField*, *validate*, *noTrim*, and *preferNull*.
 
-As of this release, react-formstate specific props are consumed and are not passed to the input component. The only react-formstate related props that are passed along are *label*, *required*, *formState*, *fieldState*, *handleValueChange*, *showValidationMessage*, and *updateFormState*. (Of course, non-rfs props like className and autoComplete continue to be passed.)
+As of this release, react-formstate specific props are consumed and are not passed to the input component. The only react-formstate related props that are passed along are *label*, *required*, *formState*, *fieldState*, *handleValueChange*, *showValidationMessage*, and *updateFormState*. (Of course, non-rfs props like *className* and *autoComplete* continue to be passed.) (As of 0.6.0 *handleBlur* and *showMessage* are also passed.)
 
 The deprecated *updateFormState* prop is passed by default for backward compatibility. If you want, you can stop this property from being passed by doing the following:
 
 ```es6
 import { FormState } from 'react-formstate';
 FormState.rfsProps.updateFormState.suppress = true;
+
+// if >=0.6.0, you might want to suppress showValidationMessage too.
+FormState.rfsProps.showValidationMessage.suppress = true;
 ```
 
 Note you can suppress or unsuppress other props if you'd like.

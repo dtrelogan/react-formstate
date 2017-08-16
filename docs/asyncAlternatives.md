@@ -18,10 +18,6 @@ class UserForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  originalUsername() {
-    return this.props.model && this.props.model.username;
-  }
-
   render() {
     let submitMessage = null, submitDisabled = false;
 
@@ -52,14 +48,15 @@ class UserForm extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    const model = this.formState.createUnitOfWork().createModel();
+    const context = this.formState.createUnitOfWork();
+    const model = context.createModel();
     if (model) {
-      if (model.username === this.originalUsername()) {
+      if (model.username === context.getFieldState('username').getInitialValue()) {
         this.submitToApi(model);
         return;
       } // else
 
-      this.setState({validatingUsername: true});
+      context.updateFormState({validatingUsername: true});
 
       // simulate calling your api to validate username
       window.setTimeout(() => {
@@ -71,7 +68,6 @@ class UserForm extends Component {
         const context = this.formState.createUnitOfWork();
         const fieldState = context.getFieldState('username');
         fieldState.setInvalid('Username already exists');
-        fieldState.showMessage(); // in case you are showing on blur
         context.updateFormState({validatingUsername: false});
       }, 2000);
     }
@@ -90,14 +86,12 @@ class UserForm extends Component {
 
 If you choose to perform asynchronous validation during onBlur, you need to put the field state in "validating" status between onChange and onBlur, such that the form cannot be submitted successfully before onBlur.
 
-There is a nasty edge case to this approach. You have to deal with the "Waiting for username input to blur" use case below. Basically the issue is the user could hit 'enter' from within the username input, such that onSubmit gets called before the field is blurred. It's easy to make the field blur from within the onSubmit handler, and have the "waiting for validation..." message show, but unless you do something special, the user will have to hit submit again once the validation finishes.
-
-There are LOTS of different ways to improve this scenario, but IMHO the best solution is simply to use the onChange approach instead of onBlur.
+There is a tricky edge case to this approach. You have to deal with the "Waiting for username input to blur" use case below. Basically the issue is the user could hit 'enter' from within the username input, such that onSubmit gets called before the field is blurred. It's easy to make the field blur from within the onSubmit handler, and have the "waiting for validation..." message show, but unless you do something special, the user will have to hit submit again once the validation finishes.
 
 One approach to making asynchronous validation during onBlur work better is presented as a second example following this "unpatched onBlur" example.
 
 ```jsx
-const Input = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
+const Input = ({label, type, fieldState, handleValueChange, handleBlur, showMessage}) => {
   return (
     <div>
       <label>{label}</label>
@@ -105,14 +99,15 @@ const Input = ({label, type, fieldState, handleValueChange, showValidationMessag
         type={type || 'text'}
         value={fieldState.getValue()}
         onChange={e => handleValueChange(e.target.value)}
-        onBlur={showValidationMessage}
+        onBlur={handleBlur}
         />
       <span className='help'>
-        {fieldState.isMessageVisible() ? fieldState.getMessage() : null}
+        {showMessage ? fieldState.getMessage() : null}
       </span>
     </div>
   );
 };
+
 
 
 
@@ -122,13 +117,11 @@ class Test extends Component {
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
 
+    this.formState.showMessageOn('blur');
+
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.usernameOnBlur = this.usernameOnBlur.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  originalUsername() {
-    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -146,7 +139,7 @@ class Test extends Component {
     } else if (this.formState.isValidating(true)) {
       submitMessage = 'Waiting for validation to finish...';
       submitDisabled = true;
-    } else if (this.formState.isInvalid(true)) {
+    } else if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
       submitDisabled = true;
     }
@@ -159,7 +152,7 @@ class Test extends Component {
           required
           fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
           handleValueChange={this.handleUsernameChange}
-          showValidationMessage={this.usernameOnBlur}
+          handleBlur={this.usernameOnBlur}
           />
         <input type='submit' value='Submit' disabled={submitDisabled}/>
         <span>{submitMessage}</span>
@@ -178,8 +171,8 @@ class Test extends Component {
       return;
     } // else
 
-    if (username === this.originalUsername()) {
-      fieldState.setValid('Verified');
+    if (username === fieldState.getInitialValue()) {
+      fieldState.setValid();
       context.updateFormState();
       return;
     } // else
@@ -193,7 +186,7 @@ class Test extends Component {
     const context = this.formState.createUnitOfWork();
     const fieldState = context.getFieldState('username');
 
-    fieldState.showMessage(); // mark the message "visible"
+    fieldState.setBlurred(); // mark the message "visible"
 
     if (!fieldState.isValidating()) {
       context.updateFormState();
@@ -244,13 +237,11 @@ class Test extends Component {
     this.formState = new FormState(this);
     this.state = this.formState.injectModel(props.model);
 
+    this.formState.showMessageOn('blur');
+
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.usernameOnBlur = this.usernameOnBlur.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  originalUsername() {
-    return this.props.model && this.props.model.username;
   }
 
   render() {
@@ -266,7 +257,7 @@ class Test extends Component {
     } else if (this.formState.isValidating(true)) {
       submitMessage = 'Waiting for validation to finish...';
       submitDisabled = true;
-    } else if (this.formState.isInvalid(true)) {
+    } else if (this.formState.isInvalid()) {
       submitMessage = 'Please fix validation errors';
       submitDisabled = true;
     }
@@ -280,7 +271,7 @@ class Test extends Component {
             required
             fsv={v => v.regex(/^\S+$/).msg('Username must not contain spaces')}
             handleValueChange={this.handleUsernameChange}
-            showValidationMessage={this.usernameOnBlur}
+            handleBlur={this.usernameOnBlur}
             />
 +       </fieldset>
         <input type='submit' value='Submit' disabled={submitDisabled}/>
@@ -300,8 +291,8 @@ class Test extends Component {
       return;
     } // else
 
-    if (username === this.originalUsername()) {
-      fieldState.setValid('Verified');
+    if (username === fieldState.getInitialValue()) {
+      fieldState.setValid();
       context.updateFormState();
       return;
     } // else
@@ -315,7 +306,7 @@ class Test extends Component {
     const context = this.formState.createUnitOfWork();
     const fieldState = context.getFieldState('username');
 
-    fieldState.showMessage(); // mark the message "visible"
+    fieldState.setBlurred(); // mark the message "visible"
 
     if (!fieldState.isValidating()) {
       context.updateFormState();
@@ -352,7 +343,7 @@ class Test extends Component {
     e.preventDefault();
 +   const context = this.formState.createUnitOfWork();
 +   const fsUsername = context.getFieldState('username');
-+   if (fsUsername.isValidating() && !fsUsername.isMessageVisible()) {
++   if (fsUsername.isValidating() && !fsUsername.isBlurred()) {
 +     // username isn't blurred. user pressed enter inside of username input.
 +     // setting submitted flag will disable the input and cause it to blur
 +     // once the async validation finishes it will call this.submit() if valid username
@@ -377,14 +368,14 @@ class Test extends Component {
 
 ## onChange onBlur hybrid
 
-If you aren't put off by the complexity of the onBlur example, and if you want normal validation messages to display immediately upon onChange, but you want to postpone asynchronous validation until onBlur (to save API calls), you could take the asynchronous onBlur example more or less as is, and substitute an input like this:
+If you want normal validation messages to display immediately upon onChange, but you want to postpone asynchronous validation until onBlur (to save API calls), you could take the asynchronous onBlur example more or less as is, and substitute an input like this:
 
 ```jsx
-const Input = ({label, type, fieldState, handleValueChange, showValidationMessage}) => {
+const Input = ({label, type, fieldState, handleValueChange, handleBlur, showMessage}) => {
 
-  let msg = fieldState.getMessage();
+  let msg = showMessage ? fieldState.getMessage() : null;
 
-  if (fieldState.isValidating() && !fieldState.isMessageVisible()) {
+  if (fieldState.isValidating() && !fieldState.isBlurred() && !fieldState.isSubmitted()) {
     msg = null;
   }
 
@@ -395,7 +386,7 @@ const Input = ({label, type, fieldState, handleValueChange, showValidationMessag
         type={type || 'text'}
         value={fieldState.getValue()}
         onChange={e => handleValueChange(e.target.value)}
-        onBlur={showValidationMessage}
+        onBlur={handleBlur}
         />
       <span className='help'>
         {msg}

@@ -1,24 +1,30 @@
 # Criticisms of react-formstate
 
-### Not driven by a declarative schema or otherwise exclusively data-driven
-
-Nope. It doesn't do everything for you out of the box.
-
-### Does not automate submitting status for you
-
-Nope. You decide how to use your submit handler.
-
-### No form-wide validation block
-
-Nope. Not sure it would simplify things or support more use cases, but [it can be added](https://github.com/dtrelogan/react-formstate/issues/9).
-
-### Does not include a library of input components
+### It does not include a library of input components
 
 Nope. Never will.
 
+### It is not driven by a declarative schema or otherwise exclusively data-driven
+
+Nope. It doesn't do everything for you out of the box. (But it also doesn't box you in.)
+
+### It does not provide special support for reusing validation server-side
+
+Nope. Seems a bridge too far.
+
+### It does not automate submitting status for you
+
+Nope. You decide how to use your submit handler.
+
+### There is no form-wide validation feature
+
+Nope. A form-wide validation block would not support additional use cases. IMHO, it [adds more complexity than it's worth](https://github.com/dtrelogan/react-formstate/issues/9).
+
+If a strong case can be made for it actually simplifying code, it's easy to add.
+
 ### Uses 'new' rather than factory pattern
 
-Could be missing something, but in a duck-typed language, isn't this effectively factory pattern?
+In a duck-typed language, isn't this effectively factory pattern?
 
 ```es6
 import { FormState } from 'react-formstate';
@@ -26,70 +32,80 @@ import { FormState } from 'react-formstate';
 this.formState = new FormState(this);
 ```
 
-### Not pure functional programming
+The react-formstate library could be changed to spit out anything that implements the API, right?
 
-Nope. I have a tremendous amount of respect for FP. I think an imperative UnitOfWork class that mutates data presents no risk and is easier to use for its limited intended purpose.
+### It does not embody pure functional programming
 
-### fieldState and formState props are not pure objects
+Nope. It uses a mishmash of styles, just like React. (React uses class inheritance!)
 
-Nope. They are class instances. This might be out of style, but keep in mind that React uses class inheritance.
+I really like FP, but I think an imperative UnitOfWork class that mutates data presents no risk and is easier to use for its limited intended purpose.
 
-### Implicit initialization
+### fieldState prop is not a pure object
 
-react-formstate favors implicit initialization. For the vast majority of use cases, avoiding explicit initialization saves time and effort:
+Nope. FieldState is a class, so the fieldState prop is a class instance. It is what it is. (Note that it's read-only.)
+
+The only downside I can think of is that it makes it awkward to override fieldState properties:
 
 ```jsx
-// with react-formstate you can avoid doing this
-// initialize a bunch of empty strings to make HTML inputs happy
-initialModel = { firstName: '', lastName: '', address: { line1: '', line2: '', line3: '', city: '', zip: '' } ... };
-```
-
-But there are trade-offs:
-
-#### String coercion
-
-To support implicit initialization, react-formstate coerces initial values to strings by default. In the normal case this will save you time - including when you are injecting an existing model from your database - but it does add some complexity.
-
-#### Using an unsubmitted model
-
-If you explicitly initialize a model, you can make that model available to the rest of your application while the user manipulates the form, updating it upon each update to form state:
-
-```es6
-{
-  'formState.firstName': { value: 'Huckle', validity: 1 },
-  'formState.lastName': { value: '', validity: 2, message: 'Last Name is required'},
-  // this could be made available to other parts of your application prior to form submission
-  model: { firstName: 'Huckle', lastName: '' }
+export default ({fieldState, value, ...other}) => {
+  // can't think of why you'd want to do this but...
+  <input value={value !== undefined ? value : fieldState.getValue()} ... />
 }
 ```
 
-There are caveats, however.
+### Form fields are not always one-to-one with the backing form state
 
-Upon valid submission, you often have to transform your model back to a slightly different format before submitting to your database. It's unclear if you'd want to do that for a transient, unsubmitted model.
+Nope. Generally, the model should be generated from the form and not the other way around.
 
-Along the same lines, it seems odd to want to use a library like react-formstate for this purpose. react-formstate adds the most value for validated forms. If your model requires validation prior to a submit, it's unclear why you'd want to make an invalid model available to the rest of your application. If your model does not require validation prior to a submit, it should be easy enough to write the form in raw React.
+### Implicit initialization
 
-That being said, if you want to get react-formstate involved, you can. See the [redux example](/docs/reduxIntegration.md).
+react-formstate steers you toward implicit initialization. For the vast majority of use cases, avoiding explicit initialization saves time and effort:
+
+```es6
+// With react-formstate you can do this:
+initialModel = {};
+// instead of this:
+initialModel = {
+  firstName: '',
+  lastName: '',
+  address: {
+    line1: '',
+    line2: '',
+    line3: '',
+    city: '',
+    zip: ''
+  }
+  //...
+};
+```
+
+Of course, you can still do explicit initialization with react-formstate (see an example [here](https://dtrelogan.github.io/react-formstate-demo/?form=dependentsRedux)), but to support implicit initialization, some trade-offs have been made:
+
+#### String coercion
+
+react-formstate coerces initial values to strings by default. In the normal case this can save you time, but it does add a little complexity.
+
+#### Flattening the injected model causes extraneous field states to be injected
+
+Yup. Again, usually this saves work. If it's causing performance issues in an edge case, you can use the 'doNotFlatten' option in 'injectField'.
 
 #### Form-wide isPristine function
 
-This requires explicit initialization. Upon every update to form state you could then do a "deep equals" between the initial model and the current model.
-
-react-formstate doesn't provide any support for this other than giving you the ability to create the current model upon each update (see the [redux example](/docs/reduxIntegration.md)). You'd have to do the "deep equals" against your initial model.
+Since react-formstate doesn't require explicit initialization, it doesn't provide special support for this feature. If you need this, you can do explicit initialization, store the initial model in state, and perform a "deep equals" between the initial model and the [current model](/docs/reduxIntegration.md#unsubmittedModel) at the start of each render. Since the semantics of "deep equals" might vary between use cases, it might be better for you to control this anyway.
 
 #### No "clear form" function
 
-Also requires explicit initialization. While react-formstate doesn't provide direct support for this, it's easy to provide a function to reset the form:
+While react-formstate doesn't provide direct support for this, it's easy to provide a function to reset the form:
 
 ```jsx
 <SomeForm
-  key={this.state.formKey}
-  clearForm={() => this.setState({formKey: createANewFormKey()})}
+  key={this.state.formId}
+  clearForm={() => this.setState({formId: uuid()})}
   model={theInitialModel}
   />
 ```
 
-You have to do something along these lines anyway if the user navigates from '/users/10/edit' to '/users/create'.
+You have to do something along these lines anyway if the user navigates directly from '/users/10/edit' to '/users/create'.
 
 &nbsp;
 
@@ -106,5 +122,7 @@ context.set('someMetaStateVariable', someValue);
 context.set('anotherMetaStateVariable', someOtherValue);
 context.updateFormState();
 // ...
-this.props.formState.getu('someMetaStateVariable');
+if (this.props.formState.getu('someMetaStateVariable')) {
+  // special behavior...
+}
 ```

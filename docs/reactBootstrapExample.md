@@ -8,7 +8,24 @@ The vanilla [React-Bootstrap](https://react-bootstrap.github.io/) input:
 import React from 'react';
 import { FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 
-export default ({className, controlId, validationState, type, label, value, help, onChange, onBlur, placeholder, disabled, autoFocus, autoComplete, showFeedback}) => {
+export default (props) => {
+
+  const {
+    className,
+    controlId,
+    validationState,
+    type,
+    label,
+    value,
+    help,
+    onChange,
+    onBlur,
+    placeholder,
+    disabled,
+    autoFocus,
+    autoComplete,
+    showFeedback
+  } = props;
 
   return (
     <FormGroup
@@ -34,21 +51,36 @@ export default ({className, controlId, validationState, type, label, value, help
 };
 ```
 
-The react-formstate component shim (shows messages onChange):
+The react-formstate layer:
 
 ```jsx
 import React from 'react';
 import BootstrapInput from './BootstrapInput.jsx';
 
-export default ({className, required, fieldState, handleValueChange, ...other}) => {
+export default (props) => {
 
-  let validationState = null;
+  const {
+    className,
+    required,
+    fieldState,
+    handleValueChange,
+    handleBlur,
+    showMessage,
+    formState,
+    ...other
+  } = props;
 
-  if (fieldState.isValid()) {
-    validationState = fieldState.get('warn') ? 'warning' : 'success';
+  let validationState = null, help = null;
+
+  if (showMessage) {
+    if (fieldState.isValid()) {
+      validationState = fieldState.get('warn') ? 'warning' : 'success';
+    }
+    else if (fieldState.isValidating()) {validationState = 'warning';}
+    else if (fieldState.isInvalid()) {validationState = 'error';}
+
+    help = fieldState.getMessage();
   }
-  else if (fieldState.isValidating()) {validationState = 'warning';}
-  else if (fieldState.isInvalid()) {validationState = 'error';}
 
   return (
     <BootstrapInput
@@ -56,8 +88,9 @@ export default ({className, required, fieldState, handleValueChange, ...other}) 
       controlId={fieldState.getKey()}
       validationState={validationState}
       value={fieldState.getValue()}
+      help={help}
       onChange={e => handleValueChange(e.target.value)}
-      help={fieldState.getMessage()}
+      onBlur={handleBlur}
       {...other}
       />
   );

@@ -18,10 +18,6 @@ export default class UserForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  originalUsername() {
-    return this.props.model && this.props.model.username;
-  }
-
   render() {
     let submitMessage = null, disabled = false;
 
@@ -65,9 +61,8 @@ export default class UserForm extends Component {
       return;
     } // else
 
-    if (username === this.originalUsername()) {
-      fieldState.setValid('Verified');
-      fieldState.showMessage(); // if normally waiting until onBlur
+    if (username === fieldState.getInitialValue()) {
+      fieldState.setValid();
       context.updateFormState();
       return;
     } // else
@@ -110,6 +105,4 @@ export default class UserForm extends Component {
 
 ## Alternative approaches
 
-The onChange approach above is simple and arguably provides the best user experience. It is completely compatible with showing the validation message on blur if that is your preference.
-
-If you are nevertheless compelled to perform asynchronous validation during your onSubmit handler, or during your onBlur handler, you can, but react-formstate intentionally does not streamline support for it. Some cursory examples are provided [here](/docs/asyncAlternatives.md).
+If you need to prioritize saving calls to your server, you can alternatively perform asynchronous validation during your onSubmit handler, or during your onBlur handler. Some cursory examples are provided [here](/docs/asyncAlternatives.md).

@@ -3,6 +3,8 @@
 
 Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=dependents).
 
+A different working example using explicit initialization [here](https://dtrelogan.github.io/react-formstate-demo/?form=dependentsRedux).
+
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form, FormArray } from 'react-formstate';

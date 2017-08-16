@@ -169,7 +169,7 @@ FormState.registerValidation('minLength', function(value, label, minLength) {
 });
 ```
 
-Then you could remove the validateUsername function from your form component and do this instead:
+Then you could remove the validateUsername function from your form component and do this instead (or you could use the fluent API documented below):
 
 ```jsx
 <Input formField='username' label='Username' required validate={['noSpaces',['minLength',4]]} />
@@ -209,7 +209,7 @@ Note you can selectively tailor:
 
 ### fsValidate
 
-A registered validation also receives the following syntax, accessible through 'fsValidate':
+You can also use a registered validation through a fluent API, accessible through 'fsValidate':
 
 ```jsx
 <Input
@@ -229,25 +229,6 @@ Tailoring messages is optional and 'fsv' is an abbreviation for 'fsValidate':
 ```jsx
 <Input fsv={v => v.min(25).max(1000)} />
 ```
-
-Like functions accessed through 'validate', 'fsValidate' functions can be autowired and are also passed context and field:
-
-```jsx
-fsValidatePassword(fsv, context, field) {
-  context.getFieldState('passwordConfirmation').setValue('');
-  return fsv.minLength(8).msg(`${field.label} must be at least 8 characters`);
-}
-
-fsValidatePasswordConfirmation(fsv, context) {
-  if (fsv.value !== context.getFieldState('password').getValue()) { return 'Passwords do not match'; }
-  // alternatively
-  return fsv.equals(context.getFieldState('password').getValue()).msg('Passwords do not match');
-}
-```
-
-You may have noticed that fsValidate functions can return either an 'fsv' object or a string.
-
-Enjoy!
 
 ### asynchronous validation
 

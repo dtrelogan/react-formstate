@@ -89,7 +89,7 @@ constructor(props) {
 }
 ```
 
-The 'injectField' method can help with initialization.
+'injectField' can also be used to inject initial values:
 
 ```es6
 constructor(props) {

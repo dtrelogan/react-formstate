@@ -10,7 +10,7 @@ react-formstate should be compatible with most architectures. The only dependenc
 
 ## Simple
 
-Form state is stored in your root form component and managed through a simple API. You control every aspect of your form.
+Form state is managed through a simple API. You control every aspect of your form. (It's not a form controller served up in decorator pattern.)
 
 ## Clean
 
@@ -68,4 +68,4 @@ handlePasswordChange(newPassword) {
 
 ## Straightforward
 
-It is essentially building a form using raw React and one-way binding... minus the busy work.
+It is essentially building a form using raw React... minus the busy work.

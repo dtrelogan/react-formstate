@@ -15,24 +15,30 @@
 - [FieldState](#FieldState)
   - [get](#FieldState.get)
   - [getField](#FieldState.getField)
+  - [getInitialValue](#FieldState.getInitialValue)
   - [getKey](#FieldState.getKey)
   - [getMessage](#FieldState.getMessage)
   - [getName](#FieldState.getName)
   - [getValue](#FieldState.getValue)
+  - [getUncoercedInitialValue](#FieldState.getUncoercedInitialValue)
   - [getUncoercedValue](#FieldState.getUncoercedValue)
+  - [isChanged](#FieldState.isChanged)
+  - [isBlurred](#FieldState.isBlurred)
   - [isInvalid](#FieldState.isInvalid)
-  - [isMessageVisible](#FieldState.isMessageVisible)
+  - [isMessageVisibleOn](#FieldState.isMessageVisibleOn)
+  - [isSubmitted](#FieldState.isSubmitted)
   - [isUploading](#FieldState.isUploading)
   - [isValid](#FieldState.isValid)
   - [isValidated](#FieldState.isValidated)
   - [isValidating](#FieldState.isValidating)
   - [set](#FieldState.set)
+  - [setBlurred](#FieldState.setBlurred)
   - [setInvalid](#FieldState.setInvalid)
+  - [setSubmitted](#FieldState.setSubmitted)
   - [setUploading](#FieldState.setUploading)
   - [setValid](#FieldState.setValid)
   - [setValidating](#FieldState.setValidating)
   - [setValue](#FieldState.setValue)
-  - [showMessage](#FieldState.showMessage)
   - [validate](#FieldState.validate)
 - [Form](#Form)
 - [FormArray](#FormObject)
@@ -46,11 +52,12 @@
   - [registerValidation](#FormState.registerValidation)
   - [setRequired](#FormState.setRequired)
   - [setEnsureValidationOnBlur](#FormState.setEnsureValidationOnBlur)
-  - [setShowMessageOnBlur](#FormState.setShowMessageOnBlur)
-  - [setShowMessageOnSubmit](#FormState.setShowMessageOnSubmit)
   - [ensureValidationOnBlur](#FormState.ensureValidationOnBlur)
-  - [showMessageOnBlur](#FormState.showMessageOnBlur)
-  - [showMessageOnSubmit](#FormState.showMessageOnSubmit)
+  - [showMessageOn](#FormState.showMessageOn)
+  - [showingMessageOn](#FormState.showingMessageOn)
+  - [showingMessageOnChange](#FormState.showingMessageOnChange)
+  - [showingMessageOnBlur](#FormState.showingMessageOnBlur)
+  - [showingMessageOnSubmit](#FormState.showingMessageOnSubmit)
   - [constructor](#FormState.constructor)
   - [anyFieldState](#FormState.anyFieldState)
   - [createUnitOfWork](#FormState.createUnitOfWork)
@@ -82,8 +89,14 @@
   - [Field.handlerBindFunction](#Field.handlerBindFunction)
   - [Field.updateFormState](#Field.updateFormState)
   - [FieldState.equals](#FieldState.equals)
+  - [FieldState.isMessageVisible](#FieldState.isMessageVisible)
+  - [FieldState.showMessage](#FieldState.showMessage)
   - [FieldState.setCoercedValue](#FieldState.setCoercedValue)
   - [FormState.add](#FormState.add)
+  - [FormState.setShowMessageOnBlur](#FormState.setShowMessageOnBlur)
+  - [FormState.setShowMessageOnSubmit](#FormState.setShowMessageOnSubmit)
+  - [FormState.showMessageOnBlur](#FormState.showMessageOnBlur)
+  - [FormState.showMessageOnSubmit](#FormState.showMessageOnSubmit)
   - [UnitOfWork.add](#UnitOfWork.add)
   - [UnitOfWork.setc](#UnitOfWork.setc)
 
@@ -198,13 +211,17 @@ revalidateOnSubmit should *not* be added to fields that perform asynchronous val
 
 ## <a name='FieldState'>FieldState</a>
 
-a field state is essentially a collection of the following properties:
+a field state is an object that may contain the following properties:
 
 - value
+- initialValue
 - validity (1 = valid, 2 = invalid, 3 = validating, undefined or null = unvalidated)
 - message
 - asyncToken
-- isMessageVisible (for showing messages [on blur](/docs/onBlurExample.md))
+- changed
+- blurred
+- submitted
+- (other custom properties)
 
 ### <a name='FieldState.get'>string get(string propertyName)</a>
 
@@ -223,6 +240,10 @@ returns the [Field](#Field) associated with the field state, if there is one.
 let field = fieldState.getField();
 fieldState.setValidating(`Verifying ${field.label}`);
 ```
+
+### <a name='FieldState.getInitialValue'>? getInitialValue()</a>
+
+returns the initial value set during injection or the first time the field is changed.
 
 ### <a name='FieldState.getKey'>string getKey()</a>
 
@@ -266,6 +287,10 @@ return v.toString();
 
 you can override this behavior with [getUncoercedValue](#FieldState.getUncoercedValue)
 
+### <a name='FieldState.getUncoercedInitialValue'>? getUncoercedInitialValue()</a>
+
+this is a real edge case. if you are trying to obtain an initial value in the render method and you need to retrieve the value without coercion.
+
 ### <a name='FieldState.getUncoercedValue'>? getUncoercedValue()</a>
 
 bypasses string coercion, see [getValue](#FieldState.getValue)
@@ -283,11 +308,38 @@ assert(true, fieldState.getUncoercedValue() === 3);
 see the [get and set helpers example](/docs/getSetHelpers.md)
 and the [react-datepicker example](/docs/datePickerExample.md)
 
+### <a name='FieldState.isChanged'>boolean isChanged()</a>
+
+### <a name='FieldState.isBlurred'>boolean isBlurred()</a>
+
 ### <a name='FieldState.isInvalid'>boolean isInvalid()</a>
 
-### <a name='FieldState.isMessageVisible'>boolean isMessageVisible()</a>
+### <a name='FieldState.isMessageVisibleOn'>boolean isMessageVisibleOn()</a>
 
-see the [on blur](/docs/onBlurExample.md) example
+intended to be used like this
+
+```es6
+const msg = fieldState.isMessageVisibleOn('blur') ? fieldState.getMessage() : null;
+```
+
+or
+
+```es6
+fieldState.isMessageVisibleOn(formState.showingMessageOn())
+```
+
+here's the code
+
+```es6
+isMessageVisibleOn(showMessageOn) {
+  const { changed, blurred, submitted } = this.fieldState;
+  if (showMessageOn === 'submit') { return Boolean(submitted); }
+  if (showMessageOn === 'blur') { return Boolean(blurred || submitted); }
+  return Boolean(changed || blurred || submitted);
+}
+```
+
+### <a name='FieldState.isSubmitted'>boolean isSubmitted()</a>
 
 ### <a name='FieldState.isUploading'>boolean isUploading()</a>
 
@@ -306,7 +358,13 @@ fieldState.set('warn', true);
 assert.equal(true, true === fieldState.get('warn'));
 ```
 
+### <a name='FieldState.setBlurred'>FieldState setBlurred()</a>
+
 ### <a name='FieldState.setInvalid'>FieldState setInvalid(string message)</a>
+
+### <a name='FieldState.setSubmitted'>FieldState setSubmitted()</a>
+
+### <a name='FieldState.setUploading'>FieldState setUploading(string message)</a>
 
 ### <a name='FieldState.setValid'>FieldState setValid(string message)</a>
 
@@ -325,9 +383,9 @@ validateAsync().then((result) => {
 });
 ```
 
-### <a name='FieldState.setUploading'>FieldState setUploading(string message)</a>
-
 ### <a name='FieldState.setValue'>FieldState setValue(string message)</a>
+
+Sets a value, marks the record changed, and if there was no injected value, stores the initial value.
 
 ```es6
 let context = this.formState.createUnitOfWork();
@@ -336,10 +394,6 @@ fieldState.setValue(3);
 assert(true, fieldState.getValue() === '3');
 assert(true, fieldState.getUncoercedValue() === 3);
 ```
-
-### <a name='FieldState.showMessage'>FieldState showMessage()</a>
-
-see the [on blur](/docs/onBlurExample.md) example
 
 ### <a name='FieldState.validate'>FieldState validate()</a>
 
@@ -552,12 +606,14 @@ FormObjects and FormArrays are essentially property generators. for a nested "fo
 
 - label: a label modified by an optional labelPrefix (see [above](#labelPrefix))
 - fieldState: a [FieldState](#FieldState) contains props useful to an input component
+- showMessage: whether the fieldState's associated message is meant to be shown
 - handleValueChange: the new change handler that takes a value parameter rather than an event
-- showValidationMessage: an optional onBlur handler
+- handleBlur: an optional onBlur handler
 - formState: the relevant formState object
 
-the following deprecated prop is also passed:
+the following deprecated props are also passed:
 
+- showValidationMessage: the old name for the blur handler.
 - updateFormState: the DEPRECATED onChange handler for your input component (takes an event parameter)
 
 note: for asynchronous validation you must override the handleValueChange handler. see an example [here](/docs/asyncExample.md)
@@ -576,22 +632,16 @@ similar to FormObject. see [FormExtension](/docs/formExtension.md) for an explan
 
 ### <a name='FormState.rfsProps'>static object rfsProps</a>
 
-This might be built out more in the future, but for now it's primarily a utility for suppressing react-formstate props that would otherwise propagate to an input component tagged with 'formField'. For example, react-formstate prevents noTrim and preferNull from being passed as props to the Input component below:
-
-```jsx
-<Input formField='description' required validate={this.validateDescription} noTrim preferNull/>
-```
-
-Here are the standard settings:
-
 ```es6
 FormState.rfsProps = {
   formState: { suppress: false },
   fieldState: { suppress: false },
   handleValueChange: { suppress: false },
-  showValidationMessage: { suppress: false },
+  handleBlur: { suppress: false },
+  showMessage: { suppress: false },
   required: { suppress: false },
   label: { suppress: false },
+  showValidationMessage: { suppress: false }, // deprecated ... reverse compatibility
   updateFormState: { suppress: false }, // deprecated ... reverse compatibility
   // suppressed
   formField: { suppress: true },
@@ -606,20 +656,22 @@ FormState.rfsProps = {
   revalidateOnSubmit: { suppress: true },
   handlerBindFunction: { suppress: true },
   validationMessages: { suppress: true },
-  msgs: { suppress: true }
+  msgs: { suppress: true },
+  showMessageOn: { suppress: true }
 };
 ```
 
-The deprecated *updateFormState* prop is passed by default for backward compatibility. If you want, you can stop this property from being passed by doing the following:
+You can [rename](/docs/renameProps.md) some of the standard props if you wish.
+
+You can suppress react-formstate props that would otherwise propagate to an input component tagged with 'formField'. The deprecated *updateFormState* and *showValidationMessage* props are passed by default for backward compatibility. If you want, you can stop these properties from being passed by doing the following:
 
 ```es6
 import { FormState } from 'react-formstate';
 FormState.rfsProps.updateFormState.suppress = true;
+FormState.rfsProps.showValidationMessage.suppress = true;
 ```
 
 You can suppress or unsuppress other props if you'd like.
-
-You can also [rename](/docs/renameProps.md) some of the standard props if you wish.
 
 ### <a name="FormState.registerValidation">static void registerValidation(string name, function validationHandler)</a>
 
@@ -648,15 +700,16 @@ FormState.setRequired(function(value, label) {
 ```
 
 ### <a name="FormState.setEnsureValidationOnBlur">static void setEnsureValidationOnBlur(boolean)</a>
-### <a name="FormState.setShowMessageOnBlur">static void setShowMessageOnBlur(boolean)</a>
-### <a name="FormState.setShowMessageOnSubmit">static void setShowMessageOnSubmit(boolean)</a>
 ### <a name="FormState.ensureValidationOnBlur">static boolean ensureValidationOnBlur()</a>
-### <a name="FormState.showMessageOnBlur">static boolean showMessageOnBlur()</a>
-### <a name="FormState.showMessageOnSubmit">static boolean showMessageOnSubmit()</a>
+### <a name="FormState.showMessageOn">static void showMessageOn(string)</a>
+### <a name="FormState.showingMessageOn">static string showingMessageOn()</a>
+### <a name="FormState.showingMessageOnChange">static boolean showingMessageOnChange()</a>
+### <a name="FormState.showingMessageOnBlur">static boolean showingMessageOnBlur()</a>
+### <a name="FormState.showingMessageOnSubmit">static boolean showingMessageOnSubmit()</a>
 
 and non-static versions...
 
-see the [onCreate, onBlur, onSubmit documentation](/docs/onBlurExample.md)
+see [showing messages](/docs/showingMessages.md)
 
 ### <a name="FormState.constructor">constructor(React.Component formComponent, optional function stateFunction, optional function setStateFunction)</a>
 
@@ -691,7 +744,7 @@ let isTheFormWaitingOnSomething = this.formState.anyFieldState(fi => Boolean(fi.
 // ... might need to disable submit and provide an explanatory message
 ```
 
-### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork()</a>
+### <a name="FormState.createUnitOfWork">FormState.UnitOfWork createUnitOfWork(object updatesToClone)</a>
 
 creates a [UnitOfWork](#UnitOfWork) "context" for making changes to immutable form state.
 
@@ -705,6 +758,8 @@ handleUsernameChange(e) {
   context.updateFormState();
 }
 ```
+
+you can optionally pass updatesToClone to create a clean workspace with the pending form state. this is useful for generating an unsubmitted model without side effects on the initial context. see the [Redux example](/docs/reduxIntegration.md).
 
 ### <a name="FormState.inject">void inject(object state, object model, boolean doNotFlatten)</a>
 
@@ -733,6 +788,8 @@ see [injectField](#FormState.injectField) for an explanation of the doNotFlatten
 ### <a name="FormState.injectField">void injectField(object state, string name, ? value, boolean doNotFlatten)</a>
 
 adds a value directly to your form state, or updates an existing value.
+
+sets the initial value for the field state.
 
 this helps to transform injected form state since it is tricky to transform an immutable props.model prior to injection:
 
@@ -811,6 +868,8 @@ this.formState.injectField(this.state, 'someDate', moment(), true);
 
 initializes form state. values will be [coerced](#FieldState.getValue) to strings by default.
 
+sets the initial value for each injected field.
+
 see [injectField](#FormState.injectField) for an explanation of the doNotFlatten parameter.
 
 ```es6
@@ -846,13 +905,13 @@ render() {
         // ...
 ```
 
-### <a name="FormState.isInvalid">boolean isInvalid(boolean visibleMessagesOnly)</a>
+### <a name="FormState.isInvalid">boolean isInvalid(boolean brokenVisibleMessagesOnlyParameter)</a>
 
 determines whether to show a form-level validation message, or disable the submit button, etc.
 
-if you are showing validation messages on blur or on submit pass 'true' to this function.
+a better name for this method would be 'isVisiblyInvalid'.
 
-if you use [setShowMessageOnBlur](#FormState.setShowMessageOnBlur) or [setShowMessageOnSubmit](#FormState.setShowMessageOnSubmit), it will automatically check only for visible messages.
+if you want to see if ANY field state is invalid (not just visibly invalid) explicitly pass false to this method. if you are looking for that functionality you might be more interested in [UnitOfWork.createModel](#UnitOfWork.createModel) or [UnitOfWork.createModelResult](#UnitOfWork.createModelResult)
 
 ```jsx
 <input type='submit' value='Submit' disabled={this.formState.isInvalid()} />
@@ -868,7 +927,7 @@ returns true if the form is waiting for an upload to finish.
 <span>{this.formState.isUploading() ? 'Uploading...' : null}</span>
 ```
 
-### <a name="FormState.isValidating">boolean isValidating(boolean visibleMessagesOnly)</a>
+### <a name="FormState.isValidating">boolean isValidating(boolean asyncValidateOnBlur)</a>
 
 returns true if the form is waiting for asynchronous validation to finish.
 
@@ -951,6 +1010,8 @@ If you are working with a formState prop in a nested form component, you can use
 
 ### <a name="UnitOfWork.createModel">object createModel(boolean noUpdate)</a>
 
+this calls [createModelResult](#UnitOfWork.createModelResult), passing { doTransforms: true, markSubmitted: true }, and if the result is invalid, by default calls setState to set the validation messages (which you can disable by passing true to this method), and returns the model if valid and null if invalid. it's a shortcut for what you typically want to do in an onSubmit handler.
+
 creates a model upon form submission.
 
 returns null if form state is invalid or if waiting on asynchronous validation or uploading.
@@ -997,19 +1058,20 @@ handleSubmit(e) {
 
 react-formstate can perform common transformations for you. see [noTrim](#Field.noTrim), [preferNull](#Field.preferNull), and [intConvert](#Field.intConvert)
 
-note that createModel is meant to run *synchronously*. if an asynchronous validation were triggered directly by a form submission, the user would have to hit the submit button again after validation completes. this is not seen as a limitation of react-formstate, however, as a field with an asynchronous validation is typically accompanied by a synchronous required field validation. maybe there is a legitimate use case that would suggest enhancement in this regard, but it is not currently understood by the author.
+note that createModel is meant to run *synchronously*.
 
 ### <a name="UnitOfWork.createModelResult">object createModelResult(object options)</a>
 
 Returns { model: generatedModel, isValid: whetherTheModelIsValid }
 
-The only option it takes is { doTransforms: defaultsToFalse }
+Options are { doTransforms: defaultsToFalse, markSubmitted: defaultsToFalse }
 
 It is different from [createModel](#UnitOfWork.createModel) in that
 
 - it will return an invalid model
 - it will never call setState.
 - by default it does not do transforms like intConvert (it's probably a bad idea to try to do transforms on an invalid model)
+- by default it does not set fieldstates as submitted.
 
 This is used to share an unsubmitted model with the rest of your application, see the [Redux example](/docs/reduxIntegration.md).
 
@@ -1236,13 +1298,34 @@ see [handleValueChange](/docs/handleValueChange.md) for why this is deprecated.
 
 this was intended to support React's 'shouldComponentUpdate' method, but making a calculation in that regard is more complicated than just comparing the fieldstate data. it is exceedingly difficult to write this method so that it meets the requirements of all the different ways it might be used. it is still in the code but now it always returns false.
 
+### <a name='FieldState.isMessageVisible'>boolean isMessageVisible()</a>
+
+replaced by the showMessage prop. see the [showing messages](/docs/showingMessages.md) example.
+
 ### <a name='FieldState.setCoercedValue'>void setCoercedValue(string message)</a>
 
-now simply calls [FieldState.setValue](#FieldState.setValue). see the [noCoercion example](/docs/datePickerExample.md) for context.
+now simply calls [setValue](#FieldState.setValue). see the [noCoercion example](/docs/datePickerExample.md) for context.
+
+### <a name='FieldState.showMessage'>FieldState showMessage()</a>
+
+replaced by [setBlurred](#FieldState.setBlurred) and [setSubmitted](#FieldState.setSubmitted). see the [showing messages](/docs/showingMessages.md) example.
 
 ### <a name="FormState.add">void add(object state, string name, ? value, boolean doNotFlatten)</a>
 
 replaced by [injectField](#FormState.injectField)
+
+### <a name="FormState.setShowMessageOnBlur">static void setShowMessageOnBlur(boolean)</a>
+### <a name="FormState.setShowMessageOnSubmit">static void setShowMessageOnSubmit(boolean)</a>
+
+replaced by [showMessageOn](#FormState.showMessageOn)
+
+### <a name="FormState.showMessageOnBlur">static boolean showMessageOnBlur()</a>
+
+replaced by [showingMessageOnBlur](#FormState.showingMessageOnBlur)
+
+### <a name="FormState.showMessageOnSubmit">static boolean showMessageOnSubmit()</a>
+
+replaced by [showingMessageOnSubmit](#FormState.showingMessageOnSubmit)
 
 ### <a name='UnitOfWork.add'>object add(string name, ? value, boolean doNotFlatten)</a>
 

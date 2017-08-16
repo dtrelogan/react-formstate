@@ -273,8 +273,6 @@ validatePassword(newPassword, context) {
 
 We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'injectField', 'updateFormState', and 'createModel'.
 
-It is worth mentioning that the 'injectField' method can also update data. The main difference between 'injectField' and 'set' is that 'injectField' can accept both objects and primitive types. This makes 'injectField' more powerful, but the 'set' method is used the vast majority of the time.
-
 Also important to note is that the 'updateFormState' method can receive additional updates to provide to the call to setState:
 
 ```es6
@@ -293,37 +291,6 @@ this.setState(Object.assign(context.getUpdates(), {someFlag: true, someOtherStat
 The 'createModel' method is worthy of its own section.
 
 ## UnitOfWork.createModel
-
-### Controlling the call to setState
-
-We've seen 'createModel' used like this:
-
-```es6
-handleSubmit(e) {
-  e.preventDefault();
-  const model = this.formState.createUnitOfWork().createModel();
-  if (model) {
-    alert(JSON.stringify(model)); // submit to your api or store or whatever
-  }
-}
-```
-
-but you can control the call to setState by passing true to 'createModel':
-
-```es6
-handleSubmit(e) {
-  e.preventDefault();
-  const context = this.formState.createUnitOfWork();
-  const model = context.createModel(true); // <--- pass true
-
-  if (model) {
-    alert(JSON.stringify(model)); // submit to your api or store or whatever
-  } else {
-    // do additional work...
-    context.updateFormState(withAdditionalUpdates); // <--- need to call this yourself now
-  }
-}
-```
 
 ### Transforms
 
@@ -359,6 +326,59 @@ handleSubmit(e) {
     // ...
   }
 }
+```
+
+### Controlling the call to setState
+
+We've seen 'createModel' used like this:
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const model = this.formState.createUnitOfWork().createModel();
+  if (model) {
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  }
+}
+```
+
+but you can control the call to setState by passing true to 'createModel':
+
+```es6
+handleSubmit(e) {
+  e.preventDefault();
+  const context = this.formState.createUnitOfWork();
+  const model = context.createModel(true); // <--- pass true
+
+  if (model) {
+    alert(JSON.stringify(model)); // submit to your api or store or whatever
+  } else {
+    // do additional work...
+    context.updateFormState(withAdditionalUpdates); // <--- need to call this yourself now
+  }
+}
+```
+
+### Retrieving an invalid model
+
+If you want to retrieve the current model regardless of whether it's valid, use the 'createModelResult' method:
+
+```es6
+// This will only work after the initial render.
+// Before the initial render you can use your initial model,
+// or you can delay injection until componentDidMount.
+
+// This will never call setState.
+
+const result = context.createModelResult();
+console.log(result.isValid);
+console.log(result.model);
+```
+
+```es6
+// Passing no options is the same as:
+const options = {doTransforms: false, markSubmitted: false};
+const result = context.createModelResult(options);
 ```
 
 ### Model output depends on rendered inputs

@@ -5,11 +5,17 @@
 
 ## An optimal productivity API for React forms
 
-react-formstate streamlines form components using plain old setState and one-way binding. It's like building a form in raw React... minus the busy work.
+react-formstate streamlines form components without imposing on your workflow. It relies almost exclusively on React's built-in support for one-way binding. In essence, it's a simple matter of auto-generating event handlers and allowing you to override them when necessary (as in, you surrender nothing in the bargain).
+
+It's as lightweight as you can get, yet it does everything you'd want.
+
+You can use it with setState or you can hook it up to Redux.
 
     $ npm install react-formstate --save
 
-It's a best-in-class solution with a focus on validation. **It will support your use case**, you can even [hook it up to Redux](/docs/reduxIntegration.md).
+Since react-formstate is essentially building a form in raw React, it will support your use case.
+
+It truly is the optimal API for React forms. The only thing it lacks is users. Maybe you can help with that?
 
 ### Demo
 
@@ -24,7 +30,7 @@ Validated react-bootstrap components: [react-formstate-demo](https://dtrelogan.g
 ### Features and examples
 
 - [Basic example](/docs/basicExample.md)
-- [Show messages onChange, onBlur, or onSubmit](/docs/onBlurExample.md)
+- [Show messages onChange, onBlur, or onSubmit](/docs/showingMessages.md)
 - [Validation](/docs/validationWiring.md)
 - [React-Bootstrap example](/docs/reactBootstrapExample.md)
 - [Checkbox, CheckboxGroup, RadioGroup, Select](/docs/otherInputTypes.md)
@@ -47,6 +53,7 @@ If you are adding validation to a [React form](https://facebook.github.io/react/
 
 - [Advantages of react-formstate](/docs/advantages.md)
 - [Criticisms of react-formstate](/docs/criticisms.md)
+- [v0.6.0 release notes](/docs/releaseNotes.0.6.0.md)
 - [v0.5.0 release notes](/docs/releaseNotes.0.5.0.md)
 - [API](/docs/api.md)
 - [React forms](https://facebook.github.io/react/docs/forms.html)

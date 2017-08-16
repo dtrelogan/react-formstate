@@ -2,9 +2,7 @@
 
 Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=otherinputs) using [React-Bootstrap](https://react-bootstrap.github.io/) components.
 
-This is only meant to demonstrate that react-formstate can work with these input types. react-formstate is NOT intended to be an input component library. That's what something like [React-Bootstrap](https://react-bootstrap.github.io/) is for.
-
-That being said, these templates should help beginners out a lot, and understanding how the onChange code works for the Select input and for the CheckboxGroup input is especially useful.
+Note that react-formstate is NOT intended to be an input component library. That's what something like [React-Bootstrap](https://react-bootstrap.github.io/) is for.
 
 ```es6
 import React, { Component } from 'react';
@@ -134,6 +132,10 @@ export default class UserForm extends Component {
 
 }
 ```
+
+&nbsp;
+
+You will probably want to convert these to stateless functional components and separate the components into a react-formstate layer and a layer independent of react-formstate layer. That exercise is beyond the scope of this document but you can refer to the [demo source code](https://github.com/dtrelogan/react-formstate-demo/tree/master/components/inputs) for ideas.
 
 ### Checkbox
 

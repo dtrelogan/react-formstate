@@ -2,7 +2,7 @@
 
 If you are persnickety (like me) and if you dislike the standard prop names (I have mixed feelings about some of them myself), you can rename them.
 
-For now, only five props can be renamed: *formField*, *fsv*, *fieldState*, *handleValueChange*, *showValidationMessage*
+For now, these are the props that can be renamed: *formField*, *fsv*, *fieldState*, *handleValueChange*, *handleBlur*, *showMessage*
 
 ```es6
 import { FormState } from 'react-formstate';
@@ -14,7 +14,8 @@ FormState.rfsProps.formField.name = 'fieldFor';
 FormState.rfsProps.fsv.name = 'fluentValidate';
 FormState.rfsProps.fieldState.name = 'fi';
 FormState.rfsProps.handleValueChange.name = 'setValue';
-FormState.rfsProps.showValidationMessage.name = 'setTouched';
+FormState.rfsProps.handleBlur.name = 'setTouched';
+FormState.rfsProps.showMessage.name = 'touched';
 ```
 
 ```jsx
@@ -27,11 +28,11 @@ FormState.rfsProps.showValidationMessage.name = 'setTouched';
 ```
 
 ```jsx
-export default ({fi, setValue, setTouched, ...other}) => {
+export default ({fi, setValue, setTouched, touched, ...other}) => {
   return (
     <Input
       value={fi.getValue()}
-      help={fi.getMessage()}
+      help={touched ? fi.getMessage() : null}
       onChange={e => setValue(e.target.value)}
       onBlur={setTouched}
       {...other}
