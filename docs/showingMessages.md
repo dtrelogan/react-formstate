@@ -117,7 +117,7 @@ customBlurHandler() {
   }
 
   fieldState.setBlurred();
-  fieldState.showMessage(); // for backward compatibility only
+  fieldState.showMessage(); // necessary for backward compatibility only
 
   context.updateFormState();
 }
