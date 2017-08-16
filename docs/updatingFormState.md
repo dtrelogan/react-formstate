@@ -273,7 +273,7 @@ validatePassword(newPassword, context) {
 
 We've already seen examples for using the following methods from the UnitOfWork API: 'getFieldState', 'get', 'getu', 'set', 'injectModel', 'injectField', 'updateFormState', and 'createModel'.
 
-Also important to note is that the 'updateFormState' method can receive additional updates to provide to the call to setState:
+A reminder that the 'updateFormState' method can receive additional updates to provide to the call to setState:
 
 ```es6
 context.updateFormState({someFlag: true, someOtherStateValue: 1});
@@ -282,9 +282,10 @@ if (this.state.someFlag)
 // ...
 ```
 
-Alternatively you could use the 'getUpdates' method to prepare a call to setState:
+You can also use the 'getUpdates' method to prepare a call to setState:
 
 ```es6
+// upateFormState is best practice, but you can also use getUpdates:
 this.setState(Object.assign(context.getUpdates(), {someFlag: true, someOtherStateValue: 1}));
 ```
 
@@ -365,7 +366,7 @@ If you want to retrieve the current model regardless of whether it's valid, use 
 
 ```es6
 // This will only work after the initial render.
-// Before the initial render you can use your initial model,
+// During the initial render you can use your initial model,
 // or you can delay injection until componentDidMount.
 
 // This will never call setState.
