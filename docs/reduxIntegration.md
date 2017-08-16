@@ -50,7 +50,7 @@ class SomeForm extends Component {
 
   updateState(updates) {
 +   // copy the pending form state updates into a clean work area
-+   const context = formState.createUnitOfWork(updates);
++   const context = this.formState.createUnitOfWork(updates);
 +
 +   // build a model based on the current form state
 +   const model = context.createModelResult().model;
