@@ -10,7 +10,7 @@ react-formstate should be compatible with most architectures. The only dependenc
 
 ## Simple
 
-Form state is managed through a simple API. You control every aspect of your form. (It's not a form controller served up in decorator pattern.)
+Form state is managed through a simple API. You control every aspect of your form. (It's not a closed form controller served up in decorator pattern where you can only configure the workflow through the options it makes available.)
 
 ## Clean
 
