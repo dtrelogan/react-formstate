@@ -15,7 +15,7 @@ You can use it with setState or you can hook it up to Redux.
 
 Since react-formstate is essentially building a form in raw React, it will support your use case.
 
-It truly is the optimal API for React forms. The only thing it lacks is users. Maybe you can help with that?
+It truly is an optimal API for React forms.
 
 ### Demo
 
