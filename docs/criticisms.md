@@ -108,21 +108,3 @@ While react-formstate doesn't provide direct support for this, it's easy to prov
 You have to do something along these lines anyway if the user navigates directly from '/users/10/edit' to '/users/create'.
 
 &nbsp;
-
-(Last, and least)
-
-### Nested form components must be stateless
-
-This is a trade-off against configuring form fields in JSX. You can piggyback on the FormState API to work around it (remember, since the generated model is based on the fields defined in your JSX, it doesn't hurt to store miscellaneous data in form state):
-
-```jsx
-// in your nested form component
-const context = this.props.formState.createUnitOfWork();
-context.set('someMetaStateVariable', someValue);
-context.set('anotherMetaStateVariable', someOtherValue);
-context.updateFormState();
-// ...
-if (this.props.formState.getu('someMetaStateVariable')) {
-  // special behavior...
-}
-```

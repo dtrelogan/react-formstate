@@ -1,10 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "An optimal productivity API for React forms",
+  "description": "A productivity API for React forms",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",
