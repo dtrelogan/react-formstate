@@ -7,8 +7,6 @@
 
 This is an active project despite the apparent lack of interest. If I felt there were a better solution to form validation in React, I would gladly point you to that solution.
 
-In the meantime, if a tree falls in the forest and no one is around to hear it, does it make a sound? Well... this is the sound of practically no one other than the author using this package. Does that mean it's not a good package?
-
     $ npm install react-formstate --save
 
 ### Demo
