@@ -108,3 +108,27 @@ While react-formstate doesn't provide direct support for this, it's easy to prov
 You have to do something along these lines anyway if the user navigates directly from '/users/10/edit' to '/users/create'.
 
 &nbsp;
+
+(Last, and least)
+
+### Nested form components should leave state management to the root form component
+
+Otherwise, how would 'this.formState.isInvalid()' or 'this.formState.isUploading()' work in the root form component?
+
+Furthermore, in the nested form component, 'this.props.formState.updateFormState({someMetaStateVariable: '...'})' sets 'someMetaStateVariable' in the state of the root form component, such that in the nested form component you cannot access the variable using 'this.state.someMetaStateVariable'.
+
+The best way to "work around" this is to piggyback on the FormState API (remember, since the generated model is based on the fields defined in your JSX, it doesn't hurt to store miscellaneous data in form state):
+
+```jsx
+// in your nested form component
+const context = this.props.formState.createUnitOfWork();
+context.set('someMetaStateVariable', someValue);
+context.set('anotherMetaStateVariable', someOtherValue);
+context.updateFormState();
+// ...
+if (this.props.formState.getu('someMetaStateVariable')) {
+  // special behavior...
+}
+```
+
+I can't think of how this might actually limit you, so I'm not sure this is actually a criticism, but it's a consequence of react-formstate's design that seems worth pointing out.
