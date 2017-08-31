@@ -36,7 +36,7 @@ The react-formstate library could be changed to spit out anything that implement
 
 ### It does not embody pure functional programming
 
-Nope. It uses a mishmash of styles, just like React. (React uses class inheritance!)
+Nope. It uses a mishmash of styles, just like React. (React uses class/prototype inheritance!)
 
 I really like FP, but I think an imperative UnitOfWork class that mutates data presents no risk and is easier to use for its limited intended purpose.
 
