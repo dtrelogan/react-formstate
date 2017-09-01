@@ -5,11 +5,9 @@
 
 ## Form validation in React
 
-### A blatant request for feedback
+### A blatant request for feedback/assistance
 
-After a year and a half on NPM, looking at overall downloads and GitHub stars, this package has received lukewarm response at best, and that's okay. The thing I get stuck on, is when I analyze this package and compare it to alternative packages, I keep coming up with a favorable picture of this one, which is why I threw so much into trying to make it accessible and available to the community. So I'm curious to understand, in the eyes of the React community, how this is coming up short. If you are willing to provide feedback [here](https://github.com/dtrelogan/react-formstate/issues/10), you'd be helping me out a great deal. Thanks.
-
-(To existing users, sorry for the undignified readme updates over the past day or so. It has reached a point where I really needed to shake things up. Thanks for your understanding.)
+After a year and a half on NPM, looking at overall downloads and GitHub stars, this package has received lukewarm response at best, which is fine, if it deserves it. The thing I get stuck on, is when I analyze this package and compare it to alternative packages, I keep coming up with a favorable picture of this one, which is why I threw so much into trying to make it accessible and available to the community. So I'm curious to understand, in the eyes of the React community, how this is coming up short. If you are willing to provide feedback [here](https://github.com/dtrelogan/react-formstate/issues/10), you'd be helping me out a great deal. Thanks.
 
 ### Setup
 
