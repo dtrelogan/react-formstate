@@ -12,7 +12,7 @@
     "pretest": "npm run build",
     "localtest": "mocha",
     "prelocaltest": "npm run build",
-    "prepublish": "npm run localtest"
+    "prepublishOnly": "npm run localtest"
   },
   "repository": {
     "type": "git",
