@@ -5,9 +5,7 @@
 
 ## Form validation in React
 
-### A blatant request for feedback/assistance
-
-After a year and a half on NPM, looking at overall downloads and GitHub stars, this package has received lukewarm response at best, which is fine, if it deserves it. The thing I get stuck on, is when I analyze this package and compare it to alternative packages, I keep coming up with a favorable picture of this one, which is why I threw so much into trying to make it accessible and available to the community. So I'm curious to understand, in the eyes of the React community, how this is coming up short. If you are willing to provide feedback [here](https://github.com/dtrelogan/react-formstate/issues/10), you'd be helping me out a great deal. Thanks.
+A productivity API for React forms.
 
 ### Setup
 
