@@ -107,4 +107,4 @@ A productivity API for React forms.
 
 # Sometimes you just have to laugh at yourself
 
-I have a stubborn conviction that I'm onto something pretty good with this package and I'd like to be proven right through user acceptance. I also have a stubborn resistance toward marketing this in any way, which causes me frustration. For a day or two there I forgot that the most important thing is happy users and trust. With that in mind, looking at my attempts to pitch this over time is pretty funny.
+I have a stubborn conviction that I'm onto something pretty good with this package and I'd like to be proven right through user acceptance. I also have a stubborn resistance toward marketing this in any way, which causes me frustration. For a day or two there I forgot that the most important thing is happy users and trust (I guess that's two things). With that in mind, looking at my attempts to pitch this over time is pretty funny.
