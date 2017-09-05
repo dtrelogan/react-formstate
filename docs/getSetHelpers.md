@@ -50,7 +50,7 @@ then, if you are using react-datepicker and injecting a model, you might have co
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = this.formState.injectModel(props.model);
 }
 

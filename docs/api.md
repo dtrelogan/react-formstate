@@ -58,7 +58,7 @@
   - [showingMessageOnChange](#FormState.showingMessageOnChange)
   - [showingMessageOnBlur](#FormState.showingMessageOnBlur)
   - [showingMessageOnSubmit](#FormState.showingMessageOnSubmit)
-  - [constructor](#FormState.constructor)
+  - [create](#FormState.create)
   - [anyFieldState](#FormState.anyFieldState)
   - [createUnitOfWork](#FormState.createUnitOfWork)
   - [inject](#FormState.inject)
@@ -711,11 +711,11 @@ and non-static versions...
 
 see [showing messages](/docs/showingMessages.md)
 
-### <a name="FormState.constructor">constructor(React.Component formComponent, optional function stateFunction, optional function setStateFunction)</a>
+### <a name="FormState.create">static FormState create(React.Component formComponent, optional function stateFunction, optional function setStateFunction)</a>
 
 creates a root form state instance.
 
-pass your root form component to the constructor to allow the form state instance to manipulate component state.
+pass your root form component to allow the form state instance to manipulate component state.
 
 ```es6
 import React, { Component } from 'react';
@@ -724,7 +724,7 @@ export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this); // invoke the constructor
+    this.formState = FormState.create(this); // create an instance of the API
     this.state = {};
   }
 
@@ -772,7 +772,7 @@ export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = {};
     this.formState.inject(this.state, props.model);
   }
@@ -879,7 +879,7 @@ export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
   }
 
@@ -1194,7 +1194,7 @@ if you need to inject outside your constructor you can use this
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 componentDidMount() {
@@ -1218,7 +1218,7 @@ if you need to inject outside your constructor you can use this
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 componentDidMount() {

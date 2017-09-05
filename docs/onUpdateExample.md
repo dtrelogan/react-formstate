@@ -2,6 +2,8 @@
 
 Working example [here](https://dtrelogan.github.io/react-formstate-demo/?form=login).
 
+(Note that while this is sufficient for most use cases, react-formstate could be improved by adding support for chained 'middleware' functions like you see in expressjs, redux, or java servlets. That would be an elegant solution to composing 'onChange' functionality added for the entire application, or for a particular form, or even for a nested form component. Maybe in a future enhancement.)
+
 ```es6
 import React, { Component } from 'react';
 import { FormState, Form } from 'react-formstate';
@@ -11,7 +13,7 @@ export default class LoginForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = {};
 
     // set a callback from the standard onChange handler

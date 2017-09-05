@@ -1157,6 +1157,11 @@ var FormState = exports.FormState = function () {
     value: function createValidator(value, label) {
       return new FormStateValidation(value, label);
     }
+  }, {
+    key: 'create',
+    value: function create(form, stateFunction, setStateFunction) {
+      return new FormState(form, stateFunction, setStateFunction);
+    }
   }]);
 
   function FormState(form, stateFunction, setStateFunction) {

@@ -45,7 +45,7 @@ export default class FormComponent extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     // Might need to "reverse coerce" a string to a moment here

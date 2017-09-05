@@ -51,7 +51,7 @@ You can alternatively load a provided model directly into your state. This is ge
 ```jsx
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
 
   this.state = this.formState.injectModel(props.model);
   this.formState.injectField(this.state, 'someOtherField', 'someValue');
@@ -85,7 +85,7 @@ If necessary you can alternatively use a unit of work for injection (a unit of w
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 componentDidMount() {

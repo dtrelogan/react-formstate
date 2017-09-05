@@ -16,7 +16,7 @@ export default class UserForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     let model = props.model || {};

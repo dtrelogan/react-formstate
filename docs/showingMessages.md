@@ -58,7 +58,7 @@ Overriding locally:
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
 
   // override global settings
   this.formState.showMessageOn('change');

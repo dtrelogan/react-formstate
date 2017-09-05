@@ -83,7 +83,7 @@ var createUserFormFixture = function(inject, doThrow) {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
 
       if (inject) {
         return this.formState.createUnitOfWork().injectModel(createTestModel());
@@ -178,7 +178,7 @@ var createUserContactsFormFixture = function(inject, backwards) {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
       if (inject) {
         var state = this.formState.createUnitOfWork().injectModel(createTestContactsModel());
         state.numContacts = 1;
@@ -231,7 +231,7 @@ var createMessageOverrideForm = function() {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
       return {};
     },
     validateCity: function() {},
@@ -305,7 +305,7 @@ var createExtendedUserFormFixture = function(throwFormExtensionError, stateWarni
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
       return {};
     },
     render: function() {
@@ -368,7 +368,7 @@ var createOverrideHandlerForm = function(inject, doThrow) {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
 
       if (inject) {
         return this.formState.createUnitOfWork().injectModel(createTestModel());
@@ -445,7 +445,7 @@ var createNoCoercionForm = function(inject, doThrow) {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
       return {};
     },
     render: function() {
@@ -492,7 +492,7 @@ var createSwallowPropsForm = function(inject, doThrow) {
   return createReactClass({
     getInitialState: function() {
       testForm = this;
-      this.formState = new FormState(this);
+      this.formState = FormState.create(this);
       return {};
     },
     render: function() {
@@ -952,13 +952,13 @@ describe('FormState', function() {
     });
     it('sets a stateFunction property', function() {
       const f = function() {return {}};
-      var fs = new FormState(this, f);
+      var fs = FormState.create(this, f);
       assert.equal(f, fs.stateFunction);
     });
     it('sets a setStateFunction property', function() {
       const f = function() {return {}};
       const g = function() {};
-      var fs = new FormState(this, f, g);
+      var fs = FormState.create(this, f, g);
       assert.equal(g, fs.setStateFunction);
     });
     it('sets a path property', function() {
@@ -982,7 +982,7 @@ describe('FormState', function() {
         wasCalled = true;
         return { 'formState.contact.email': { value: 'yay' } };
       }
-      const fs = new FormState(this, f);
+      const fs = FormState.create(this, f);
       const fieldState = fs.getFieldState('contact.email');
       assert.equal(true, wasCalled);
       assert.equal('yay', fieldState.getValue());
@@ -992,7 +992,7 @@ describe('FormState', function() {
       const f = function() {
         wasCalled = true;
       }
-      const fs = new FormState(this, f);
+      const fs = FormState.create(this, f);
       assert.equal(true, Object.keys(fs.getState()).length === 0);
       assert.equal(true, wasCalled);
     });

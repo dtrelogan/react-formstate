@@ -29,7 +29,7 @@ and this code:
 ```jsx
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 
@@ -52,7 +52,7 @@ However, in a more general sense, this is the equivalent code:
 ```jsx
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = this.formState.injectModel({name: '', country: 'USA'});
 }
 
@@ -83,7 +83,7 @@ It is generally more flexible and powerful to inject the initial form model dire
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   // the model to edit is supplied in props.model
   this.state = this.formState.injectModel(props.model);
 }
@@ -94,7 +94,7 @@ constructor(props) {
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = this.formState.injectModel(props.model);
 
   // If we are using the same form for CRUD 'creates' and 'updates',
@@ -118,7 +118,7 @@ If necessary, you can initialize form state outside of your constructor:
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 componentDidMount() {
@@ -169,7 +169,7 @@ export default class SimpleRfsForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
   }
 

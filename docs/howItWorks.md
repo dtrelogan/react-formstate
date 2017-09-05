@@ -23,7 +23,7 @@ you can inject it into your state.
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = this.formState.injectModel(props.model);
 
   this.onSubmit = this.onSubmit.bind(this);
@@ -35,7 +35,7 @@ constructor(props) {
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {};
 }
 componentDidMount() {
@@ -195,7 +195,7 @@ of course, you don't have to inject a model. when rendering an input or submitti
 ```es6
 constructor(props) {
   super(props);
-  this.formState = new FormState(this);
+  this.formState = FormState.create(this);
   this.state = {}; // no initial form state
 
   this.onSubmit = this.onSubmit.bind(this);

@@ -22,18 +22,6 @@ Nope. A form-wide validation block would not support additional use cases. IMHO,
 
 If a strong case can be made for it actually simplifying code, it's easy to add.
 
-### Uses 'new' rather than factory pattern
-
-In a duck-typed language, isn't this effectively factory pattern?
-
-```es6
-import { FormState } from 'react-formstate';
-// ...
-this.formState = new FormState(this);
-```
-
-The react-formstate library could be changed to spit out anything that implements the API, right?
-
 ### It does not embody pure functional programming
 
 Nope. It uses a mishmash of styles, just like React. (React uses class/prototype inheritance!)
@@ -106,6 +94,10 @@ While react-formstate doesn't provide direct support for this, it's easy to prov
 ```
 
 You have to do something along these lines anyway if the user navigates directly from '/users/10/edit' to '/users/create'.
+
+#### The bottom line
+
+To approximate pure "explicit initialization" in react-formstate, where the backing model isn't flattened into form state, and is kept available through the life of the form, you have to jump through the hoop of [createModelResult](/docs/reduxIntegration.md#unsubmittedModel). It works fine in practice, but, admittedly, react-formstate is not optimized for this use case. Instead, react-formstate is optimized for validated forms. If the model requires validation, you probably won't do anything with the model until after a valid submit. If the model doesn't require validation, it's probably simple enough to write the form in raw React...
 
 &nbsp;
 

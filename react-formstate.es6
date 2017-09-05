@@ -860,6 +860,10 @@ export class FormState {
     return new FormStateValidation(value, label);
   }
 
+  static create(form, stateFunction, setStateFunction) {
+    return new FormState(form, stateFunction, setStateFunction);
+  }
+
   constructor(form, stateFunction, setStateFunction) {
     this.form = form;
     this.stateFunction = stateFunction;

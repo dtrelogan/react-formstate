@@ -12,7 +12,7 @@ Or you could explicitly validate the username before submitting the model to you
 class UserForm extends Component {
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -114,7 +114,7 @@ const Input = ({label, type, fieldState, handleValueChange, handleBlur, showMess
 class Test extends Component {
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     this.formState.showMessageOn('blur');
@@ -234,7 +234,7 @@ note that react-formstate does not provide more streamlined support for this beh
 class Test extends Component {
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     this.formState.showMessageOn('blur');

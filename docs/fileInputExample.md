@@ -460,7 +460,7 @@ export default class AccountForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.accountForm.account);
 
     this.submit = this.submit.bind(this);

@@ -51,7 +51,7 @@ export default class ChangePasswordForm extends Component {
     // form fields configured in your JSX. It normally
     // assumes state is held in this.state, but you can configure
     // it to work with a state management solution like Redux.
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
 
     this.state = {};
 

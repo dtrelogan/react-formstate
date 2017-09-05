@@ -98,12 +98,12 @@ export default class SimpleRfsForm extends Component {
 
   constructor(props) {
     super(props);
-    
+
     // This is an instance of the API. It will bind to
     // form fields configured in your JSX. It normally
     // assumes state is held in this.state, but you can configure
     // it to work with a state management solution like Redux.
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
 
     // you only need to initialize values for non-empty fields
     // and you can do it in the jsx
@@ -259,7 +259,7 @@ export default class SimpleRfsForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = {};
 
     this.handleSubmit = this.handleSubmit.bind(this);

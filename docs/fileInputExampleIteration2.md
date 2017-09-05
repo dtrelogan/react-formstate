@@ -18,7 +18,7 @@ export default class FormComponent extends Component {
   constructor(props) {
     super(props);
 
-    this.formState = new FormState(this);
+    this.formState = FormState.create(this);
     this.state = this.formState.injectModel(props.model);
 
     this.submit = this.submit.bind(this);

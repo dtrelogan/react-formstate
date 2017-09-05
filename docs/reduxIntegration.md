@@ -12,7 +12,7 @@ class SomeForm extends Component {
     // you can provide functions to get and set the underlying state
     //
 
-    this.formState = new FormState(this, this.getState.bind(this), this.updateState.bind(this));
+    this.formState = FormState.create(this, this.getState.bind(this), this.updateState.bind(this));
   }
 
   getState() {
@@ -41,7 +41,7 @@ class SomeForm extends Component {
 
   constructor(props) {
     super(props);
-    this.formState = new FormState(this, this.getState.bind(this), this.updateState.bind(this));
+    this.formState = FormState.create(this, this.getState.bind(this), this.updateState.bind(this));
   }
 
   getState() {
