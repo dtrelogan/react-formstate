@@ -1,10 +1,10 @@
 {
   "name": "react-formstate",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
-  "description": "A straightforward approach to React forms; form validation in React via an encompassing productivity API",
+  "description": "An API to manage your form state... Supports form validation. Efficient form development with no substantive downside.",
   "main": "react-formstate.js",
   "scripts": {
     "build": "babel react-formstate.es6 -o react-formstate.js",

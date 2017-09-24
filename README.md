@@ -3,11 +3,13 @@
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
-## A straightforward approach to React forms
+## An API to manage your form state...
 
-Form validation in React via an encompassing productivity API.
+The original intent was DRY form validation in React. Turns out you have to build a productivity API to accommodate that.
 
-I've tried to pitch this [in many different ways](/docs/spiels.md) over the last year and a half, it's painfully comical.
+The advantage of react-formstate is it's not a form controller. It doesn't drive your workflow. The only trade-off you make in using it is learning how to manage your form state through the API. Other than that you retain total control over your form component, even as you maximize productivity, making it quite possibly the best form library for React. The only thing it's not optimal for is extremely rapid prototyping from scratch.
+
+Since early 2016, I've made the case for react-formstate [many different ways](/docs/spiels.md). For whatever reason, it hasn't attracted the herd, probably because I haven't publicized it and there are a zillion React form libraries on NPM. That being said, it is actively used in real enterprise projects, so if you are evaluating this, you can check that box.
 
 ### Setup
 
@@ -40,10 +42,6 @@ Validated react-bootstrap components: [react-formstate-demo](https://dtrelogan.g
 - [Arrays](/docs/arrayExample.md)
 - [The onUpdate callback](/docs/onUpdateExample.md)
 - [Redux integration](/docs/reduxIntegration.md)
-
-### Motivation
-
-If you are adding validation to a [React form](https://facebook.github.io/react/docs/forms.html) and you find yourself thinking - there must be a better way - that was the impetus behind react-formstate. Since React is all about responding to changes in component state, the key to a React-based solution is to provide an API to easily manage form state, specifically validation status. In doing so, you get productivity gains beyond validation. The end result is you keep your form components DRY. (In short, it's easy enough to build forms in raw React. Flexible form validation is the challenge.)
 
 ### Documentation
 

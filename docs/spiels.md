@@ -1,6 +1,6 @@
 # A history of spiels
 
-Hopefully this elicits more laughs than groans... and yes, I've actually tried all of these.
+In chronological order, and, yes, I've actually tried all of these...
 
 ## Spiel 1
 
@@ -57,6 +57,10 @@ If you have any feedback I am happy to hear it. Thanks.
 
 ## Spiel 6
 
+The most straightforward approach to form validation in React.
+
+## Spiel 7
+
 ### An optimal productivity API for React forms
 
 react-formstate streamlines form components using plain old setState and one-way binding. It's like building a form in raw React... minus the busy work.
@@ -65,7 +69,7 @@ react-formstate streamlines form components using plain old setState and one-way
 
 It's a best-in-class solution with a focus on validation. Short of command pattern, **it will support your use case**.
 
-## Spiel 7
+## Spiel 8
 
 ### An optimal productivity API for React forms
 
@@ -81,30 +85,42 @@ Since react-formstate is essentially building a form in raw React, it will suppo
 
 It truly is an optimal API for React forms.
 
-## Spiel 8 (The wheels come off for a day or two)
+## Spiel 9 (The wheels come off for a day or two)
 
 This project has failed to gain traction so I'm shutting it down.
 
 For maintenance and historical reference, see the old readme
 
-## Spiel 9 (Getting really ugly)
+## Spiel 10 (Getting really ugly)
 
 This is an active project despite the apparent lack of interest. If I felt there were a better solution to form validation in React, I would gladly point you to that solution.
 
 In the meantime, if a tree falls in the forest and no one is around to hear it, does it make a sound? Well... this is the sound of practically no one other than the author using this package. Does that mean it's not a good package?
 
-## Spiel 10 (Trying to pull it together)
+## Spiel 11 (Trying to pull it together)
 
 ## Form validation in React
 
 After a year and a half on NPM, looking at overall downloads and GitHub stars, this package has received lukewarm response at best, which is fine, if it deserves it. The thing I get stuck on, is when I analyze this package and compare it to alternative packages, I keep coming up with a favorable picture of this one, which is why I threw so much into trying to make it accessible and available to the community. So I'm curious to understand, in the eyes of the React community, how this is coming up short. If you are willing to provide feedback [here](https://github.com/dtrelogan/react-formstate/issues/10), you'd be helping me out a great deal. Thanks.
 
-## Spiel 11 (Realizing my outburst was a mistake)
+## Spiel 12 (Realizing my outburst was a mistake)
 
 ## Form validation in React
 
 A productivity API for React forms.
 
+## Spiel 13 (Back at it again)
+
+## A straightforward approach to React forms
+
+Form validation in React via an encompassing productivity API.
+
+I've tried to pitch this [in many different ways](/docs/spiels.md) over the last year and a half, it's painfully comical.
+
 # Sometimes you just have to laugh at yourself
 
-I have a stubborn conviction that I'm onto something pretty good with this package and I'd like to be proven right through user acceptance. I also have a stubborn resistance toward marketing this in any way, which causes me frustration. For a day or two there I forgot that the most important thing is happy users and trust (I guess that's two things). With that in mind, looking at my attempts to pitch this over time is pretty funny.
+Bad, right? Trying so hard to pitch this thing and then lashing out when it's not going as well as you'd hoped? Comical. The vast majority of my version patches have been readme updates.
+
+#### What am I looking to get out of this?
+
+I built react-formstate for sanity in my own projects. I decided to put react-formstate on NPM because I thought people would benefit from it. In return I'd get something I could put on my resume, and I'd feel like I'd given back to open source. I was hoping to be vindicated for the amount of time and effort I put into this by widespread user adoption, which hasn't exactly happened. But the sour grapes thing is simply unacceptable, particularly when this package has users and *has* gained adoption in the enterprise. I keep this around as a reminder to stay positive and not take things for granted.
