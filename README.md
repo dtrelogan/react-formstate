@@ -5,7 +5,7 @@
 
 ## An API to manage your form state...
 
-The original intent was DRY form validation in React. Turns out you have to build a productivity API to accommodate that.
+react-formstate is a comprehensive productivity API for React forms. The original intent was DRY form validation in React. Its design stemmed from that purpose.
 
 The advantage of react-formstate is it's not a form controller. It doesn't drive your workflow. The only trade-off you make in using it is learning how to manage your form state through the API. Other than that you retain total control over your form component, even as you maximize productivity, making it quite possibly the best form library for React. The only thing it's not optimal for is extremely rapid prototyping from scratch.
 
