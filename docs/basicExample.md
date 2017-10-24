@@ -26,8 +26,7 @@ const Input = ({label, type, value, help, onChange}) => {
 };
 
 
-// Decorate the input component to work with react-formstate.
-// This shows messages onChange.
+// A react-formstate adapter, showing messages onChange.
 //
 const RfsInput = ({fieldState, handleValueChange, ...other}) => {
   return (
