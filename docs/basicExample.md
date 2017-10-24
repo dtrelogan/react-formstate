@@ -26,9 +26,8 @@ const Input = ({label, type, value, help, onChange}) => {
 };
 
 
-// A component shim to transform props provided by react-formstate
-// to simple props for the vanilla Input component
-// (prop names are configurable)
+// Decorate the input component to work with react-formstate.
+// This shows messages onChange.
 //
 const RfsInput = ({fieldState, handleValueChange, ...other}) => {
   return (
