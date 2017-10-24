@@ -23,7 +23,7 @@ export default ({value, help, onChange, onBlur, type, label}) => {
 };
 ```
 
-## A decorated react-formstate input component:
+## A configurable react-formstate input component adapter:
 
 ```jsx
 export default ({fieldState, handleValueChange, handleBlur, showMessage, ...other}) => {
