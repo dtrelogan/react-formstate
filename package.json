@@ -1,6 +1,6 @@
 {
   "name": "react-formstate",
-  "version": "0.6.10",
+  "version": "0.6.11",
   "peerDependencies": {
     "react": ">=0.13.0"
   },
