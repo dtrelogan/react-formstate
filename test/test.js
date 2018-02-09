@@ -3489,7 +3489,7 @@ describe('FieldState', function() {
         context = fs.createUnitOfWork(),
         fieldState = context.getFieldState('name');
 
-      let wasCalled = false;
+      var wasCalled = false;
       fieldState.setValue = () => {
         wasCalled = true;
       }
@@ -5207,6 +5207,7 @@ describe('FormObject', function() {
       // ...
     });
     it('can configurably swallow rfs props for a formField component', function() {
+      console.log('FOR FUTURE REFERENCE, "can configurably swallow rfs props for a formField component" will generate a warning about a missing onChange handler...');
       try {
         FormState.rfsProps.updateFormState.suppress = true;
         var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
@@ -5304,9 +5305,34 @@ describe('FormObject', function() {
       }
     });
     it('retains key and ref for a formField component', function() {
-      var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
-      assert.equal(true, nameInput._reactInternalInstance._currentElement.key.endsWith('doesNameKeyGetRetained'));
-      assert.equal(true, nameInput._reactInternalInstance._currentElement.ref === refToNameInputFunction);
+
+      // FormObject.computeFilteredProps passes forward the key and ref props
+
+      var someInputRef;
+      var refFunction = function(c) { someInputRef = c; };
+      var child = { key: 'thisHasAKey', ref: refFunction, props: {}};
+      var computedProps = FormObject.computeFilteredProps(child, {});
+      assert.equal('thisHasAKey', computedProps.key);
+      assert.equal(true, computedProps.ref === refFunction);
+
+      // FormObject.computeFilteredProps is called during render
+
+      var savedFunction = FormObject.computeFilteredProps;
+      var wasCalled = false;
+      try {
+        FormObject.computeFilteredProps = function(x, y) {
+          if (x.props.formField === 'name') {
+            wasCalled = true;
+          }
+          return Object.assign({}, x.props, y);
+        };
+        var html = ReactDOMServer.renderToString(React.createElement(SwallowPropsForm));
+      }
+      finally {
+        FormObject.computeFilteredProps = savedFunction;
+      }
+
+      assert.equal(true, wasCalled);
     });
     it('throws assertion for nested FormObject unless name specified', function() {
       var f = function() {
@@ -5376,7 +5402,7 @@ describe('FormObject', function() {
 describe('Form', function() {
   describe('#render', function() {
     it('forwards form props to form element', function() {
-      let markup = ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
+      var markup = ReactDOMServer.renderToString(React.createElement(UserContactsFormEdit));
       assert.equal(true, markup.startsWith('<form id="testingAFormProp" '));
     });
   });

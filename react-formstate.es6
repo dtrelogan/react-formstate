@@ -297,18 +297,9 @@ export class FormObject extends Component {
     let result = null;
 
     if (swallowProps) {
-
-      const computedProps = {};
-
-      conditionallyAddProps(child.props, computedProps);
-      conditionallyAddProps(props, computedProps);
-
-      if (child.key) {computedProps.key = child.key;}
-      if (child.ref) {computedProps.ref = child.ref;}
-
       result = React.createElement(
         child.type,
-        computedProps,
+        this.constructor.computeFilteredProps(child, props),
         child.props.children && React.Children.map(child.props.children, this.addProps)
       );
     }
@@ -323,6 +314,19 @@ export class FormObject extends Component {
     this.formState = formState;
 
     return result;
+  }
+
+
+  static computeFilteredProps(child, props) {
+    const computedProps = {};
+
+    conditionallyAddProps(child.props, computedProps);
+    conditionallyAddProps(props, computedProps);
+
+    if (child.key) {computedProps.key = child.key;}
+    if (child.ref) {computedProps.ref = child.ref;}
+
+    return computedProps;
   }
 
 

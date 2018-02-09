@@ -375,20 +375,7 @@ var FormObject = exports.FormObject = function (_Component2) {
       var result = null;
 
       if (swallowProps) {
-
-        var computedProps = {};
-
-        conditionallyAddProps(child.props, computedProps);
-        conditionallyAddProps(props, computedProps);
-
-        if (child.key) {
-          computedProps.key = child.key;
-        }
-        if (child.ref) {
-          computedProps.ref = child.ref;
-        }
-
-        result = _react2.default.createElement(child.type, computedProps, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
+        result = _react2.default.createElement(child.type, this.constructor.computeFilteredProps(child, props), child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
       } else {
         result = _react2.default.cloneElement(child, props, child.props.children && _react2.default.Children.map(child.props.children, this.addProps));
       }
@@ -510,6 +497,23 @@ var FormObject = exports.FormObject = function (_Component2) {
       generatedProps[formState.constructor.rfsProps.showMessage.name] = props[formState.constructor.rfsProps.showMessage.name] || showMessage;
 
       return generatedProps;
+    }
+  }], [{
+    key: 'computeFilteredProps',
+    value: function computeFilteredProps(child, props) {
+      var computedProps = {};
+
+      conditionallyAddProps(child.props, computedProps);
+      conditionallyAddProps(props, computedProps);
+
+      if (child.key) {
+        computedProps.key = child.key;
+      }
+      if (child.ref) {
+        computedProps.ref = child.ref;
+      }
+
+      return computedProps;
     }
   }]);
 
