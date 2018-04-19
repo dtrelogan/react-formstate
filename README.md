@@ -12,7 +12,7 @@ react-formstate has two competing titles:
 
 The thing is, you can't have one without the other.
 
-The advantage of react-formstate is it's not a form controller. It doesn't drive your workflow. The only trade-off you make in using it is learning how to manage your form state through the API. Other than that you retain total control over your form component, even as you maximize productivity, making it quite possibly the best form library for React. The only thing it's not optimal for is extremely rapid prototyping from scratch.
+The advantage of react-formstate is it's not a form controller. It doesn't drive your workflow. The only trade-off you make in using it is learning how to manage your form state through the API. Other than that you retain total control over your form component, even as you maximize productivity. The only thing it's not optimal for is extremely rapid prototyping from scratch.
 
 react-formstate is actively used in real enterprise projects, so if you are evaluating this, you can check that box.
 
