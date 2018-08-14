@@ -938,7 +938,7 @@ if you are performing asynchronous validation on blur you can pass 'true' to thi
 <span>{this.formState.isValidating() ? 'Waiting for validation to finish...' : null}</span>
 ```
 
-### <a name="FormState.get">FieldState get(string name)<a/>
+### <a name="FormState.get">? get(string name)<a/>
 
 ```es6
 let value = this.formState.getFieldState('x').getValue();
@@ -965,7 +965,7 @@ if (fieldState.getValue() === 'success') {
 }
 ```
 
-### <a name="FormState.getu">FieldState getu(string name)<a/>
+### <a name="FormState.getu">? getu(string name)<a/>
 
 ```es6
 let value = this.formState.getFieldState('x').getUncoercedValue();
@@ -1075,7 +1075,7 @@ It is different from [createModel](#UnitOfWork.createModel) in that
 
 This is used to share an unsubmitted model with the rest of your application, see the [Redux example](/docs/reduxIntegration.md).
 
-### <a name="UnitOfWork.get">FieldState get(string name)<a/>
+### <a name="UnitOfWork.get">? get(string name)<a/>
 
 ```es6
 let context = this.formState.createUnitOfWork();
@@ -1124,7 +1124,7 @@ export default class Contact extends Component {
   }
 ```
 
-### <a name="UnitOfWork.getu">FieldState getu(string name)<a/>
+### <a name="UnitOfWork.getu">? getu(string name)<a/>
 
 ```es6
 let context = this.formState.createUnitOfWork();
