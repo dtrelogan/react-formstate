@@ -1,5 +1,13 @@
 # react-formstate
 
+> There is a new version of this package: [react-formstate-fp](https://github.com/dtrelogan/react-formstate-fp).
+>
+> react-formstate-fp is designed to work with React Hooks, and makes several other substantive improvements to react-formstate.
+>
+> react-formstate will continue to be maintained, but all new enhancements and improvements will be made to react-formstate-fp.
+>
+> Thank you to all who supported react-formstate. React Hooks forced the rewrite.
+
 [![Coverage Status](https://coveralls.io/repos/github/dtrelogan/react-formstate/badge.svg?branch=master)](https://coveralls.io/github/dtrelogan/react-formstate?branch=master)
 [![Build Status](https://travis-ci.org/dtrelogan/react-formstate.svg?branch=master)](https://travis-ci.org/dtrelogan/react-formstate)
 
